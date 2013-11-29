@@ -23,8 +23,8 @@ class dmenu(object):
 
     path_base = os.path.dirname(__file__)
     path_cache = path_base + '/cache.txt'
-    path_store = path_base + '/preferences.txt'
-    path_settings = path_base + '/configuration.txt'
+    path_preferences = path_base + '/preferences.txt'
+    path_configuration = path_base + '/configuration.txt'
 
     dmenu_args = ['dmenu']
     bin_terminal = 'xterm'
@@ -32,8 +32,8 @@ class dmenu(object):
     bin_webbrowser = 'firefox'
 
     plugins_loaded = False
-    settings = False
-    store = False
+    configuration = False
+    preferences = False
 
     def get_plugins(self, force=False):
         if force:
@@ -49,36 +49,36 @@ class dmenu(object):
                 try:
                     return json.load(f)
                 except:
-                    print "Error parsing settings from json file " + path
+                    print "Error parsing configuration from json file " + path
                     return False
         else:
             print 'Error opening json file ' + path
             print 'File does not exist'
             return False
 
-    def load_settings(self):
-        if self.settings == False:
-            self.settings = self.load_json(self.path_settings)
-            if self.settings == False:
-                self.settings = []
+    def load_configuration(self):
+        if self.configuration == False:
+            self.configuration = self.load_json(self.path_config)
+            if self.configuration == False:
+                self.configuration = []
 
-            if 'terminal' in self.settings:
-                self.bin_terminal = self.settings['terminal']
-            if 'filebrowser' in self.settings:
-                self.bin_filebrowser = self.settings['filebrowser']
-            if 'webbrowser' in self.settings:
-                self.bin_webbrowser = self.settings['webbrowser']
-            if 'dmenu_args' in self.settings:
-                self.dmenu_args = ['dmenu'] + self.settings['dmenu_args']
+            if 'terminal' in self.configuration:
+                self.bin_terminal = self.configuration['terminal']
+            if 'filebrowser' in self.configuration:
+                self.bin_filebrowser = self.configuration['filebrowser']
+            if 'webbrowser' in self.configuration:
+                self.bin_webbrowser = self.configuration['webbrowser']
+            if 'dmenu_args' in self.configuration:
+                self.dmenu_args = ['dmenu'] + self.configuration['dmenu_args']
 
-    def load_store(self):
-        if self.store == False:
-            store = self.load_json(self.path_store)
-            print store
-            if store != False:
-                self.store = store
+    def load_preferences(self):
+        if self.preferences == False:
+            preferences = self.load_json(self.path_preferences)
+            print preferences
+            if preferences != False:
+                self.preferences = preferences
             else:
-                self.store = []
+                self.preferences = []
 
 
     def connect_to(self, url):
@@ -93,7 +93,7 @@ class dmenu(object):
         return json.load(self.connect_to(url))
 
     def menu(self, items, prompt=None):
-        self.load_settings()
+        self.load_configuration()
 
         params = []
         params += self.dmenu_args
@@ -125,18 +125,18 @@ class dmenu(object):
 
     def open_url(self, url):
         print 'opening url: ' + url
-        self.load_settings()
+        self.load_configuration()
         os.system(self.bin_webbrowser + ' ' + url.replace(' ', '%20') + '&')
 
 
     def open_directory(self, path):
         print 'opening folder: ' + path
-        self.load_settings()
+        self.load_configuration()
         os.system(self.bin_filebrowser + ' "' + path + '"')
 
 
     def open_terminal(self, command, hold=False):
-        self.load_settings()
+        self.load_configuration()
         if hold:
             mid = ' -e sh -c "'
             command += '; echo \'\nCommand has finished!\n\nPress any key to close terminal\'; read var'
@@ -223,13 +223,13 @@ class dmenu(object):
 
     def cache_build(self, debug=False):
 
-        self.load_settings()
-        self.load_store()
+        self.load_configuration()
+        self.load_preferences()
 
 
         valid_extensions = []
-        if 'valid_extensions' in self.store:
-            for extension in self.store['valid_extensions']:
+        if 'valid_extensions' in self.preferences:
+            for extension in self.preferences['valid_extensions']:
                 if extension[0] != '.':
                     extension = '.' + extension
                 valid_extensions.append(extension)
@@ -249,8 +249,8 @@ class dmenu(object):
             print
 
         watch_folders = []
-        if 'watch_folders' in self.store:
-            watch_folders = self.store['watch_folders']
+        if 'watch_folders' in self.preferences:
+            watch_folders = self.preferences['watch_folders']
         watch_folders = map(lambda x: x.replace('~', os.path.expanduser('~')), watch_folders)
 
         if debug:
@@ -263,8 +263,8 @@ class dmenu(object):
         foldernames = []
 
         exclude_folders = []
-        if 'exclude_folders' in self.store:
-            exclude_folders = self.store['exclude_folders']
+        if 'exclude_folders' in self.preferences:
+            exclude_folders = self.preferences['exclude_folders']
         exclude_folders = map(lambda x: x.replace('~', os.path.expanduser('~')), exclude_folders)
 
         if debug:
@@ -297,8 +297,8 @@ class dmenu(object):
             print str(len(filenames)) + 'were found'
             print
 
-        if 'include_items' in self.store:
-            include_items = self.store['include_items']
+        if 'include_items' in self.preferences:
+            include_items = self.preferences['include_items']
         else:
             include_items = []
 
