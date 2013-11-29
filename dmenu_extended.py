@@ -2,11 +2,11 @@ import commands
 import sys
 import os
 import subprocess
-import numpy as np
 import json
+import urllib2
+import plugins
 
 def load_plugins():
-    import plugins
 
     plugins_loaded = []
 
@@ -14,7 +14,7 @@ def load_plugins():
         if plugin != '__init__':
             print 'Loading plugin: ' + plugin
             __import__('plugins.' + plugin)
-            exec('plugins_loaded.append(plugins.'+plugin+'.extension())')
+            exec('plugins_loaded.append({"filename": "' + plugin + '.py", "plugin": plugins.' + plugin + '.extension()})')
 
     return plugins_loaded
 
@@ -22,26 +22,17 @@ def load_plugins():
 class dmenu(object):
 
     path_base = os.path.dirname(__file__)
-    path_cache = path_base + '/cache.npy'
+    path_cache = path_base + '/cache.txt'
     path_store = path_base + '/store.txt'
     path_settings = path_base + '/settings.txt'
 
-    bin_dmenu = 'dmenu'
-    bin_terminal = 'urxvt'
-    bin_filebrowser = 'pcmanfm'
+    dmenu_args = ['dmenu']
+    bin_terminal = 'xterm'
+    bin_filebrowser = 'nautilus'
     bin_webbrowser = 'firefox'
 
     plugins_loaded = False
     settings = False
-
-    def __init__(self,
-                 terminal='urxvt',
-                 filebrowser='pcmanfm',
-                 webbrowser='firefox'):
-
-        self.bin_terminal = terminal
-        self.bin_filebrowser = filebrowser
-        self.bin_webbrowser = webbrowser
 
 
     def titleise(self, title):
@@ -50,58 +41,85 @@ class dmenu(object):
             out += '-'
         return ['', out, '']
 
-    def get_plugins(self):
-        if self.plugins_loaded == False:
+    def get_plugins(self, force=False):
+        if force:
+            reload(plugins)
+
+        if force or self.plugins_loaded == False:
             self.plugins_loaded = load_plugins()
         return self.plugins_loaded
 
 
     def load_settings(self):
-        with open(self.path_settings) as f:
-            try:
-                self.settings = json.load(f)
-            except:
-                print "Error parsing settings from json file"
-                sys.exit()
+        if self.settings == False:
+            with open(self.path_settings) as f:
+                try:
+                    self.settings = json.load(f)
+                except:
+                    print "Error parsing settings from json file"
+                    sys.exit()
 
-        return self.settings
+            if 'terminal' in self.settings:
+                self.bin_terminal = self.settings['terminal']
+            if 'filebrowser' in self.settings:
+                self.bin_filebrowser = self.settings['filebrowser']
+            if 'webbrowser' in self.settings:
+                self.bin_webbrowser = self.settings['webbrowser']
+            if 'dmenu_args' in self.settings:
+                self.dmenu_args = ['dmenu'] + self.settings['dmenu_args']
 
+    def connect_to(self, url):
+        request = urllib2.Request(url)
+        response = urllib2.urlopen(request)
+        return response
+
+    def download_text(self, url):
+        return self.connect_to(url).readlines()
+
+    def download_json(self, url):
+        return json.load(self.connect_to(url))
 
     def menu(self, items, prompt=False):
-        params = [
-            self.bin_dmenu,
-            "-b",
-            "-i",
-            "-nf",
-            "#888888",
-            "-nb",
-            "#1D1F21",
-            "-sf",
-            "#ffffff",
-            "-sb",
-            "#1D1F21",
-            "-fn",
-            "-*-terminus-medium-r-*-*-16-*-*-*-*-*-*-*",
-            "-l",
-            "30"]
+        self.load_settings()
+        params = self.dmenu_args
         if prompt:
             params.append("-p")
             params.append(prompt)
-
         p = subprocess.Popen(params, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-        out = p.communicate("\n".join(items))[0]
+        if type(items) == str:
+            out = p.communicate(items)[0]
+        else:
+            out = p.communicate("\n".join(items))[0]
         return out.strip('\n')
+
+
+    def select(self, items, prompt=False, numeric=False):
+        result = self.menu(items, prompt)
+        for index, item in enumerate(items):
+            if result.find(item) != -1:
+                if numeric:
+                    return index
+                else:
+                    return item
+        return -1
+
 
     def sort_shortest(self, items):
         return sorted(items, cmp=lambda x, y: len(x) - len(y))
 
+
     def open_url(self, url):
+        self.load_settings()
         os.system(self.bin_webbrowser + ' ' + url.replace(' ', '%20') + '&')
 
+
     def open_directory(self, path):
+        self.load_settings()
         os.system(self.bin_filebrowser + ' ' + path)
 
+
     def open_terminal(self, command, hold=False):
+        self.load_settings()
         if hold:
             mid = ' -e sh -c "'
             command += '; echo \'\nCommand has finished!\n\nPress any key to close terminal\'; read var'
@@ -110,11 +128,14 @@ class dmenu(object):
         full = self.bin_terminal + mid + command + '"'
         os.system(full)
 
+
     def open_file(self, path):
         os.system("xdg-open '" + path + "'")
 
+
     def execute(self, command):
         os.system(command + " &")
+
 
     def file_load(self, path):
         if os.path.isfile(path):
@@ -125,9 +146,11 @@ class dmenu(object):
 
         return map(lambda x: x.strip('\n'),out)
 
+
     def file_save(self, path, items):
         with open(path, 'w') as f:
             f.writelines(map(lambda x: x + '\n',items))
+
 
     def file_modify(self, path, item, add=True):
         tmp = file_load(path)
@@ -137,11 +160,14 @@ class dmenu(object):
             tmp.remove(item)
         self.file_save(path)
 
+    def cache_regenerate(self):
+        return self.cache_save(self.cache_build())
 
     def cache_save(self, items):
         try:
-            out = np.array(items, dtype='S 200')
-            out.tofile(self.path_cache)
+            with open(self.path_cache, 'w') as f:
+                for item in items:
+                    f.write(item+'\n')
             return 1
         except:
             import string
@@ -162,21 +188,32 @@ class dmenu(object):
                 print 'Performance affected while these items remain'
                 print 'This items have been excluded from cache'
                 print
-                out = np.array(tmp, dtype='S 200')
-                out.tofile(self.path_cache)
+                with open(self.path_cache, 'w') as f:
+                    for item in tmp:
+                        f.write(item+'\n')
                 return 2
             else:
                 print 'Unknown error saving data cache'
                 return 0
 
+    def cache_open(self):
+        try:
+            with open(self.path_cache, 'r') as f:
+                return f.read()
+        except:
+            return False
 
     def cache_load(self):
-        try:
-            out = np.fromfile(self.path_cache, dtype='S 200')
-        except:
+        cache = self.cache_open()
+        if cache == False:
             print 'Cache was not loaded'
-            out = self.cache_build()
-        return out
+            if self.cache_regenerate() == False:
+                self.menu(['Error caching data'])
+                sys.exit()
+            else:
+                cache = self.cache_open()
+
+        return cache
 
 
     def cache_build(self):
@@ -252,7 +289,7 @@ class dmenu(object):
         plugins = self.get_plugins()
         plugin_titles = []
         for plugin in plugins:
-            plugin_titles.append(plugin.title)
+            plugin_titles.append(plugin['plugin'].title)
 
         print 'plugins loaded:'
         print plugin_titles[:5]

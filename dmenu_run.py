@@ -1,16 +1,14 @@
 #! /usr/bin/python
 import dmenu_extended
-import time
+import os
+import sys
 
-start = time.time()
 
 def run():
 
     d = dmenu_extended.dmenu()
 
-
     cache = d.cache_load()
-    print str(time.time() - start) + ' seconds'
     out = d.menu(cache,'Open:')
 
     if len(out) > 0 and out[:3] != '---':
@@ -23,8 +21,8 @@ def run():
         plugins = dmenu_extended.load_plugins()
         plugin_hook = False
         for plugin in plugins:
-            if out[:len(plugin.title)] == plugin.title:
-                plugin_hook = plugin
+            if out[:len(plugin["plugin"].title)] == plugin["plugin"].title:
+                plugin_hook = plugin["plugin"]
 
         if plugin_hook != False:
             plugin_hook.run(out[:len(plugin_hook.title)])
@@ -42,9 +40,12 @@ def run():
         elif out[:7] == 'http://' or out[:8] == 'https://':
             f.open_url(out)
         elif out.find('/') != -1 and out.find(' ') == -1:
+            print 'here'
             if os.path.isdir(out):
+                print 'a ' + out
                 d.open_directory(out)
             else:
+                print 'b'
                 d.open_file(out)
         else:
             d.execute(out)

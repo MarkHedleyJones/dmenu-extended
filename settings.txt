@@ -9,11 +9,30 @@
         "gif",
         "php",
         "tex",
-        "lyx",
         "odf",
         "ods"
     ],
-    "watch_folders": [
-        "~/"
-    ]
+
+    "watch_folders": ["~/"],
+
+    "dmenu_args": [
+        "-b",
+        "-i",
+        "-nf",
+        "#888888",
+        "-nb",
+        "#1D1F21",
+        "-sf",
+        "#ffffff",
+        "-sb",
+        "#1D1F21",
+        "-fn",
+        "-*-terminus-medium-r-*-*-16-*-*-*-*-*-*-*",
+        "-l",
+        "30"
+    ],
+
+    "filebrowser": "nautilus",
+    "webbrowser": "firefox",
+    "terminal": "xterm"
 }
