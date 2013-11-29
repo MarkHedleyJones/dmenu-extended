@@ -1,0 +1,22 @@
+{
+    "valid_extensions": [
+        "py",
+        "svg",
+        "pdf",
+        "txt",
+        "png",
+        "jpg",
+        "gif",
+        "php",
+        "tex",
+        "odf",
+        "ods",
+        "avi"
+    ],
+
+    "watch_folders": ["~/"],
+
+    "exclude_folders": [],
+
+    "include_items": []
+}

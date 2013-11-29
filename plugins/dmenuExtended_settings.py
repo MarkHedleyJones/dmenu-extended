@@ -5,6 +5,7 @@ import os
 class extension(dmenu_extended.dmenu):
 
     items = ['Rebuild cache',
+             'Edit personal store',
              'Download new plugins',
              'Update dmenu-extended',
              'Remove existing plugins',
@@ -107,12 +108,14 @@ class extension(dmenu_extended.dmenu):
         if selectedIndex == 0:
             self.rebuild_cache()
         elif selectedIndex == 1:
-            self.download_plugins()
+            self.execute('xdg-open ' + self.path_base + '/store.txt')
         elif selectedIndex == 2:
-            self.update_dmenu_extended()
+            self.download_plugins()
         elif selectedIndex == 3:
-            self.remove_plugin()
+            self.update_dmenu_extended()
         elif selectedIndex == 4:
+            self.remove_plugin()
+        elif selectedIndex == 5:
             self.execute('xdg-open ' + self.path_base + '/settings.txt')
         else:
             sys.exit()

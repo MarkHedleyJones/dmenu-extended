@@ -11,11 +11,11 @@ def run():
     cache = d.cache_load()
     out = d.menu(cache,'Open:')
 
-    if len(out) > 0 and out[:3] != '---':
+    if len(out) > 0:
 
         # Check if the action should modify the store
         if out[0] == '+' or out[0] == '-':
-            file_modify(d.path_store, out[1:], True if out[0] == '+' else False)
+            d.file_modify(d.path_store, out[1:], True if out[0] == '+' else False)
 
         # Check if the action relates to a plugin
         plugins = dmenu_extended.load_plugins()

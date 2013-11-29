@@ -23,8 +23,8 @@ class dmenu(object):
 
     path_base = os.path.dirname(__file__)
     path_cache = path_base + '/cache.txt'
-    path_store = path_base + '/store.txt'
-    path_settings = path_base + '/settings.txt'
+    path_store = path_base + '/preferences.txt'
+    path_settings = path_base + '/configuration.txt'
 
     dmenu_args = ['dmenu']
     bin_terminal = 'xterm'
@@ -33,13 +33,7 @@ class dmenu(object):
 
     plugins_loaded = False
     settings = False
-
-
-    def titleise(self, title):
-        out =  '--- ' + title + ' '
-        for i in range(80 - len(title)):
-            out += '-'
-        return ['', out, '']
+    store = False
 
     def get_plugins(self, force=False):
         if force:
@@ -49,15 +43,24 @@ class dmenu(object):
             self.plugins_loaded = load_plugins()
         return self.plugins_loaded
 
+    def load_json(self, path):
+        if os.path.exists(path):
+            with open(path) as f:
+                try:
+                    return json.load(f)
+                except:
+                    print "Error parsing settings from json file " + path
+                    return False
+        else:
+            print 'Error opening json file ' + path
+            print 'File does not exist'
+            return False
 
     def load_settings(self):
         if self.settings == False:
-            with open(self.path_settings) as f:
-                try:
-                    self.settings = json.load(f)
-                except:
-                    print "Error parsing settings from json file"
-                    sys.exit()
+            self.settings = self.load_json(self.path_settings)
+            if self.settings == False:
+                self.settings = []
 
             if 'terminal' in self.settings:
                 self.bin_terminal = self.settings['terminal']
@@ -67,6 +70,16 @@ class dmenu(object):
                 self.bin_webbrowser = self.settings['webbrowser']
             if 'dmenu_args' in self.settings:
                 self.dmenu_args = ['dmenu'] + self.settings['dmenu_args']
+
+    def load_store(self):
+        if self.store == False:
+            store = self.load_json(self.path_store)
+            print store
+            if store != False:
+                self.store = store
+            else:
+                self.store = []
+
 
     def connect_to(self, url):
         request = urllib2.Request(url)
@@ -79,12 +92,14 @@ class dmenu(object):
     def download_json(self, url):
         return json.load(self.connect_to(url))
 
-    def menu(self, items, prompt=False):
+    def menu(self, items, prompt=None):
         self.load_settings()
-        params = self.dmenu_args
-        if prompt:
-            params.append("-p")
-            params.append(prompt)
+
+        params = []
+        params += self.dmenu_args
+        if prompt is not None:
+            params += ["-p", prompt]
+
         p = subprocess.Popen(params, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         if type(items) == str:
             out = p.communicate(items)[0]
@@ -139,29 +154,6 @@ class dmenu(object):
     def execute(self, command):
         os.system(command + " &")
 
-
-    def file_load(self, path):
-        if os.path.isfile(path):
-            with open(path, 'r') as f:
-                out = f.readlines()
-        else:
-            out = []
-
-        return map(lambda x: x.strip('\n'),out)
-
-
-    def file_save(self, path, items):
-        with open(path, 'w') as f:
-            f.writelines(map(lambda x: x + '\n',items))
-
-
-    def file_modify(self, path, item, add=True):
-        tmp = file_load(path)
-        if add:
-            tmp.append(item)
-        else:
-            tmp.remove(item)
-        self.file_save(path)
 
     def cache_regenerate(self):
         return self.cache_save(self.cache_build())
@@ -220,99 +212,119 @@ class dmenu(object):
 
     def scan_binaries(self, filter=False):
         out = []
-        for prog in commands.getoutput("dmenu_path").split("\n"):
+        for binary in subprocess.check_output("dmenu_path").split('\n'):
             if filter:
-                if os.path.exists('/usr/share/applications/' + prog + '.desktop'):
-                    if prog[:3] != 'gpk':
-                        out.append(prog)
+                if os.path.exists('/usr/share/applications/' + binary + '.desktop'):
+                    if binary[:3] != 'gpk':
+                        out.append(binary)
             else:
-                out.append(prog)
+                out.append(binary)
         return out
 
-    def cache_build(self):
+    def cache_build(self, debug=False):
 
         self.load_settings()
+        self.load_store()
 
-        tmp = self.settings['valid_extensions']
+
         valid_extensions = []
-        for ext in tmp:
-            ext = ext.strip()
-            if ext[0] != '.':
-                ext = '.' + ext
-            valid_extensions.append(ext)
+        if 'valid_extensions' in self.store:
+            for extension in self.store['valid_extensions']:
+                if extension[0] != '.':
+                    extension = '.' + extension
+                valid_extensions.append(extension)
 
-        print 'valid extensions:'
-        print valid_extensions[:5]
-        print str(len(valid_extensions)) + ' were loaded'
-        print
+        if debug:
+            print 'valid extensions:'
+            print valid_extensions[:5]
+            print str(len(valid_extensions)) + ' were loaded'
+            print
 
         binaries = self.scan_binaries(True)
 
-        print 'valid binaries:'
-        print binaries[:5]
-        print str(len(binaries)) + ' were loaded'
-        print
+        if debug:
+            print 'valid binaries:'
+            print binaries[:5]
+            print str(len(binaries)) + ' were loaded'
+            print
 
-        watch_folders = self.settings['watch_folders']
-
+        watch_folders = []
+        if 'watch_folders' in self.store:
+            watch_folders = self.store['watch_folders']
         watch_folders = map(lambda x: x.replace('~', os.path.expanduser('~')), watch_folders)
 
-
-        print 'watch folders:'
-        print watch_folders[:5]
-        print str(len(watch_folders)) + ' were loaded'
-        print
+        if debug:
+            print 'watch folders:'
+            print watch_folders[:5]
+            print str(len(watch_folders)) + ' were loaded'
+            print
 
         filenames = []
         foldernames = []
 
+        exclude_folders = []
+        if 'exclude_folders' in self.store:
+            exclude_folders = self.store['exclude_folders']
+        exclude_folders = map(lambda x: x.replace('~', os.path.expanduser('~')), exclude_folders)
+
+        if debug:
+            print 'excluded folders:'
+            print exclude_folders[:5]
+            print str(len(exclude_folders)) + ' exclude_folders were loaded'
+            print
+
         for watchdir in watch_folders:
             for root, dir , files in os.walk(watchdir):
-                if root.find('/.')  == -1 :
+                if root.find('/.')  == -1:
                     for name in files:
                         if not name.startswith('.'):
-                            if os.path.splitext(name)[1] in valid_extensions:
-                                filenames.append(os.path.join(root,name))
+                                if os.path.splitext(name)[1] in valid_extensions:
+                                    filenames.append(os.path.join(root,name))
                     for name in dir:
                         if not name.startswith('.'):
                             foldernames.append(os.path.join(root,name))
 
-        print 'folders found:'
-        print foldernames[:5]
-        print str(len(foldernames)) + 'were found'
-        print
+        foldernames = filter(lambda x: x not in exclude_folders, foldernames)
 
-        print 'files found:'
-        print filenames[:5]
-        print str(len(filenames)) + 'were found'
-        print
+        if debug:
+            print 'folders found:'
+            print foldernames[:5]
+            print str(len(foldernames)) + 'were found'
+            print
 
-        store = self.file_load(self.path_store)
+            print 'files found:'
+            print filenames[:5]
+            print str(len(filenames)) + 'were found'
+            print
 
-        print 'stored commands:'
-        print store[:5]
-        print str(len(store)) + ' commands were loaded'
-        print
+        if 'include_items' in self.store:
+            include_items = self.store['include_items']
+        else:
+            include_items = []
+
+        if debug:
+            print 'stored items:'
+            print include_items[:5]
+            print str(len(include_items)) + ' items were loaded'
+            print
 
         plugins = self.get_plugins()
         plugin_titles = []
         for plugin in plugins:
             plugin_titles.append(plugin['plugin'].title)
 
-        print 'plugins loaded:'
-        print plugin_titles[:5]
-        print str(len(plugin_titles)) + ' were loaded'
-        print
+        if debug:
+            print 'plugins loaded:'
+            print plugin_titles[:5]
+            print str(len(plugin_titles)) + ' were loaded'
+            print
 
-        user = self.sort_shortest(foldernames + filenames + store)
+        user = self.sort_shortest(foldernames + filenames + include_items)
         bins = self.sort_shortest(binaries)
         plugins = self.sort_shortest(plugin_titles)
 
-
         out = plugins
-        out += self.titleise('System binaries')
         out += bins
-        out += self.titleise('Indexed files/folders')
         out += user
 
         return out
