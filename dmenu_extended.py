@@ -58,7 +58,7 @@ class dmenu(object):
 
     def load_configuration(self):
         if self.configuration == False:
-            self.configuration = self.load_json(self.path_config)
+            self.configuration = self.load_json(self.path_configuration)
             if self.configuration == False:
                 self.configuration = []
 

@@ -13,9 +13,10 @@ def run():
 
     if len(out) > 0:
 
+        # Needs fixing
         # Check if the action should modify the store
-        if out[0] == '+' or out[0] == '-':
-            d.file_modify(d.path_store, out[1:], True if out[0] == '+' else False)
+        # if out[0] == '+' or out[0] == '-':
+        #     d.file_modify(d.path_store, out[1:], True if out[0] == '+' else False)
 
         # Check if the action relates to a plugin
         plugins = dmenu_extended.load_plugins()

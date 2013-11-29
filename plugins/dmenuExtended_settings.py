@@ -37,7 +37,7 @@ class extension(dmenu_extended.dmenu):
             elif cacheSizeChange > 0:
                 status = str(cacheSizeChange) + ' items were added'
             elif cacheSizeChange < 0:
-                status = str(cacheSizeChange) + ' items were removed'
+                status = str(abs(cacheSizeChange)) + ' items were removed'
             else:
                 status = 'No new items were added'
 
