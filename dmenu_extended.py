@@ -109,13 +109,15 @@ class dmenu(object):
 
 
     def open_url(self, url):
+        print 'opening url: ' + url
         self.load_settings()
         os.system(self.bin_webbrowser + ' ' + url.replace(' ', '%20') + '&')
 
 
     def open_directory(self, path):
+        print 'opening folder: ' + path
         self.load_settings()
-        os.system(self.bin_filebrowser + ' ' + path)
+        os.system(self.bin_filebrowser + ' "' + path + '"')
 
 
     def open_terminal(self, command, hold=False):
@@ -130,6 +132,7 @@ class dmenu(object):
 
 
     def open_file(self, path):
+        print "opening file: '" + path  + "'"
         os.system("xdg-open '" + path + "'")
 
 
@@ -215,6 +218,16 @@ class dmenu(object):
 
         return cache
 
+    def scan_binaries(self, filter=False):
+        out = []
+        for prog in commands.getoutput("dmenu_path").split("\n"):
+            if filter:
+                if os.path.exists('/usr/share/applications/' + prog + '.desktop'):
+                    if prog[:3] != 'gpk':
+                        out.append(prog)
+            else:
+                out.append(prog)
+        return out
 
     def cache_build(self):
 
@@ -233,12 +246,7 @@ class dmenu(object):
         print str(len(valid_extensions)) + ' were loaded'
         print
 
-        binaries = []
-
-        for prog in commands.getoutput("dmenu_path").split("\n"):
-            if os.path.exists('/usr/share/applications/' + prog + '.desktop'):
-                if prog[:3] != 'gpk':
-                    binaries.append(prog)
+        binaries = self.scan_binaries(True)
 
         print 'valid binaries:'
         print binaries[:5]

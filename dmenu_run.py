@@ -26,6 +26,7 @@ def run():
 
         if plugin_hook != False:
             plugin_hook.run(out[:len(plugin_hook.title)])
+
         elif out == "rebuild cache":
             result = d.cache_save(d.cache_build())
             if result == 0:
@@ -34,18 +35,25 @@ def run():
                 d.menu(['Issues encoundered while saving cache'])
             else:
                 d.menu(['Success'])
+
         elif out[0] == ';' or out[-1] == ';':
             for command in out.split('&&'):
                 d.open_terminal(command.replace(';',''))
+
         elif out[:7] == 'http://' or out[:8] == 'https://':
             f.open_url(out)
-        elif out.find('/') != -1 and out.find(' ') == -1:
-            print 'here'
+
+        elif out.find('/') != -1:
+
+            if out.find(' ') != -1:
+                parts = out.split(' ')
+                if parts[0] in d.scan_binaries():
+                    d.execute(out)
+                    sys.exit()
+
             if os.path.isdir(out):
-                print 'a ' + out
                 d.open_directory(out)
             else:
-                print 'b'
                 d.open_file(out)
         else:
             d.execute(out)
