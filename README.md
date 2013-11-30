@@ -23,7 +23,7 @@ Installation command to install dmenu on the most popular linux distributions ar
 
     sudo pacman -S dmenu
     
-Once installed, skip to Skip to [Installing dmenu-extended](https://github.com/markjones112358/dmenu-extended#installing-dmenu-extended-this-extension)
+Once installed, skip to Skip to [Installing dmenu-extended](#installing-dmenu-extended-this-extension)
     
 ### Option B: Installing dmenu from source
 
