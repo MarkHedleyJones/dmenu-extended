@@ -8,11 +8,10 @@ dmenu-extended requires that dmenu is installed. While dmenu-extended works with
 
 ### Downloading and installing dmenu 4.5
 
-Before executing the following commands make sure you have installed `build-essential` from your package manager.
-This can be done on Debian based systems (i.e. Ubuntu, Linux Mint) by executing `sudo apt-get install build-essential`.
+Before executing the following commands make sure you have installed `build-essential` and `libx11-dev` from your package manager.
+This can be done on Debian based systems (i.e. Ubuntu, Linux Mint) by executing `sudo apt-get install build-essential libx11-dev` in a terminal.
   
 Copy and paste the following block of code into your terminal to download and install dmenu 4.5
-  
   
     cd ~/Downloads && \
     wget http://dl.suckless.org/tools/dmenu-4.5.tar.gz && \
