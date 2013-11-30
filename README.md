@@ -6,7 +6,7 @@ An extension to dmenu for quickly opening files and folders.
 
 dmenu-extended requires that dmenu is installed. While dmenu-extended works with older versions of dmenu, it is recommended that you download and install the latest version of dmenu (as described below) to get fuzzy searching. Choose one of the following options to install dmenu
 
-*Which option is best?* - Install using your package manager first - you can update dmenu at any time without breaking anything. If you find that searching isn't as good as it could be (e.g. on Debian), download and install from source.
+*Which option is best?* - Install using your package manager first - you can update dmenu at any time without breaking anything. If you find that searching isn't as good as it could be (e.g. on Debian) download and install from source.
 
 ### Option 1: Installing dmenu from your package manager
 Installation command to install dmenu on the most popular linux distributions are:
