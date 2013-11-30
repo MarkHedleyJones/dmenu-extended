@@ -69,8 +69,9 @@ To install this extension, copy and execute the following commands in a terminal
     cd ~/.config/dmenu-extended/plugins && \
     wget https://gist.github.com/markjones112358/7700097/raw/dmenuExtended_settings.py && \
     dmenu_extended_build && \
-    echo "dmenu-extended settings plugin installed" && \
-    echo "Extension ready to use"
+    echo "" && \
+    echo "FINISHED: settings plugin installed" && \
+    echo "Extension will appear in dmenu-extended on next run"
 
 # Usage
 
