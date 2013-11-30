@@ -55,8 +55,20 @@ Download and extract this repository or copy and paste the following block of co
     unzip master.zip && \
     cd dmenu-extended-master && \
     sudo python setup.py install && \
+    dmenu_extended_run && \
     echo "dmenu-extended installation complete"
-    
+
+## Installing dmenu-extendedSettings (recommended)
+
+Installing this extra extension enables rebuilding the cache, easy access to configuration files, and the ability to download and remove plugins.
+
+To install this extension, copy and execute the following commands in a terminal
+
+    cd ~/.config/dmenu-extended/plugins && \
+    wget https://gist.github.com/markjones112358/7700097/raw/dmenuExtended_settings.py && \
+    dmenu_extended_run && \
+    echo "dmenu-extended settings plugin installed"
+
 # Usage
 
 Test that the new menu has been installed by running `dmenu_extended_run` from your terminal. **NOTE:** The first run will be slow as it is set to scan you home folder recursively to build the cache.
