@@ -1,9 +1,7 @@
-#! /usr/bin/python
+#! /usr/bin/env python
 # -*- coding: utf8 -*-
 import dmenu_extended
 import os
-import sys
-
 
 def run():
 
@@ -13,12 +11,6 @@ def run():
     out = d.menu(cache,'Open:')
 
     if len(out) > 0:
-
-        # Needs fixing
-        # Check if the action should modify the store
-        # if out[0] == '+' or out[0] == '-':
-        #     d.file_modify(d.path_store, out[1:], True if out[0] == '+' else False)
-
         # Check if the action relates to a plugin
         plugins = dmenu_extended.load_plugins()
         plugin_hook = False
@@ -51,17 +43,20 @@ def run():
             f.open_url(out)
 
         elif out.find('/') != -1:
-
             if out.find(' ') != -1:
                 parts = out.split(' ')
                 if parts[0] in d.scan_binaries():
                     d.execute(out)
-                    sys.exit()
-
-            if os.path.isdir(out):
-                d.open_directory(out)
+                else:
+                    if os.path.isdir(out):
+                        d.open_directory(out)
+                    else:
+                        d.open_file(out)
             else:
-                d.open_file(out)
+                if os.path.isdir(out):
+                    d.open_directory(out)
+                else:
+                    d.open_file(out)
         else:
             d.execute(out)
 

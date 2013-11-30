@@ -5,7 +5,86 @@ import os
 import subprocess
 import json
 import urllib2
+
+path_base = os.path.expanduser('~') + '/.config/dmenu-extended'
+
+
+def setup_user_files(path):
+
+    try:
+        os.makedirs(path + '/plugins')
+    except OSError:
+        print('Target directory already exists - overwriting contents')
+
+    default_config = {
+        "dmenu_args": [
+            "-b",
+            "-i",
+            "-nf",
+            "#888888",
+            "-nb",
+            "#1D1F21",
+            "-sf",
+            "#ffffff",
+            "-sb",
+            "#1D1F21",
+            "-fn",
+            "-*-terminus-medium-r-*-*-16-*-*-*-*-*-*-*",
+            "-l",
+            "30"
+        ],
+
+        "filebrowser": "nautilus",
+        "webbrowser": "firefox",
+        "terminal": "xterm",
+        "submenu_indicator": "* "
+    }
+
+    default_prefs = {
+        "valid_extensions": [
+            "py",
+            "svg",
+            "pdf",
+            "txt",
+            "png",
+            "jpg",
+            "gif",
+            "php",
+            "tex",
+            "odf",
+            "ods",
+            "avi"
+        ],
+
+        "watch_folders": ["~/"],
+
+        "exclude_folders": [],
+
+        "include_items": []
+    }
+
+
+    with open(path + '/configuration.txt','w') as f:
+        json.dump(default_config, f, sort_keys=True, indent=4)
+
+    with open(path + '/user_preferences.txt','w') as f:
+        json.dump(default_prefs, f, sort_keys=True, indent=4)
+
+    # Create package __init__
+    with open(path + '/plugins/__init__.py','w') as f:
+        f.write('import os\n')
+        f.write('import glob\n')
+        f.write('__all__ = [ os.path.basename(f)[:-3] for f in glob.glob(os.path.dirname(__file__)+"/*.py")]')
+
+
+if os.path.exists(path_base):
+    sys.path.append(path_base)
+else:
+    setup_user_files(path_base)
+    sys.path.append(path_base)
+
 import plugins
+
 
 def load_plugins():
 
@@ -22,7 +101,7 @@ def load_plugins():
 
 class dmenu(object):
 
-    path_base = os.path.dirname(__file__)
+    path_base = os.path.expanduser('~') + '/.config/dmenu-extended'
     path_cache = path_base + '/cache.txt'
     path_preferences = path_base + '/user_preferences.txt'
     path_configuration = path_base + '/configuration.txt'
@@ -38,12 +117,16 @@ class dmenu(object):
     configuration = False
     preferences = False
 
-    def get_plugins(self, force=False):
-        if force:
-            reload(plugins)
+    settings_loaded = False
 
-        if force or self.plugins_loaded == False:
+    def get_plugins(self, force=False):
+
+        if self.plugins_loaded == False:
             self.plugins_loaded = load_plugins()
+        elif force:
+            reload(plugins)
+            self.plugins_loaded = load_plugins()
+
         return self.plugins_loaded
 
     def load_json(self, path):
@@ -62,7 +145,6 @@ class dmenu(object):
     def save_json(self, path, items):
         with open(path, 'w') as f:
             json.dump(items, f, sort_keys=True, indent=4)
-        return
 
     def load_configuration(self):
         if self.configuration == False:
@@ -174,6 +256,7 @@ class dmenu(object):
 
 
     def cache_regenerate(self):
+        self.load_settings()
         return self.cache_save(self.cache_build())
 
     def cache_save(self, items):
@@ -246,11 +329,19 @@ class dmenu(object):
                 out.append(binary)
         return out
 
+    def load_settings(self):
+        if self.settings_loaded == False:
+            self.load_configuration()
+            self.load_preferences()
+
+            if self.preferences == [] and self.configuration == []:
+                self.setup_user_files()
+                self.load_configuration()
+                self.load_preferences()
+
+            self.settings_loaded = True
+
     def cache_build(self, debug=False):
-
-        self.load_configuration()
-        self.load_preferences()
-
 
         valid_extensions = []
         if 'valid_extensions' in self.preferences:
@@ -356,5 +447,3 @@ class dmenu(object):
         out += user
 
         return out
-
-
