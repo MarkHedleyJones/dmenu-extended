@@ -4,7 +4,7 @@ An extension to dmenu for quickly opening files and folders.
 
 ## Installation
 
-dmenu-extended requires that dmenu is installed. While dmenu-extended works with older versions of dmenu, it is recommended that you donwload and install the latest version of dmenu from http://tools.suckless.org/dmenu to get fuzzy searching.
+dmenu-extended requires that dmenu is installed. While dmenu-extended works with older versions of dmenu, it is recommended that you download and install the latest version of dmenu (as described below) to get fuzzy searching.
 
 ### Downloading and installing dmenu 4.5
 
