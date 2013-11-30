@@ -8,7 +8,7 @@ dmenu-extended requires that dmenu is installed. While dmenu-extended works with
 
 *Which option is best?* - Install using your package manager first - you can update dmenu at any time without breaking anything. If you find that searching isn't as good as it could be (e.g. on Debian) download and install from source.
 
-### Installing dmenu and suckless-tools from your package manager
+### Option A: Installing dmenu from your package manager
 Installation command to install dmenu on the most popular linux distributions are:
 
 #### Debian, Ubuntu, Linux-Mint
@@ -42,7 +42,7 @@ Then, copy and paste the following block of code into your terminal to download 
     sudo make install && \
     echo "dmenu has been installed"
   
-## Installing dmenu-extended
+## Installing dmenu-extended (this extension)
 
 Download and extract this repository or copy and paste the following block of code into your terminal.
 
@@ -54,3 +54,18 @@ Download and extract this repository or copy and paste the following block of co
     echo "dmenu-extended installation complete"
     
 ## Running
+
+Test that the new menu has been installed by running `dmenu_extended_run` from your terminal. **NOTE:** The first run will be slow as it is set to scan you home folder recursively to build the cache.
+
+The nicest way to enjoy dmenu-extended is to bind the command `dmenu_extended_run` to an easy to reach key-combination. The way in which you do this will be different depending on your desktop environment.
+
+### Ubuntu (Unity), Debian (Gnome)
+1. Open **System settings** -> **Keyboard** -> **Shortcuts**
+2. Click **Custom shortcuts** and then the **+** to add a new command
+3. Enter `dmenu-extended` as the name
+4. Enter `dmenu_extended_run` as the command and click apply
+5. Click next to the name of the bindind where it says *disabled*
+6. Press and release the desired combination of keys
+
+### Tiling window managers
+If you use a tiling window manager, you may already have a key-combination bound to launch dmenu (i.e. Ctrl+P). Edit your window managers configuration file to launch `dmenu_extended_run` instead.
