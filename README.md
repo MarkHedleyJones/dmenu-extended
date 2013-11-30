@@ -56,8 +56,9 @@ Download and extract this repository or copy and paste the following block of co
     cd dmenu-extended-master && \
     sudo python setup.py install && \
     dmenu_extended_build && \
-    echo "dmenu-extended installation complete" && \
-    echo "menu available by executing: dmenu_extended_run"
+    echo "" && \
+    echo "dmenu-extended installation complete!" && \
+    echo "execute: dmenu_extended_run"
 
 ## Installing dmenu-extendedSettings (recommended)
 
