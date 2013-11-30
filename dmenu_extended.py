@@ -420,8 +420,7 @@ class dmenu(object):
         filenames = []
         foldernames = []
 
-        sys.stdout.write('Scanning files and folders...')
-        print('This may take a while - please be patient')
+        sys.stdout.write('Scanning files and folders, this may take a while...')
 
         follow_simlinks = False
         try:
