@@ -320,7 +320,7 @@ class dmenu(object):
 
     def scan_binaries(self, filter=False):
         out = []
-        for binary in self.command_output("dmenu_path"):
+        for binary in self.command_output("ls /usr/bin"):
             if filter:
                 if os.path.exists('/usr/share/applications/' + binary + '.desktop'):
                     if binary[:3] != 'gpk':

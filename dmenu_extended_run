@@ -27,7 +27,7 @@ def run():
             plugin_hook.run(out[len(pluginTitle):])
 
         elif out == "rebuild cache":
-            result = d.cache_save(d.cache_build())
+            result = d.cache_regenerate()
             if result == 0:
                 d.menu(['Cache could not be saved'])
             elif result == 2:
