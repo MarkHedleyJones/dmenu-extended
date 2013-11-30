@@ -8,5 +8,5 @@ setup(name='dmenu_extended',
       author_email='markjones112358@gmail.com',
       url='https://github.com/markjones112358/dmenu-extended',
       py_modules=['dmenu_extended'],
-      data_files=[('/usr/bin', ['dmenu_extended_run'])]
+      data_files=[('/usr/bin', ['dmenu_extended_run', 'dmenu_extended_build'])]
       )

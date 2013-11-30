@@ -1,0 +1,11 @@
+#! /usr/bin/env python
+# -*- coding: utf8 -*-
+import dmenu_extended
+
+def run():
+    d = dmenu_extended.dmenu()
+    d.cache_regenerate()
+
+
+if __name__ == '__main__':
+    run()
