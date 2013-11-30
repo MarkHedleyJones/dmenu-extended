@@ -103,15 +103,11 @@ import plugins
 
 
 def load_plugins():
-
     plugins_loaded = []
-
     for plugin in plugins.__all__:
         if plugin != '__init__':
-            print('Loading plugin: ' + plugin)
             __import__('plugins.' + plugin)
             exec('plugins_loaded.append({"filename": "' + plugin + '.py", "plugin": plugins.' + plugin + '.extension()})')
-
     return plugins_loaded
 
 
@@ -277,9 +273,9 @@ class dmenu(object):
         os.system(command + extra)
 
 
-    def cache_regenerate(self):
+    def cache_regenerate(self, debug=False):
         self.load_settings()
-        return self.cache_save(self.cache_build())
+        return self.cache_save(self.cache_build(debug))
 
     def cache_save(self, items):
         try:
@@ -354,7 +350,7 @@ class dmenu(object):
     def cache_build(self, debug=False):
 
         print('')
-        print('Starting to build the cache')
+        print('Starting to build the cache:')
 
         sys.stdout.write('Loading the list of valid file extensions...')
         valid_extensions = []
@@ -366,7 +362,8 @@ class dmenu(object):
         print('Done!')
 
         if debug:
-            print('valid extensions:')
+            print('Valid extensions:')
+            sys.stdout.write('First 5 items: ')
             print(valid_extensions[:5])
             print(str(len(valid_extensions)) + ' loaded in total')
             print('')
@@ -383,7 +380,8 @@ class dmenu(object):
         print('Done!')
 
         if debug:
-            print('valid binaries:')
+            print('Valid binaries:')
+            sys.stdout.write('First 5 items: ')
             print(binaries[:5])
             print(str(len(binaries)) + ' loaded in total')
             print('')
@@ -396,7 +394,8 @@ class dmenu(object):
         print('Done!')
 
         if debug:
-            print('watch folders:')
+            print('Watch folders:')
+            sys.stdout.write('First 5 items: ')
             print(watch_folders[:5])
             print(str(len(watch_folders)) + ' loaded in total')
             print('')
@@ -412,7 +411,8 @@ class dmenu(object):
         print('Done!')
 
         if debug:
-            print('excluded folders:')
+            print('Excluded folders:')
+            sys.stdout.write('First 5 items: ')
             print(exclude_folders[:5])
             print(str(len(exclude_folders)) + ' exclude_folders loaded in total')
             print('')
@@ -420,14 +420,20 @@ class dmenu(object):
         filenames = []
         foldernames = []
 
-        sys.stdout.write('Scanning files and folders, this may take a while...')
-
         follow_simlinks = False
         try:
             if 'follow_simlinks' in self.preferences:
                 follow_simlinks = self.preferences['follow_simlinks']
         except:
             pass
+
+        if debug:
+            if follow_simlinks:
+                print('Indexing will not follow linked folders')
+            else:
+                print('Indexing will follow linked folders')
+
+        sys.stdout.write('Scanning files and folders, this may take a while...')
 
         for watchdir in watch_folders:
             for root, dir , files in os.walk(watchdir, followlinks=follow_simlinks):
@@ -445,12 +451,14 @@ class dmenu(object):
         print('Done!')
 
         if debug:
-            print('folders found:')
+            print('Folders found:')
+            sys.stdout.write('First 5 items: ')
             print(foldernames[:5])
             print(str(len(foldernames)) + ' found in total')
             print('')
 
-            print('files found:')
+            print('Files found:')
+            sys.stdout.write('First 5 items: ')
             print(filenames[:5])
             print(str(len(filenames)) + ' found in total')
             print('')
@@ -463,7 +471,8 @@ class dmenu(object):
         print('Done!')
 
         if debug:
-            print('stored items:')
+            print('Stored items:')
+            sys.stdout.write('First 5 items: ')
             print(include_items[:5])
             print(str(len(include_items)) + ' items loaded in total')
             print('')
@@ -479,7 +488,8 @@ class dmenu(object):
         print('Done!')
 
         if debug:
-            print('plugins loaded:')
+            print('Plugins loaded:')
+            sys.stdout.write('First 5 items: ')
             print(plugin_titles[:5])
             print(str(len(plugin_titles)) + ' loaded in total')
             print('')
@@ -495,4 +505,5 @@ class dmenu(object):
 
         print('Done!')
         print('Cache building has finished.')
+        print('')
         return out
