@@ -56,7 +56,9 @@ default_prefs = {
 
     "include_items": [],
 
-    "filter_binaries": True
+    "filter_binaries": True,
+
+    "follow_simlinks": False
 }
 
 def setup_user_files(path):
@@ -89,7 +91,9 @@ def setup_user_files(path):
         f.write('__all__ = [ os.path.basename(f)[:-3] for f in glob.glob(os.path.dirname(__file__)+"/*.py")]')
 
 
-if os.path.exists(path_base):
+if (os.path.exists(path_base + '/plugins') and
+    os.path.exists(path_base + '/configuration.txt') and
+    os.path.exists(path_base + '/user_preferences.txt')):
     sys.path.append(path_base)
 else:
     setup_user_files(path_base)
@@ -118,7 +122,7 @@ class dmenu(object):
     path_preferences = path_base + '/user_preferences.txt'
     path_configuration = path_base + '/configuration.txt'
 
-    dmenu_args = ['dmenu']
+    dmenu_args = False
     bin_terminal = 'xterm'
     bin_filebrowser = 'nautilus'
     bin_webbrowser = 'firefox'
@@ -130,6 +134,10 @@ class dmenu(object):
     preferences = False
 
     settings_loaded = False
+
+    def __init__(self, arguments=[]):
+        if arguments != []:
+            self.dmenu_args = ['dmenu'] + arguments
 
     def get_plugins(self, force=False):
 
@@ -154,36 +162,43 @@ class dmenu(object):
             print('File does not exist')
             return False
 
+
     def save_json(self, path, items):
         with open(path, 'w') as f:
             json.dump(items, f, sort_keys=True, indent=4)
 
-    def load_configuration(self):
-        if self.configuration == False:
-            self.configuration = self.load_json(self.path_configuration)
-            if self.configuration == False:
-                self.configuration = []
 
+    def load_configuration(self):
+        self.configuration = self.load_json(self.path_configuration)
+
+        if self.configuration == False:
+            self.open_file(path_base + '/configuration.txt')
+            sys.exit()
+        else:
+            if 'dmenu_args' in self.configuration and self.dmenu_args == False:
+                self.dmenu_args = ['dmenu'] + self.configuration['dmenu_args']
             if 'terminal' in self.configuration:
                 self.bin_terminal = self.configuration['terminal']
             if 'filebrowser' in self.configuration:
                 self.bin_filebrowser = self.configuration['filebrowser']
             if 'webbrowser' in self.configuration:
                 self.bin_webbrowser = self.configuration['webbrowser']
-            if 'dmenu_args' in self.configuration:
-                self.dmenu_args = ['dmenu'] + self.configuration['dmenu_args']
             if 'submenu_indicator' in self.configuration:
                 self.submenu_indicator = self.configuration['submenu_indicator']
             if 'filter_binaries' in self.configuration:
                 self.filter_binaries = self.configuration['filter_binaries']
 
+
     def load_preferences(self):
+        self.preferences = self.load_json(self.path_preferences)
         if self.preferences == False:
-            preferences = self.load_json(self.path_preferences)
-            if preferences != False:
-                self.preferences = preferences
-            else:
-                self.preferences = []
+            self.open_file(path_base + '/user_preferences.txt')
+            sys.exit()
+
+
+    def load_settings(self):
+        self.load_configuration()
+        self.load_preferences()
 
 
     def connect_to(self, url):
@@ -198,13 +213,11 @@ class dmenu(object):
         return json.load(self.connect_to(url))
 
     def menu(self, items, prompt=None):
-        self.load_configuration()
-
+        self.load_settings()
         params = []
         params += self.dmenu_args
         if prompt is not None:
             params += ["-p", prompt]
-
         p = subprocess.Popen(params, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
         if type(items) == str:
@@ -230,19 +243,16 @@ class dmenu(object):
 
 
     def open_url(self, url):
-        print('opening url: ' + url)
-        self.load_configuration()
+        print('Opening url: "' + url + '" with ' + self.bin_webbrowser)
         os.system(self.bin_webbrowser + ' ' + url.replace(' ', '%20') + '&')
 
 
     def open_directory(self, path):
-        print('opening folder: ' + path)
-        self.load_configuration()
+        print('Opening folder: "' + path + '" with ' + self.bin_filebrowser)
         os.system(self.bin_filebrowser + ' "' + path + '"')
 
 
     def open_terminal(self, command, hold=False):
-        self.load_configuration()
         if hold:
             mid = ' -e sh -c "'
             command += '; echo \'\nCommand has finished!\n\nPress any key to close terminal\'; read var'
@@ -253,7 +263,6 @@ class dmenu(object):
 
 
     def open_file(self, path):
-        print("opening file: '" + path  + "'")
         os.system("xdg-open '" + path + "'")
 
 
@@ -293,10 +302,10 @@ class dmenu(object):
                 if clean:
                     tmp.append(item)
             if foundError:
-                print()
+                print('')
                 print('Performance affected while these items remain')
                 print('This items have been excluded from cache')
-                print()
+                print('')
                 with open(self.path_cache, 'wb') as f:
                     for item in tmp:
                         f.write(item+'\n')
@@ -327,9 +336,9 @@ class dmenu(object):
     def command_output(self, command):
         if type(command) == str:
             command = command.split(' ')
-        print command
         handle = subprocess.Popen(command, stdout=subprocess.PIPE)
         return handle.communicate()[0].split('\n')
+
 
     def scan_binaries(self, filter_binaries=False):
         out = []
@@ -342,23 +351,12 @@ class dmenu(object):
                 out.append(binary)
         return out
 
-    def load_settings(self):
-        if self.settings_loaded == False:
-            self.load_configuration()
-            self.load_preferences()
+    def cache_build(self, debug=True):
 
-            if self.preferences == [] and self.configuration == []:
-                self.setup_user_files()
-                self.load_configuration()
-                self.load_preferences()
-
-            self.settings_loaded = True
-
-    def cache_build(self, debug=False):
-
+        print('')
         print('Starting to build the cache')
 
-        print('Loading the list of valid file extensions...')
+        sys.stdout.write('Loading the list of valid file extensions...')
         valid_extensions = []
         if 'valid_extensions' in self.preferences:
             for extension in self.preferences['valid_extensions']:
@@ -370,10 +368,10 @@ class dmenu(object):
         if debug:
             print('valid extensions:')
             print(valid_extensions[:5])
-            print(str(len(valid_extensions)) + ' were loaded')
+            print(str(len(valid_extensions)) + ' loaded in total')
             print('')
 
-        print('Scanning user binaries...')
+        sys.stdout.write('Scanning user binaries...')
         filter_binaries = True
         try:
             if self.preferences['filter_binaries'] == False:
@@ -387,10 +385,10 @@ class dmenu(object):
         if debug:
             print('valid binaries:')
             print(binaries[:5])
-            print(str(len(binaries)) + ' were loaded')
+            print(str(len(binaries)) + ' loaded in total')
             print('')
 
-        print('Loading the list of indexed folders...')
+        sys.stdout.write('Loading the list of indexed folders...')
         watch_folders = []
         if 'watch_folders' in self.preferences:
             watch_folders = self.preferences['watch_folders']
@@ -400,10 +398,10 @@ class dmenu(object):
         if debug:
             print('watch folders:')
             print(watch_folders[:5])
-            print(str(len(watch_folders)) + ' were loaded')
+            print(str(len(watch_folders)) + ' loaded in total')
             print('')
 
-        print('Loading the list of folders to be excluded from the index...')
+        sys.stdout.write('Loading the list of folders to be excluded from the index...')
         exclude_folders = []
 
         if 'exclude_folders' in self.preferences:
@@ -416,16 +414,24 @@ class dmenu(object):
         if debug:
             print('excluded folders:')
             print(exclude_folders[:5])
-            print(str(len(exclude_folders)) + ' exclude_folders were loaded')
+            print(str(len(exclude_folders)) + ' exclude_folders loaded in total')
             print('')
 
         filenames = []
         foldernames = []
 
-        print('Scanning files and folders...')
+        sys.stdout.write('Scanning files and folders...')
         print('This may take a while - please be patient')
+
+        follow_simlinks = False
+        try:
+            if 'follow_simlinks' in self.preferences:
+                follow_simlinks = self.preferences['follow_simlinks']
+        except:
+            pass
+
         for watchdir in watch_folders:
-            for root, dir , files in os.walk(watchdir):
+            for root, dir , files in os.walk(watchdir, followlinks=follow_simlinks):
                 if root.find('/.')  == -1:
                     for name in files:
                         if not name.startswith('.'):
@@ -442,15 +448,15 @@ class dmenu(object):
         if debug:
             print('folders found:')
             print(foldernames[:5])
-            print(str(len(foldernames)) + 'were found')
-            print()
+            print(str(len(foldernames)) + ' found in total')
+            print('')
 
             print('files found:')
             print(filenames[:5])
-            print(str(len(filenames)) + 'were found')
+            print(str(len(filenames)) + ' found in total')
             print('')
 
-        print('Loading manually added items from user_preferences...')
+        sys.stdout.write('Loading manually added items from user_preferences...')
         if 'include_items' in self.preferences:
             include_items = self.preferences['include_items']
         else:
@@ -460,10 +466,10 @@ class dmenu(object):
         if debug:
             print('stored items:')
             print(include_items[:5])
-            print(str(len(include_items)) + ' items were loaded')
+            print(str(len(include_items)) + ' items loaded in total')
             print('')
 
-        print('Loading available plugins...')
+        sys.stdout.write('Loading available plugins...')
         plugins = self.get_plugins()
         plugin_titles = []
         for plugin in plugins:
@@ -476,10 +482,10 @@ class dmenu(object):
         if debug:
             print('plugins loaded:')
             print(plugin_titles[:5])
-            print(str(len(plugin_titles)) + ' were loaded')
+            print(str(len(plugin_titles)) + ' loaded in total')
             print('')
 
-        print('Ordering and combining results...')
+        sys.stdout.write('Ordering and combining results...')
         user = self.sort_shortest(foldernames + filenames + include_items)
         bins = self.sort_shortest(binaries)
         plugins = self.sort_shortest(plugin_titles)

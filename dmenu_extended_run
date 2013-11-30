@@ -2,10 +2,12 @@
 # -*- coding: utf8 -*-
 import dmenu_extended
 import os
+import sys
+import argparse
 
-def run():
+def run(argv):
 
-    d = dmenu_extended.dmenu()
+    d = dmenu_extended.dmenu(argv)
 
     cache = d.cache_load()
     out = d.menu(cache,'Open:')
@@ -62,4 +64,4 @@ def run():
 
 
 if __name__ == '__main__':
-    run()
+    run(sys.argv[1:])
