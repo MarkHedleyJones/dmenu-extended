@@ -20,7 +20,7 @@ Copy and paste the following block of code into your terminal to download and in
     cd dmenu-4.5 && \
     make && \
     sudo make install && \
-    echo "\ndmenu has been installed"
+    echo "dmenu has been installed"
   
   
 ### Downloading and installing dmenu-extended
@@ -32,6 +32,6 @@ Download and extract this repository or copy and paste the following block of co
     unzip master.zip && \
     cd dmenu-extended-master && \
     sudo python setup.py install && \
-    echo "\ndmenu-extended installation complete"
+    echo "dmenu-extended installation complete"
     
 ## Running
