@@ -38,7 +38,7 @@ This can be done on Debian based systems (i.e. Ubuntu, Linux Mint) by executing 
   
 Then, copy and paste the following block of code into your terminal to download and install dmenu 4.5
   
-    cd ~/tmp && \
+    cd /tmp && \
     wget http://dl.suckless.org/tools/dmenu-4.5.tar.gz && \
     tar -xzf dmenu-4.5.tar.gz && \
     cd dmenu-4.5 && \
@@ -50,7 +50,7 @@ Then, copy and paste the following block of code into your terminal to download 
 
 Download and extract this repository or copy and paste the following block of code into your terminal.
 
-    cd ~/tmp && \
+    cd /tmp && \
     wget https://github.com/markjones112358/dmenu-extended/archive/master.zip && \
     unzip master.zip && \
     cd dmenu-extended-master && \
