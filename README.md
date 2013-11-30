@@ -13,7 +13,7 @@ Installation command to install dmenu on the most popular linux distributions ar
 
 #### Debian, Ubuntu, Linux-Mint
 
-    sudo apt-get install
+    sudo apt-get install suckless-tools
     
 #### Fedora
 
