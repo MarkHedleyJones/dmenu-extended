@@ -18,5 +18,6 @@
 
     "filebrowser": "nautilus",
     "webbrowser": "firefox",
-    "terminal": "urxvt"
+    "terminal": "xterm",
+    "submenu_indicator": "* "
 }

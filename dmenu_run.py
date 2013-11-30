@@ -1,4 +1,5 @@
 #! /usr/bin/python
+# -*- coding: utf8 -*-
 import dmenu_extended
 import os
 import sys
@@ -22,11 +23,16 @@ def run():
         plugins = dmenu_extended.load_plugins()
         plugin_hook = False
         for plugin in plugins:
-            if out[:len(plugin["plugin"].title)] == plugin["plugin"].title:
+            if hasattr(plugin['plugin'], 'is_submenu') and plugin['plugin'].is_submenu == True:
+                pluginTitle = d.submenu_indicator + plugin['plugin'].title
+            else:
+                pluginTitle = plugin['plugin'].title
+
+            if out[:len(pluginTitle)] == pluginTitle:
                 plugin_hook = plugin["plugin"]
 
         if plugin_hook != False:
-            plugin_hook.run(out[:len(plugin_hook.title)])
+            plugin_hook.run(out[len(pluginTitle):])
 
         elif out == "rebuild cache":
             result = d.cache_save(d.cache_build())

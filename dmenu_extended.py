@@ -1,3 +1,4 @@
+# -*- coding: utf8 -*-
 import commands
 import sys
 import os
@@ -12,7 +13,7 @@ def load_plugins():
 
     for plugin in plugins.__all__:
         if plugin != '__init__':
-            print 'Loading plugin: ' + plugin
+            print('Loading plugin: ' + plugin)
             __import__('plugins.' + plugin)
             exec('plugins_loaded.append({"filename": "' + plugin + '.py", "plugin": plugins.' + plugin + '.extension()})')
 
@@ -23,13 +24,15 @@ class dmenu(object):
 
     path_base = os.path.dirname(__file__)
     path_cache = path_base + '/cache.txt'
-    path_preferences = path_base + '/preferences.txt'
+    path_preferences = path_base + '/user_preferences.txt'
     path_configuration = path_base + '/configuration.txt'
 
     dmenu_args = ['dmenu']
     bin_terminal = 'xterm'
     bin_filebrowser = 'nautilus'
     bin_webbrowser = 'firefox'
+
+    submenu_indicator = '* '
 
     plugins_loaded = False
     configuration = False
@@ -49,12 +52,17 @@ class dmenu(object):
                 try:
                     return json.load(f)
                 except:
-                    print "Error parsing configuration from json file " + path
+                    print("Error parsing configuration from json file " + path)
                     return False
         else:
-            print 'Error opening json file ' + path
-            print 'File does not exist'
+            print('Error opening json file ' + path)
+            print('File does not exist')
             return False
+
+    def save_json(self, path, items):
+        with open(path, 'w') as f:
+            json.dump(items, f, sort_keys=True, indent=4)
+        return
 
     def load_configuration(self):
         if self.configuration == False:
@@ -70,11 +78,13 @@ class dmenu(object):
                 self.bin_webbrowser = self.configuration['webbrowser']
             if 'dmenu_args' in self.configuration:
                 self.dmenu_args = ['dmenu'] + self.configuration['dmenu_args']
+            if 'submenu_indicator' in self.configuration:
+                self.submenu_indicator = self.configuration['submenu_indicator']
 
     def load_preferences(self):
         if self.preferences == False:
             preferences = self.load_json(self.path_preferences)
-            print preferences
+            print(preferences)
             if preferences != False:
                 self.preferences = preferences
             else:
@@ -101,6 +111,7 @@ class dmenu(object):
             params += ["-p", prompt]
 
         p = subprocess.Popen(params, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+
         if type(items) == str:
             out = p.communicate(items)[0]
         else:
@@ -108,7 +119,7 @@ class dmenu(object):
         return out.strip('\n')
 
 
-    def select(self, items, prompt=False, numeric=False):
+    def select(self, items, prompt=None, numeric=False):
         result = self.menu(items, prompt)
         for index, item in enumerate(items):
             if result.find(item) != -1:
@@ -124,13 +135,13 @@ class dmenu(object):
 
 
     def open_url(self, url):
-        print 'opening url: ' + url
+        print('opening url: ' + url)
         self.load_configuration()
         os.system(self.bin_webbrowser + ' ' + url.replace(' ', '%20') + '&')
 
 
     def open_directory(self, path):
-        print 'opening folder: ' + path
+        print('opening folder: ' + path)
         self.load_configuration()
         os.system(self.bin_filebrowser + ' "' + path + '"')
 
@@ -147,12 +158,19 @@ class dmenu(object):
 
 
     def open_file(self, path):
-        print "opening file: '" + path  + "'"
+        print("opening file: '" + path  + "'")
         os.system("xdg-open '" + path + "'")
 
 
-    def execute(self, command):
-        os.system(command + " &")
+    def execute(self, command, fork=None):
+        if fork is not None:
+            if fork == False:
+                extra = ''
+            else:
+                extra = ' &'
+        else:
+            extra = ' &'
+        os.system(command + extra)
 
 
     def cache_regenerate(self):
@@ -160,7 +178,7 @@ class dmenu(object):
 
     def cache_save(self, items):
         try:
-            with open(self.path_cache, 'w') as f:
+            with open(self.path_cache, 'wb') as f:
                 for item in items:
                     f.write(item+'\n')
             return 1
@@ -174,26 +192,26 @@ class dmenu(object):
                     if char not in string.printable:
                         clean = False
                         foundError = True
-                        print 'Non-printable characters detected in cache object: '
-                        print 'Remedy: ' + item
+                        print('Non-printable characters detected in cache object: ')
+                        print('Remedy: ' + item)
                 if clean:
                     tmp.append(item)
             if foundError:
-                print ''
-                print 'Performance affected while these items remain'
-                print 'This items have been excluded from cache'
-                print
-                with open(self.path_cache, 'w') as f:
+                print()
+                print('Performance affected while these items remain')
+                print('This items have been excluded from cache')
+                print()
+                with open(self.path_cache, 'wb') as f:
                     for item in tmp:
                         f.write(item+'\n')
                 return 2
             else:
-                print 'Unknown error saving data cache'
+                print('Unknown error saving data cache')
                 return 0
 
     def cache_open(self):
         try:
-            with open(self.path_cache, 'r') as f:
+            with open(self.path_cache, 'rb') as f:
                 return f.read()
         except:
             return False
@@ -201,7 +219,7 @@ class dmenu(object):
     def cache_load(self):
         cache = self.cache_open()
         if cache == False:
-            print 'Cache was not loaded'
+            print('Cache was not loaded')
             if self.cache_regenerate() == False:
                 self.menu(['Error caching data'])
                 sys.exit()
@@ -210,9 +228,16 @@ class dmenu(object):
 
         return cache
 
+    def command_output(self, command):
+        if type(command) == str:
+            command = command.split(' ')
+        print command
+        handle = subprocess.Popen(command, stdout=subprocess.PIPE)
+        return handle.communicate()[0].split('\n')
+
     def scan_binaries(self, filter=False):
         out = []
-        for binary in subprocess.check_output("dmenu_path").split('\n'):
+        for binary in self.command_output("dmenu_path"):
             if filter:
                 if os.path.exists('/usr/share/applications/' + binary + '.desktop'):
                     if binary[:3] != 'gpk':
@@ -235,18 +260,18 @@ class dmenu(object):
                 valid_extensions.append(extension)
 
         if debug:
-            print 'valid extensions:'
-            print valid_extensions[:5]
-            print str(len(valid_extensions)) + ' were loaded'
-            print
+            print('valid extensions:')
+            print(valid_extensions[:5])
+            print(str(len(valid_extensions)) + ' were loaded')
+            print()
 
         binaries = self.scan_binaries(True)
 
         if debug:
-            print 'valid binaries:'
-            print binaries[:5]
-            print str(len(binaries)) + ' were loaded'
-            print
+            print('valid binaries:')
+            print(binaries[:5])
+            print(str(len(binaries)) + ' were loaded')
+            print()
 
         watch_folders = []
         if 'watch_folders' in self.preferences:
@@ -254,10 +279,10 @@ class dmenu(object):
         watch_folders = map(lambda x: x.replace('~', os.path.expanduser('~')), watch_folders)
 
         if debug:
-            print 'watch folders:'
-            print watch_folders[:5]
-            print str(len(watch_folders)) + ' were loaded'
-            print
+            print('watch folders:')
+            print(watch_folders[:5])
+            print(str(len(watch_folders)) + ' were loaded')
+            print()
 
         filenames = []
         foldernames = []
@@ -268,10 +293,10 @@ class dmenu(object):
         exclude_folders = map(lambda x: x.replace('~', os.path.expanduser('~')), exclude_folders)
 
         if debug:
-            print 'excluded folders:'
-            print exclude_folders[:5]
-            print str(len(exclude_folders)) + ' exclude_folders were loaded'
-            print
+            print('excluded folders:')
+            print(exclude_folders[:5])
+            print(str(len(exclude_folders)) + ' exclude_folders were loaded')
+            print()
 
         for watchdir in watch_folders:
             for root, dir , files in os.walk(watchdir):
@@ -287,15 +312,15 @@ class dmenu(object):
         foldernames = filter(lambda x: x not in exclude_folders, foldernames)
 
         if debug:
-            print 'folders found:'
-            print foldernames[:5]
-            print str(len(foldernames)) + 'were found'
-            print
+            print('folders found:')
+            print(foldernames[:5])
+            print(str(len(foldernames)) + 'were found')
+            print()
 
-            print 'files found:'
-            print filenames[:5]
-            print str(len(filenames)) + 'were found'
-            print
+            print('files found:')
+            print(filenames[:5])
+            print(str(len(filenames)) + 'were found')
+            print()
 
         if 'include_items' in self.preferences:
             include_items = self.preferences['include_items']
@@ -303,21 +328,24 @@ class dmenu(object):
             include_items = []
 
         if debug:
-            print 'stored items:'
-            print include_items[:5]
-            print str(len(include_items)) + ' items were loaded'
-            print
+            print('stored items:')
+            print(include_items[:5])
+            print(str(len(include_items)) + ' items were loaded')
+            print()
 
         plugins = self.get_plugins()
         plugin_titles = []
         for plugin in plugins:
-            plugin_titles.append(plugin['plugin'].title)
+            if hasattr(plugin['plugin'], 'is_submenu') and plugin['plugin'].is_submenu:
+                plugin_titles.append(self.submenu_indicator + plugin['plugin'].title)
+            else:
+                plugin_titles.append(plugin['plugin'].title)
 
         if debug:
-            print 'plugins loaded:'
-            print plugin_titles[:5]
-            print str(len(plugin_titles)) + ' were loaded'
-            print
+            print('plugins loaded:')
+            print(plugin_titles[:5])
+            print(str(len(plugin_titles)) + ' were loaded')
+            print()
 
         user = self.sort_shortest(foldernames + filenames + include_items)
         bins = self.sort_shortest(binaries)
