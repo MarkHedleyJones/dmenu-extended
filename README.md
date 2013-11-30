@@ -28,8 +28,9 @@ Copy and paste the following block of code into your terminal to download and in
 Download and extract this repository or copy and paste the following block of code into your terminal.
 
     cd ~/Downloads && \
-    git clone https://github.com/markjones112358/dmenu-extended && \
-    cd dmenu-extended && \
+    wget https://github.com/markjones112358/dmenu-extended/archive/master.zip && \
+    unzip master.zip && \
+    cd dmenu-extended-master && \
     sudo python setup.py install && \
     echo "\ndmenu-extended installation complete"
     
