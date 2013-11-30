@@ -351,7 +351,7 @@ class dmenu(object):
                 out.append(binary)
         return out
 
-    def cache_build(self, debug=True):
+    def cache_build(self, debug=False):
 
         print('')
         print('Starting to build the cache')
