@@ -8,12 +8,12 @@ dmenu-extended requires that dmenu is installed. While dmenu-extended works with
 
 *Which option is best?* - Install using your package manager first - you can update dmenu at any time without breaking anything. If you find that searching isn't as good as it could be (e.g. on Debian) download and install from source.
 
-### Option 1: Installing dmenu from your package manager
+### Installing dmenu and suckless-tools from your package manager
 Installation command to install dmenu on the most popular linux distributions are:
 
 #### Debian, Ubuntu, Linux-Mint
 
-    sudo apt-get install dmenu
+    sudo apt-get install
     
 #### Fedora
 
@@ -27,10 +27,10 @@ Once installed, skip to Skip to [Installing dmenu-extended](https://github.com/m
     
 ### Option B: Installing dmenu from source
 
-Before executing the following commands make sure you have installed `build-essential` and `libx11-dev` from your package manager.
+Before executing the following commands make sure you have installed `build-essential`, `libx11-dev` and `libxinerama-dev` from your package manager.
 This can be done on Debian based systems (i.e. Ubuntu, Linux Mint) by executing the following in a terminal
 
-    sudo apt-get install build-essential libx11-dev
+    sudo apt-get install build-essential libx11-dev libxinerama-dev
   
 Then, copy and paste the following block of code into your terminal to download and install dmenu 4.5
   
