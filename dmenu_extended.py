@@ -25,9 +25,9 @@ default_config = {
         "-l",
         "30"
     ],
-
-    "filebrowser": "nautilus",
-    "webbrowser": "firefox",
+    "fileopener": "xdg-open",
+    "filebrowser": "xdg-open",
+    "webbrowser": "xdg-open",
     "terminal": "xterm",
     "submenu_indicator": "* ",
 }
@@ -69,6 +69,14 @@ def setup_user_files(path):
     except OSError:
         print('Target directory already exists - overwriting contents')
     print('Plugins folder created at: ' + path + '/plugins')
+
+    # Change to nicer defaults
+    if os.path.exists('/usr/bin/gnome-open'):
+        default_config['fileopener'] = 'gnome-open'
+        default_config['webbrowser'] = 'gnome-open'
+        default_config['filebrowser'] = 'gnome-open'
+    if os.path.exists('/usr/bin/gnome-terminal'):
+        default_config['terminal'] = 'gnome-terminal'
 
     if os.path.exists(path + '/configuration.txt') == False:
         with open(path + '/configuration.txt','w') as f:
@@ -120,8 +128,9 @@ class dmenu(object):
 
     dmenu_args = False
     bin_terminal = 'xterm'
-    bin_filebrowser = 'nautilus'
-    bin_webbrowser = 'firefox'
+    bin_filebrowser = 'xdg-open'
+    bin_webbrowser = 'xdg-open'
+    bin_fileopener = 'xdg-open'
     submenu_indicator = '* '
     filter_binaries = True
 
@@ -179,6 +188,8 @@ class dmenu(object):
                 self.bin_filebrowser = self.configuration['filebrowser']
             if 'webbrowser' in self.configuration:
                 self.bin_webbrowser = self.configuration['webbrowser']
+            if 'fileopener' in self.configuration:
+                self.bin_fileopener = self.configuration['fileopener']
             if 'submenu_indicator' in self.configuration:
                 self.submenu_indicator = self.configuration['submenu_indicator']
             if 'filter_binaries' in self.configuration:
@@ -251,15 +262,17 @@ class dmenu(object):
     def open_terminal(self, command, hold=False):
         if hold:
             mid = ' -e sh -c "'
-            command += '; echo \'\nCommand has finished!\n\nPress any key to close terminal\'; read var'
+            command += '; echo \'\nFinished!\n\nPress any key to close terminal\'; read var'
         else:
             mid = ' -e sh -c "'
         full = self.bin_terminal + mid + command + '"'
+        print full
         os.system(full)
 
 
     def open_file(self, path):
-        os.system("xdg-open '" + path + "'")
+        print 'Opening file with command: ' + self.bin_fileopener + " '" + path + "'"
+        os.system(self.bin_fileopener + " '" + path + "'")
 
 
     def execute(self, command, fork=None):

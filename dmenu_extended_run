@@ -42,7 +42,7 @@ def run(argv):
                 d.open_terminal(command.replace(';',''))
 
         elif out[:7] == 'http://' or out[:8] == 'https://':
-            f.open_url(out)
+            d.open_url(out)
 
         elif out.find('/') != -1:
             if out.find(' ') != -1:
