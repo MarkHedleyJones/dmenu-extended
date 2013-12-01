@@ -75,8 +75,8 @@ def setup_user_files(path):
         default_config['fileopener'] = 'gnome-open'
         default_config['webbrowser'] = 'gnome-open'
         default_config['filebrowser'] = 'gnome-open'
-    if os.path.exists('/usr/bin/gnome-terminal'):
-        default_config['terminal'] = 'gnome-terminal'
+    if os.path.exists('/usr/bin/urxvt'):
+        default_config['terminal'] = 'urxvt'
 
     if os.path.exists(path + '/configuration.txt') == False:
         with open(path + '/configuration.txt','w') as f:
