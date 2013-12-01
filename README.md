@@ -48,7 +48,7 @@ Then, copy and paste the following block of code into your terminal to download 
 
 ## Installing dmenu-extended (this extension)
 
-Download and extract this repository or copy and paste the following block of code into your terminal.
+Installing this extension is as simple as copying and pasting the following block of code into a terminal and pressing enter.
 
     cd /tmp && \
     wget https://github.com/markjones112358/dmenu-extended/archive/master.zip && \
