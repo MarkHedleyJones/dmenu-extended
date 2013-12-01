@@ -38,7 +38,7 @@ This can be done on Debian based systems (i.e. Ubuntu, Linux Mint) by executing 
   
 Then, copy and paste the following block of code into your terminal to download and install dmenu 4.5
   
-    cd ~/Downloads && \
+    cd /tmp && \
     wget http://dl.suckless.org/tools/dmenu-4.5.tar.gz && \
     tar -xzf dmenu-4.5.tar.gz && \
     cd dmenu-4.5 && \
@@ -48,14 +48,16 @@ Then, copy and paste the following block of code into your terminal to download 
 
 ## Installing dmenu-extended (this extension)
 
-Download and extract this repository or copy and paste the following block of code into your terminal.
+Installing this extension is as simple as copying and pasting the following block of code into a terminal and pressing enter.
 
-    cd ~/Downloads && \
+    cd /tmp && \
     wget https://github.com/markjones112358/dmenu-extended/archive/master.zip && \
     unzip master.zip && \
     cd dmenu-extended-master && \
     sudo python setup.py install && \
     dmenu_extended_build && \
+    cd /tmp && \
+    sha1sum master.zip > ~/.config/dmenu-extended/signature.txt && \
     echo "" && \
     echo "FINISHED: dmenu-extended installation complete" && \
     echo "EXECUTE: dmenu_extended_run"
@@ -85,7 +87,7 @@ The nicest way to enjoy dmenu-extended is to bind the command `dmenu_extended_ru
 3. Enter "dmenu-extended" as the name
 4. Enter "dmenu_extended_run" as the command and click apply
 5. Click next *disabled*
-6. Press the desired combination of keys
+6. Press the desired combination of keys (e.g. Alt+Enter)
 
 ### Tiling window managers
 If you use a tiling window manager, you may already have a key-combination bound to launch dmenu (i.e. Ctrl+P). Edit your window managers configuration file to launch `dmenu_extended_run` instead.
