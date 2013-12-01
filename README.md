@@ -56,6 +56,8 @@ Download and extract this repository or copy and paste the following block of co
     cd dmenu-extended-master && \
     sudo python setup.py install && \
     dmenu_extended_build && \
+    cd /tmp && \
+    sha1sum master.zip > ~/.config/dmenu-extended/signature.txt && \
     echo "" && \
     echo "FINISHED: dmenu-extended installation complete" && \
     echo "EXECUTE: dmenu_extended_run"
