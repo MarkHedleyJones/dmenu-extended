@@ -87,7 +87,7 @@ The nicest way to enjoy dmenu-extended is to bind the command `dmenu_extended_ru
 3. Enter "dmenu-extended" as the name
 4. Enter "dmenu_extended_run" as the command and click apply
 5. Click next *disabled*
-6. Press the desired combination of keys
+6. Press the desired combination of keys (e.g. Alt+Enter)
 
 ### Tiling window managers
 If you use a tiling window manager, you may already have a key-combination bound to launch dmenu (i.e. Ctrl+P). Edit your window managers configuration file to launch `dmenu_extended_run` instead.
