@@ -5,12 +5,38 @@ import os
 import sys
 import argparse
 
+def handle_command(d, out):
+    if out[0] == ';' or out[-1] == ';':
+        for command in out.split('&&'):
+            d.open_terminal(command.replace(';',''))
+
+    elif out[:7] == 'http://' or out[:8] == 'https://':
+        d.open_url(out)
+
+    elif out.find('/') != -1:
+        if out.find(' ') != -1:
+            parts = out.split(' ')
+            if parts[0] in d.scan_binaries():
+                d.execute(out)
+            else:
+                if os.path.isdir(out):
+                    d.open_directory(out)
+                else:
+                    d.open_file(out)
+        else:
+            if os.path.isdir(out):
+                d.open_directory(out)
+            else:
+                d.open_file(out)
+    else:
+        d.execute(out)
+
 def run(argv):
 
     d = dmenu_extended.dmenu(argv)
 
     cache = d.cache_load()
-    out = d.menu(cache,'Open:')
+    out = d.menu(cache,'Open:').strip()
 
     if len(out) > 0:
         # Check if the action relates to a plugin
@@ -25,6 +51,7 @@ def run(argv):
             if out[:len(pluginTitle)] == pluginTitle:
                 plugin_hook = plugin["plugin"]
 
+        # Check for plugin call
         if plugin_hook != False:
             plugin_hook.run(out[len(pluginTitle):])
         else:
@@ -42,6 +69,43 @@ def run(argv):
                 d.save_json(d.path_preferences, store)
                 d.cache_regenerate()
 
+            # Check for open-with/filter results modifier
+            if out.find(':') != -1:
+                tmp = out.split(':')
+                if len(tmp) != 2:
+                    print 'Input command not understood'
+                    sys.exit()
+                else:
+                    cmds = map(lambda x: x.strip(), tmp)
+
+                if cmds[0] == '':
+                    items = filter(lambda x: x.find(cmds[1]) != -1, cache.split('\n'))
+                    item = d.menu(items)
+                    handle_command(d, item)
+                elif cmds[0] in d.scan_binaries():
+                    print 'Item[0] (' + cmds[0] + ') found in binaries'
+                    # Get paths from cache
+                    items = filter(lambda x: x.find('/') != -1, cache.split('\n'))
+                    # If extension passed, filter by this
+                    if cmds[1] != '':
+                        items = filter(lambda x: x.find(cmds[1]) != -1, items)
+                    file = d.menu(items)
+                    command = cmds[0] + ' ' + file
+                    print 'Executing: ' + command
+                    d.execute(command)
+                elif cmds[0].find('/') != -1:
+                    # Path came first, assume user wants of open it with a bin
+                    if cmds[1] != '':
+                        command = cmds[1] + ' ' + cmds[0]
+                    else:
+                        binary = d.menu(d.scan_binaries())
+                        command = binary + ' ' + cmds[0]
+                    d.execute(command)
+                else:
+                    print 'Input command not understood'
+
+                sys.exit()
+
             if out == "rebuild cache":
                 result = d.cache_regenerate()
                 if result == 0:
@@ -51,30 +115,8 @@ def run(argv):
                 else:
                     d.menu(['Success'])
 
-            elif out[0] == ';' or out[-1] == ';':
-                for command in out.split('&&'):
-                    d.open_terminal(command.replace(';',''))
-
-            elif out[:7] == 'http://' or out[:8] == 'https://':
-                d.open_url(out)
-
-            elif out.find('/') != -1:
-                if out.find(' ') != -1:
-                    parts = out.split(' ')
-                    if parts[0] in d.scan_binaries():
-                        d.execute(out)
-                    else:
-                        if os.path.isdir(out):
-                            d.open_directory(out)
-                        else:
-                            d.open_file(out)
-                else:
-                    if os.path.isdir(out):
-                        d.open_directory(out)
-                    else:
-                        d.open_file(out)
             else:
-                d.execute(out)
+                handle_command(d, out)
 
 
 if __name__ == '__main__':

@@ -235,7 +235,10 @@ class dmenu(object):
             out = p.communicate(items)[0]
         else:
             out = p.communicate("\n".join(items))[0]
-        return out.strip('\n')
+        if out.strip() == '':
+            sys.exit()
+        else:
+            return out.strip('\n')
 
 
     def select(self, items, prompt=None, numeric=False):
