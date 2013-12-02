@@ -521,11 +521,13 @@ class dmenu(object):
         sys.stdout.write('Ordering and combining results...')
         sys.stdout.flush()
 
-        user = self.sort_shortest(foldernames + filenames + include_items)
-        bins = self.sort_shortest(binaries)
         plugins = self.sort_shortest(plugin_titles)
+        manual = self.sort_shortest(include_items)
+        bins = self.sort_shortest(binaries)
+        user = self.sort_shortest(foldernames + filenames)
 
         out = plugins
+        out += manual
         out += bins
         out += user
 

@@ -27,40 +27,54 @@ def run(argv):
 
         if plugin_hook != False:
             plugin_hook.run(out[len(pluginTitle):])
+        else:
 
-        elif out == "rebuild cache":
-            result = d.cache_regenerate()
-            if result == 0:
-                d.menu(['Cache could not be saved'])
-            elif result == 2:
-                d.menu(['Issues encoundered while saving cache'])
-            else:
-                d.menu(['Success'])
+            # Check for store modifications
+            if out[0] == '+':
+                item = out[1:]
+                print 'Adding item to store: ' + item
+                store = d.load_json(d.path_preferences)
+                print store
+                if item not in store['include_items']:
+                    store['include_items'].append(item)
+                else:
+                    store['include_items'].remove(item)
+                d.save_json(d.path_preferences, store)
+                d.cache_regenerate()
 
-        elif out[0] == ';' or out[-1] == ';':
-            for command in out.split('&&'):
-                d.open_terminal(command.replace(';',''))
+            if out == "rebuild cache":
+                result = d.cache_regenerate()
+                if result == 0:
+                    d.menu(['Cache could not be saved'])
+                elif result == 2:
+                    d.menu(['Issues encoundered while saving cache'])
+                else:
+                    d.menu(['Success'])
 
-        elif out[:7] == 'http://' or out[:8] == 'https://':
-            d.open_url(out)
+            elif out[0] == ';' or out[-1] == ';':
+                for command in out.split('&&'):
+                    d.open_terminal(command.replace(';',''))
 
-        elif out.find('/') != -1:
-            if out.find(' ') != -1:
-                parts = out.split(' ')
-                if parts[0] in d.scan_binaries():
-                    d.execute(out)
+            elif out[:7] == 'http://' or out[:8] == 'https://':
+                d.open_url(out)
+
+            elif out.find('/') != -1:
+                if out.find(' ') != -1:
+                    parts = out.split(' ')
+                    if parts[0] in d.scan_binaries():
+                        d.execute(out)
+                    else:
+                        if os.path.isdir(out):
+                            d.open_directory(out)
+                        else:
+                            d.open_file(out)
                 else:
                     if os.path.isdir(out):
                         d.open_directory(out)
                     else:
                         d.open_file(out)
             else:
-                if os.path.isdir(out):
-                    d.open_directory(out)
-                else:
-                    d.open_file(out)
-        else:
-            d.execute(out)
+                d.execute(out)
 
 
 if __name__ == '__main__':
