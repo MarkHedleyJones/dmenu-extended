@@ -45,6 +45,7 @@ Then, copy and paste the following block of code into your terminal to download 
     make && \
     sudo make install && \
     echo "dmenu has been installed"
+    ;
 
 ## Installing dmenu-extended (this extension)
 
@@ -61,7 +62,7 @@ Installing this extension is as simple as copying and pasting the following bloc
     echo "" && \
     echo "FINISHED: dmenu-extended installation complete" && \
     echo "EXECUTE: dmenu_extended_run"
-    
+    ;
     
 
 ## Installing dmenu-extendedSettings (recommended)
@@ -76,8 +77,7 @@ To install this extension, copy and execute the following commands in a terminal
     echo "" && \
     echo "FINISHED: settings plugin installed" && \
     echo "Extension will appear in dmenu-extended on next run"
-    
-    
+    ;
 
 # Usage
 
