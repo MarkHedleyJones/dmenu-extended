@@ -61,6 +61,8 @@ Installing this extension is as simple as copying and pasting the following bloc
     echo "" && \
     echo "FINISHED: dmenu-extended installation complete" && \
     echo "EXECUTE: dmenu_extended_run"
+    
+    
 
 ## Installing dmenu-extendedSettings (recommended)
 
@@ -74,8 +76,12 @@ To install this extension, copy and execute the following commands in a terminal
     echo "" && \
     echo "FINISHED: settings plugin installed" && \
     echo "Extension will appear in dmenu-extended on next run"
+    
+    
 
 # Usage
+
+## Create a keybinding
 
 Test that the new menu has been installed by running `dmenu_extended_run` from your terminal. **NOTE:** The first run will be slow as it is set to scan you home folder recursively to build the cache.
 
@@ -84,10 +90,22 @@ The nicest way to enjoy dmenu-extended is to bind the command `dmenu_extended_ru
 ### Ubuntu (Unity), Debian (Gnome), Mint (Cinnamon)
 1. Open **System settings** -> **Keyboard** -> **Shortcuts**
 2. Click **Custom shortcuts** and then the **+** (*add custom shortcut*) to add a new command
-3. Enter "dmenu-extended" as the name
+3. Enter "dmenu_extended" as the name
 4. Enter "dmenu_extended_run" as the command and click apply
 5. Click next *disabled* (*unassigned*)
 6. Press the desired combination of keys (e.g. Alt+Enter)
 
 ### Tiling window managers
 If you use a tiling window manager, you may already have a key-combination bound to launch dmenu (i.e. Ctrl+P). Edit your window managers configuration file to launch `dmenu_extended_run` instead.
+
+## Rebuilding the cache (without dmenu-extendedSettings)
+Type `rebuild cache` into dmenu-extended, or execute `dmenu_extended_run` to rebuild the cache.
+
+# Configuration
+
+Two json are placed in *~/.config/dmenu-extended/* that control the appearance and functionality of the menu:
+* **configuation.txt** - how the menu looks and the default programs used
+* **user_preferences.txt** - contains a list folders to be indexed, file extensions to include, manually added entries, and more
+
+If these files are saved with syntax errors they will be opened in the default text editor next time they are read. This happens *instead* of executing the requested action.
+
