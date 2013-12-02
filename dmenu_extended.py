@@ -47,7 +47,8 @@ default_prefs = {
         "ods",
         "avi",
         "mpg",
-        "mp3"
+        "mp3",
+        "lyx"
     ],
 
     "watch_folders": ["~/"],
@@ -213,11 +214,14 @@ class dmenu(object):
         response = urllib2.urlopen(request)
         return response
 
+
     def download_text(self, url):
         return self.connect_to(url).readlines()
 
+
     def download_json(self, url):
         return json.load(self.connect_to(url))
+
 
     def menu(self, items, prompt=None):
         self.load_settings()
@@ -366,12 +370,13 @@ class dmenu(object):
         print('Starting to build the cache:')
 
         sys.stdout.write('Loading the list of valid file extensions...')
+        sys.stdout.flush()
         valid_extensions = []
         if 'valid_extensions' in self.preferences:
             for extension in self.preferences['valid_extensions']:
                 if extension[0] != '.':
                     extension = '.' + extension
-                valid_extensions.append(extension)
+                valid_extensions.append(extension.lower())
         print('Done!')
 
         if debug:
@@ -400,6 +405,7 @@ class dmenu(object):
             print('')
 
         sys.stdout.write('Loading the list of indexed folders...')
+        sys.stdout.flush()
         watch_folders = []
         if 'watch_folders' in self.preferences:
             watch_folders = self.preferences['watch_folders']
@@ -414,12 +420,12 @@ class dmenu(object):
             print('')
 
         sys.stdout.write('Loading the list of folders to be excluded from the index...')
+        sys.stdout.flush()
         exclude_folders = []
 
         if 'exclude_folders' in self.preferences:
-            exclude_folders = self.preferences['exclude_folders']
-
-        exclude_folders = map(lambda x: x.replace('~', os.path.expanduser('~')), exclude_folders)
+            for exclude_folder in self.preferences['exclude_folders']:
+                exclude_folders.append(exclude_folder.replace('~', os.path.expanduser('~')))
 
         print('Done!')
 
@@ -447,13 +453,14 @@ class dmenu(object):
                 print('Indexing will follow linked folders')
 
         sys.stdout.write('Scanning files and folders, this may take a while...')
+        sys.stdout.flush()
 
         for watchdir in watch_folders:
             for root, dir , files in os.walk(watchdir, followlinks=follow_simlinks):
                 if root.find('/.')  == -1:
                     for name in files:
                         if not name.startswith('.'):
-                                if os.path.splitext(name)[1] in valid_extensions:
+                                if os.path.splitext(name)[1].lower() in valid_extensions:
                                     filenames.append(os.path.join(root,name))
                     for name in dir:
                         if not name.startswith('.'):
@@ -477,6 +484,8 @@ class dmenu(object):
             print('')
 
         sys.stdout.write('Loading manually added items from user_preferences...')
+        sys.stdout.flush()
+
         if 'include_items' in self.preferences:
             include_items = self.preferences['include_items']
         else:
@@ -491,6 +500,8 @@ class dmenu(object):
             print('')
 
         sys.stdout.write('Loading available plugins...')
+        sys.stdout.flush()
+
         plugins = self.get_plugins()
         plugin_titles = []
         for plugin in plugins:
@@ -508,6 +519,8 @@ class dmenu(object):
             print('')
 
         sys.stdout.write('Ordering and combining results...')
+        sys.stdout.flush()
+
         user = self.sort_shortest(foldernames + filenames + include_items)
         bins = self.sort_shortest(binaries)
         plugins = self.sort_shortest(plugin_titles)
