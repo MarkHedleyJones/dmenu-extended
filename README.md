@@ -10,7 +10,7 @@ dmenu-extended requires that dmenu is installed. While dmenu-extended works with
 
 Choose one of the following options to install dmenu
 
-*Which option is best?* - Install using your package manager first - you can update dmenu at any time without breaking anything. If you find that searching isn't as good as it could be (e.g. on Debian) download and install from source.
+*Which option is best?* - Install using your package manager first - you can update dmenu at any time without breaking anything. If you find that searching isn't as good as it could be (e.g. on Debian) download and install from source to get the newest version of dmenu.
 
 ### Option A: Installing dmenu from your package manager
 Installation command to install dmenu on the most popular linux distributions are:
@@ -99,7 +99,7 @@ The nicest way to enjoy dmenu-extended is to bind the command `dmenu_extended_ru
 If you use a tiling window manager, you may already have a key-combination bound to launch dmenu (i.e. Ctrl+P). Edit your window managers configuration file to launch `dmenu_extended_run` instead.
 
 ## Rebuilding the cache (without dmenu-extendedSettings)
-Type `rebuild cache` into dmenu-extended, or execute `dmenu_extended_run` to rebuild the cache.
+Type 'rebuild cache' into dmenu-extended, or execute `dmenu_extended_run` to rebuild the cache.
 
 # Configuration
 
