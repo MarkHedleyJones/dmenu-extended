@@ -59,7 +59,7 @@ default_prefs = {
 
     "filter_binaries": True,
 
-    "follow_simlinks": False
+    "follow_simlinks": True
 }
 
 def setup_user_files(path):
@@ -533,6 +533,7 @@ class dmenu(object):
         out += manual
         out += bins
         out += user
+        out += ['rebuild cache']
 
         print('Done!')
         print('Cache building has finished.')
