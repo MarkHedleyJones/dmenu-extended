@@ -81,12 +81,12 @@ Test that the new menu has been installed by running `dmenu_extended_run` from y
 
 The nicest way to enjoy dmenu-extended is to bind the command `dmenu_extended_run` to an easy to reach key-combination. The way in which you do this will be different depending on your desktop environment.
 
-### Ubuntu (Unity), Debian (Gnome)
+### Ubuntu (Unity), Debian (Gnome), Mint (Cinnamon)
 1. Open **System settings** -> **Keyboard** -> **Shortcuts**
-2. Click **Custom shortcuts** and then the **+** to add a new command
+2. Click **Custom shortcuts** and then the **+** (*add custom shortcut*) to add a new command
 3. Enter "dmenu-extended" as the name
 4. Enter "dmenu_extended_run" as the command and click apply
-5. Click next *disabled*
+5. Click next *disabled* (*unassigned*)
 6. Press the desired combination of keys (e.g. Alt+Enter)
 
 ### Tiling window managers
