@@ -3,8 +3,11 @@ import commands
 import sys
 import os
 import subprocess
+import signal
 import json
 import urllib2
+import signal
+import time
 
 path_base = os.path.expanduser('~') + '/.config/dmenu-extended'
 
@@ -222,6 +225,15 @@ class dmenu(object):
     def download_json(self, url):
         return json.load(self.connect_to(url))
 
+    def message_open(self, message):
+        self.message = subprocess.Popen(self.dmenu_args, stdin=subprocess.PIPE, preexec_fn=os.setsid)
+        self.message.stdin.write(message)
+        self.message.stdin.close()
+
+
+    def message_close(self):
+        os.killpg(self.message.pid, signal.SIGTERM)
+
 
     def menu(self, items, prompt=None):
         self.load_settings()
@@ -230,11 +242,11 @@ class dmenu(object):
         if prompt is not None:
             params += ["-p", prompt]
         p = subprocess.Popen(params, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-
         if type(items) == str:
             out = p.communicate(items)[0]
         else:
             out = p.communicate("\n".join(items))[0]
+
         if out.strip() == '':
             sys.exit()
         else:
@@ -368,7 +380,7 @@ class dmenu(object):
         return out
 
     def cache_build(self, debug=False):
-
+        self.message_open('Building cache')
         print('')
         print('Starting to build the cache:')
 
@@ -533,7 +545,9 @@ class dmenu(object):
         out += manual
         out += bins
         out += user
-        out += ['rebuild cache']
+        out += [u'rebuild cache']
+
+        self.message_close()
 
         print('Done!')
         print('Cache building has finished.')
