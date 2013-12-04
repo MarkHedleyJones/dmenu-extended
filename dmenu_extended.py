@@ -59,7 +59,7 @@ default_prefs = {
         "iso",
         "ps",
         "zip",
-        "xpm"
+        "xcf"
     ],
 
     "watch_folders": ["~/"],
@@ -313,11 +313,13 @@ class dmenu(object):
         os.system(command + extra)
 
 
-    def cache_regenerate(self, debug=False):
-        self.message_open('Building cache...')
+    def cache_regenerate(self, debug=False, message=True):
+        if message:
+            self.message_open('Building cache...')
         self.load_settings()
         cache = self.cache_save(self.cache_build(debug))
-        self.message_close()
+        if message:
+            self.message_close()
         return cache
 
     def cache_save(self, items):

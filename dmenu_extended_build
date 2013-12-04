@@ -10,7 +10,7 @@ def run(argv):
         debug = False
 
     d = dmenu_extended.dmenu()
-    d.cache_regenerate(debug)
+    d.cache_regenerate(debug, message=False)
 
 
 if __name__ == '__main__':
