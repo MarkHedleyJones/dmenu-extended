@@ -8,6 +8,9 @@ import urllib2
 
 path_base = os.path.expanduser('~') + '/.config/dmenu-extended'
 
+filename_preferences = "user_preferences.conf"
+filename_configuration = "configuration.conf"
+
 default_config = {
     "dmenu_args": [
         "-b",
@@ -48,7 +51,8 @@ default_prefs = {
         "avi",
         "mpg",
         "mp3",
-        "lyx"
+        "lyx",
+        "bib",
     ],
 
     "watch_folders": ["~/"],
@@ -79,17 +83,17 @@ def setup_user_files(path):
     if os.path.exists('/usr/bin/urxvt'):
         default_config['terminal'] = 'urxvt'
 
-    if os.path.exists(path + '/configuration.txt') == False:
-        with open(path + '/configuration.txt','w') as f:
+    if os.path.exists(path + '/' + filename_configuration) == False:
+        with open(path + '/' + filename_configuration,'w') as f:
             json.dump(default_config, f, sort_keys=True, indent=4)
-        print('Configuration file created at: ' + path + '/configuration.txt')
+        print('Configuration file created at: ' + path + '/' + filename_configuration)
     else:
         print('Existing configuration file found, will not overwrite.')
 
-    if os.path.exists(path + '/user_preferences.txt') == False:
-        with open(path + '/user_preferences.txt','w') as f:
+    if os.path.exists(path + '/' + filename_preferences) == False:
+        with open(path + '/' + filename_preferences,'w') as f:
             json.dump(default_prefs, f, sort_keys=True, indent=4)
-        print('user_preferences file created at: ' + path + '/user_preferences.txt')
+        print('user_preferences file created at: ' + path + '/' + filename_preferences)
     else:
         print('Existing user preferences file found, will not overwrite')
 
@@ -101,8 +105,8 @@ def setup_user_files(path):
 
 
 if (os.path.exists(path_base + '/plugins') and
-    os.path.exists(path_base + '/configuration.txt') and
-    os.path.exists(path_base + '/user_preferences.txt')):
+    os.path.exists(path_base + '/' + filename_configuration) and
+    os.path.exists(path_base + '/' + filename_preferences)):
     sys.path.append(path_base)
 else:
     setup_user_files(path_base)
@@ -124,8 +128,8 @@ class dmenu(object):
 
     path_base = os.path.expanduser('~') + '/.config/dmenu-extended'
     path_cache = path_base + '/cache.txt'
-    path_preferences = path_base + '/user_preferences.txt'
-    path_configuration = path_base + '/configuration.txt'
+    path_preferences = path_base + '/' + filename_preferences
+    path_configuration = path_base + '/' + filename_configuration
 
     dmenu_args = False
     bin_terminal = 'xterm'
@@ -178,7 +182,7 @@ class dmenu(object):
         self.configuration = self.load_json(self.path_configuration)
 
         if self.configuration == False:
-            self.open_file(path_base + '/configuration.txt')
+            self.open_file(path_base + '/' + filename_configuration)
             sys.exit()
         else:
             if 'dmenu_args' in self.configuration and self.dmenu_args == False:
@@ -200,7 +204,7 @@ class dmenu(object):
     def load_preferences(self):
         self.preferences = self.load_json(self.path_preferences)
         if self.preferences == False:
-            self.open_file(path_base + '/user_preferences.txt')
+            self.open_file(path_base + '/' + filename_preferences)
             sys.exit()
 
 
@@ -525,14 +529,9 @@ class dmenu(object):
         sys.stdout.flush()
 
         plugins = self.sort_shortest(plugin_titles)
-        manual = self.sort_shortest(include_items)
-        bins = self.sort_shortest(binaries)
-        user = self.sort_shortest(foldernames + filenames)
-
+        other = self.sort_shortest(include_items + binaries + foldernames + filenames)
         out = plugins
-        out += manual
-        out += bins
-        out += user
+        out += other
 
         print('Done!')
         print('Cache building has finished.')
