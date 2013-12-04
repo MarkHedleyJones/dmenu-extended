@@ -98,9 +98,6 @@ The nicest way to enjoy dmenu-extended is to bind the command `dmenu_extended_ru
 ### Tiling window managers
 If you use a tiling window manager, you may already have a key-combination bound to launch dmenu (i.e. Ctrl+P). Edit your window managers configuration file to launch `dmenu_extended_run` instead.
 
-## Rebuilding the cache (without dmenu-extendedSettings)
-Entering 'rebuild cache' into dmenu-extended or executing `dmenu_extended_build` rebuild the cache.
-
 ## General Configuration
 
 Two json formatted configuration files are placed in *~/.config/dmenu-extended/* that control the appearance and functionality of the menu:
@@ -141,3 +138,6 @@ For example,
 
 * `htop;` - Launches htop in a terminal window. Without the semi-colon nothing would happen.
 * `alsamixer;` - Launches the ALSA sound volume manager in a terminal. Without the semicolon nothing would happen.
+
+## Rebuilding the cache (without dmenu-extendedSettings)
+Entering 'rebuild cache' into dmenu-extended or executing `dmenu_extended_build` rebuild the cache.
