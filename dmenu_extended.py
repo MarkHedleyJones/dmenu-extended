@@ -314,8 +314,11 @@ class dmenu(object):
 
 
     def cache_regenerate(self, debug=False):
+        self.message_open('Building cache...')
         self.load_settings()
-        return self.cache_save(self.cache_build(debug))
+        cache = self.cache_save(self.cache_build(debug))
+        self.message_close()
+        return cache
 
     def cache_save(self, items):
         try:
@@ -338,10 +341,8 @@ class dmenu(object):
                 if clean:
                     tmp.append(item)
             if foundError:
-                # print('')
                 # print('Performance affected while these items remain')
                 # print('This items have been excluded from cache')
-                # print('')
                 with open(self.path_cache, 'wb') as f:
                     for item in tmp:
                         f.write(item+'\n')
@@ -388,7 +389,6 @@ class dmenu(object):
         return out
 
     def cache_build(self, debug=False):
-        self.message_open('Building cache')
         print('')
         print('Starting to build the cache:')
 
@@ -549,8 +549,6 @@ class dmenu(object):
         out = plugins
 
         out += other
-
-        self.message_close()
 
         print('Done!')
         print('Cache building has finished.')
