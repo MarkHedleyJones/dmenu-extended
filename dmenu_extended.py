@@ -56,6 +56,10 @@ default_prefs = {
         "mp3",
         "lyx",
         "bib",
+        "iso",
+        "ps",
+        "zip",
+        "xpm"
     ],
 
     "watch_folders": ["~/"],
@@ -329,21 +333,21 @@ class dmenu(object):
                     if char not in string.printable:
                         clean = False
                         foundError = True
-                        print('Non-printable characters detected in cache object: ')
-                        print('Remedy: ' + item)
+                        # print('Non-printable characters detected in cache object: ')
+                        # print('Remedy: ' + item)
                 if clean:
                     tmp.append(item)
             if foundError:
-                print('')
-                print('Performance affected while these items remain')
-                print('This items have been excluded from cache')
-                print('')
+                # print('')
+                # print('Performance affected while these items remain')
+                # print('This items have been excluded from cache')
+                # print('')
                 with open(self.path_cache, 'wb') as f:
                     for item in tmp:
                         f.write(item+'\n')
                 return 2
             else:
-                print('Unknown error saving data cache')
+                #print('Unknown error saving data cache')
                 return 0
 
     def cache_open(self):

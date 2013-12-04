@@ -3,7 +3,6 @@
 import dmenu_extended
 import os
 import sys
-import argparse
 
 def handle_command(d, out):
     if out[0] == ';' or out[-1] == ';':
