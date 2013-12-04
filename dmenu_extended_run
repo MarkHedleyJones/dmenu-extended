@@ -16,18 +16,24 @@ def handle_command(d, out):
         if out.find(' ') != -1:
             parts = out.split(' ')
             if parts[0] in d.scan_binaries():
+                print 'a'
                 d.execute(out)
             else:
                 if os.path.isdir(out):
+                    print 'b'
                     d.open_directory(out)
                 else:
+                    print 'c'
                     d.open_file(out)
         else:
             if os.path.isdir(out):
+                print 'd'
                 d.open_directory(out)
             else:
+                print 'e'
                 d.open_file(out)
     else:
+        print 'f'
         d.execute(out)
 
 def run(argv):
@@ -67,6 +73,7 @@ def run(argv):
                     store['include_items'].remove(item)
                 d.save_json(d.path_preferences, store)
                 d.cache_regenerate()
+                d.menu(['Success!'])
 
             # Check for open-with/filter results modifier
             if out.find(':') != -1:
@@ -88,17 +95,18 @@ def run(argv):
                     # If extension passed, filter by this
                     if cmds[1] != '':
                         items = filter(lambda x: x.find(cmds[1]) != -1, items)
-                    file = d.menu(items)
-                    command = cmds[0] + ' ' + file
+                    filename = d.menu(items)
+                    filename = os.path.expanduser(filename)
+                    command = cmds[0] + " '" + filename + "'"
                     print 'Executing: ' + command
                     d.execute(command)
                 elif cmds[0].find('/') != -1:
                     # Path came first, assume user wants of open it with a bin
                     if cmds[1] != '':
-                        command = cmds[1] + ' ' + cmds[0]
+                        command = cmds[1] + " '" + os.path.expanduser(cmds[0]) + "'"
                     else:
                         binary = d.menu(d.scan_binaries())
-                        command = binary + ' ' + cmds[0]
+                        command = binary + " '" + os.path.expanduser(cmds[0]) + "'"
                     d.execute(command)
                 else:
                     print 'Input command not understood'
@@ -110,9 +118,9 @@ def run(argv):
                 if result == 0:
                     d.menu(['Cache could not be saved'])
                 elif result == 2:
-                    d.menu(['Issues encoundered while saving cache'])
+                    d.menu(['Cache rebuilt','Performance issues were detected - some paths contained invalid characters'])
                 else:
-                    d.menu(['Success'])
+                    d.menu(['Success!'])
 
             else:
                 handle_command(d, out)
