@@ -2,6 +2,11 @@
 
 An extension to dmenu allowing super fast access to your files, folders, and programs. Install the dmenu_extendedSettings plugin to further extend the menu - adding the ability to download new plugins and manage settings.
 
+<p align="center">
+  <img src="https://raw.github.com/markjones112358/dmenu-extended/master/demo.gif" alt="Dmenu-extended demo"/>
+</p>
+
+
 # Installation
 
 dmenu-extended requires that dmenu is installed. While dmenu-extended works with older versions of dmenu, it is recommended that you have at least version 4.5 to enable fuzzy searching. If you already have dmenu installed you may [skip this step](#installing-dmenu-extended-this-extension).
