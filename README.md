@@ -16,7 +16,7 @@ Download and extract the archive (or clone using git). Open a terminal and navig
 
 ## Installing dmenu-extendedSettings (recommended)
 
-Installing this extra extension enables rebuilding the cache, easy access to configuration files, and the ability to download and remove plugins.
+Installing this extra extension enables rebuilding the cache, easy access to configuration files, and the ability to easily download more plugins from the github hosted repository index.
 
 To install this extension, copy and execute the following commands in a terminal
 
