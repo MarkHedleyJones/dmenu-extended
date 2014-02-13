@@ -27,7 +27,7 @@ default_config = {
         "-sb",
         "#1D1F21",
         "-fn",
-        "-*-terminus-medium-r-*-*-16-*-*-*-*-*-*-*",
+        "Terminus:12",
         "-l",
         "30"
     ],
