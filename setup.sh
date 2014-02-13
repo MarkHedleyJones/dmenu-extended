@@ -39,7 +39,7 @@ fi
 echo ""
 echo "Installing dmenu-extended..."
 cd "$path"
-sudo python setup.py install
+sudo python2 setup.py install
 echo "Done!"
 echo ""
 dmenu_extended_build

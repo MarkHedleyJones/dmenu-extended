@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python2
 # -*- coding: utf8 -*-
 import dmenu_extended
 import os
@@ -16,24 +16,18 @@ def handle_command(d, out):
         if out.find(' ') != -1:
             parts = out.split(' ')
             if parts[0] in d.scan_binaries():
-                print 'a'
                 d.execute(out)
             else:
                 if os.path.isdir(out):
-                    print 'b'
                     d.open_directory(out)
                 else:
-                    print 'c'
                     d.open_file(out)
         else:
             if os.path.isdir(out):
-                print 'd'
                 d.open_directory(out)
             else:
-                print 'e'
                 d.open_file(out)
     else:
-        print 'f'
         d.execute(out)
 
 def run(argv):
@@ -64,9 +58,8 @@ def run(argv):
             # Check for store modifications
             if out[0] == '+':
                 item = out[1:]
-                print 'Adding item to store: ' + item
+                print('Adding item to store: ' + item)
                 store = d.load_json(d.path_preferences)
-                print store
                 if item not in store['include_items']:
                     store['include_items'].append(item)
                 else:
@@ -79,7 +72,7 @@ def run(argv):
             if out.find(':') != -1:
                 tmp = out.split(':')
                 if len(tmp) != 2:
-                    print 'Input command not understood'
+                    print('Input command not understood')
                     sys.exit()
                 else:
                     cmds = map(lambda x: x.strip(), tmp)
@@ -89,7 +82,7 @@ def run(argv):
                     item = d.menu(items)
                     handle_command(d, item)
                 elif cmds[0] in d.scan_binaries():
-                    print 'Item[0] (' + cmds[0] + ') found in binaries'
+                    prin('Item[0] (' + cmds[0] + ') found in binaries')
                     # Get paths from cache
                     items = filter(lambda x: x.find('/') != -1, cache.split('\n'))
                     # If extension passed, filter by this
@@ -98,7 +91,7 @@ def run(argv):
                     filename = d.menu(items)
                     filename = os.path.expanduser(filename)
                     command = cmds[0] + " '" + filename + "'"
-                    print 'Executing: ' + command
+                    print('Executing: ' + command)
                     d.execute(command)
                 elif cmds[0].find('/') != -1:
                     # Path came first, assume user wants of open it with a bin
@@ -109,7 +102,7 @@ def run(argv):
                         command = binary + " '" + os.path.expanduser(cmds[0]) + "'"
                     d.execute(command)
                 else:
-                    print 'Input command not understood'
+                    print('Input command not understood')
 
                 sys.exit()
 

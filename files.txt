@@ -1,0 +1,5 @@
+/usr/lib/python3.3/site-packages/dmenu_extended.py
+/usr/lib/python3.3/site-packages/__pycache__/dmenu_extended.cpython-33.pyc
+/usr/bin/dmenu_extended_run
+/usr/bin/dmenu_extended_build
+/usr/lib/python3.3/site-packages/dmenu_extended-1.0-py3.3.egg-info
