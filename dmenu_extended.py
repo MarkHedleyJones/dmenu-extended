@@ -286,13 +286,18 @@ class dmenu(object):
         os.system(self.bin_filebrowser + ' "' + path + '"')
 
 
-    def open_terminal(self, command, hold=False):
-        if hold:
+    def open_terminal(self, command, hold=False, direct=False):
+        if direct == False:
             mid = ' -e sh -c "'
-            command += '; echo \'\nFinished!\n\nPress any key to close terminal\'; read var'
         else:
-            mid = ' -e sh -c "'
-        full = self.bin_terminal + mid + command + '"'
+            mid = ' '
+
+        if hold:
+            command += '; echo \'\nFinished!\n\nPress any key to close terminal\'; read var'
+        
+        full = self.bin_terminal + mid + command
+        if direct == False:
+            full += '"'
         print(full)
         os.system(full)
 
