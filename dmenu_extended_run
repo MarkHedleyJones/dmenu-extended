@@ -85,7 +85,7 @@ def run(argv):
                     item = d.menu(items)
                     handle_command(d, item)
                 elif cmds[0] in d.scan_binaries():
-                    prin('Item[0] (' + cmds[0] + ') found in binaries')
+                    print('Item[0] (' + cmds[0] + ') found in binaries')
                     # Get paths from cache
                     items = filter(lambda x: x.find('/') != -1, cache.split('\n'))
                     # If extension passed, filter by this
@@ -94,7 +94,6 @@ def run(argv):
                     filename = d.menu(items)
                     filename = os.path.expanduser(filename)
                     command = cmds[0] + " '" + filename + "'"
-                    print('Executing: ' + command)
                     d.execute(command)
                 elif cmds[0].find('/') != -1:
                     # Path came first, assume user wants of open it with a bin
