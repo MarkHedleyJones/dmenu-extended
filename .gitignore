@@ -1,4 +1,4 @@
 *.pyc
 cache.txt
 settings.txt
-/build/*
+build/*

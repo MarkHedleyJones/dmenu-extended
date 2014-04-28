@@ -1,5 +1,5 @@
 # -*- coding: utf8 -*-
-import commands
+#import commands
 import sys
 import os
 import subprocess
