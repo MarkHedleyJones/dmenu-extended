@@ -40,26 +40,31 @@ default_config = {
 
 default_prefs = {
     "valid_extensions": [
-        "py",
-        "svg",
-        "pdf",
-        "txt",
-        "png",
-        "jpg",
-        "gif",
-        "php",
-        "tex",
-        "odf",
-        "ods",
-        "avi",
-        "mpg",
-        "mp3",
-        "lyx",
-        "bib",
-        "iso",
-        "ps",
-        "zip",
-        "xcf"
+        "py",   # Python script
+        "svg",  # Vector graphics
+        "pdf",  # Portable document format
+        "txt",  # Plain text
+        "png",  # Image file
+        "jpg",  # Image file
+        "gif",  # Image file
+        "php",  # PHP source-code
+        "tex",  # LaTeX document
+        "odf",  # Open document format
+        "ods",  # Open document spreadsheet
+        "avi",  # Video file
+        "mpg",  # Video file
+        "mp3",  # Music file
+        "lyx",  # Lyx document
+        "bib",  # LaTeX bibliograpy
+        "iso",  # CD image
+        "ps",   # Postscript document
+        "zip",  # Compressed archive
+        "xcf",  # Gimp image format
+        "doc",  # Microsoft document format
+        "docx", # Microsoft document format
+        "xls",  # Microsoft spreadsheet format
+        "xlsx"  # Microsoft spreadsheet format
+        "md"    # Markup document
     ],
 
     "watch_folders": ["~/"],
