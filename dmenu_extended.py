@@ -70,7 +70,7 @@ default_prefs = {
 
     "filter_binaries": True,
 
-    "follow_simlinks": True
+    "follow_symlinks": True
 }
 
 def setup_user_files(path):
@@ -469,15 +469,15 @@ class dmenu(object):
         filenames = []
         foldernames = []
 
-        follow_simlinks = False
+        follow_symlinks = False
         try:
-            if 'follow_simlinks' in self.preferences:
-                follow_simlinks = self.preferences['follow_simlinks']
+            if 'follow_symlinks' in self.preferences:
+                follow_symlinks = self.preferences['follow_symlinks']
         except:
             pass
 
         if debug:
-            if follow_simlinks:
+            if follow_symlinks:
                 print('Indexing will not follow linked folders')
             else:
                 print('Indexing will follow linked folders')
@@ -486,7 +486,7 @@ class dmenu(object):
         sys.stdout.flush()
 
         for watchdir in watch_folders:
-            for root, dir , files in os.walk(watchdir, followlinks=follow_simlinks):
+            for root, dir , files in os.walk(watchdir, followlinks=follow_symlinks):
                 if root.find('/.')  == -1:
                     for name in files:
                         if not name.startswith('.'):
