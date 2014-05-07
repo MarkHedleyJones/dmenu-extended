@@ -9,6 +9,8 @@ An extension to dmenu allowing super fast access to your files, folders, and pro
 
 # Installation
 
+Make sure you have ``curl`` installed first (``sudo apt-get install curl``).
+
 Download and extract the archive (or clone using git). Open a terminal and navigate to the source folder (probably `cd ~/Downloads/dmenu-extended-master`) and run the  following command:
 
     sudo sh setup.sh
