@@ -336,7 +336,6 @@ class dmenu(object):
         self.load_settings()
         #print(self.cache_build(debug))
         cache = self.cache_save(self.cache_build(debug))
-        print(cache)
         if message:
             self.message_close()
         return cache
@@ -347,29 +346,30 @@ class dmenu(object):
                 for item in items:
                     f.write(item+"\n")
             return 1
-        except IndexError:
+        except UnicodeEncodeError:
             import string
             tmp = []
             foundError = False
+            print('Non-printable characters detected in cache: ')
             for item in items:
                 clean = True
                 for char in item:
                     if char not in string.printable:
                         clean = False
                         foundError = True
-                        # print('Non-printable characters detected in cache object: ')
-                        # print('Remedy: ' + item)
+                        print('Culprit: ' + item)
                 if clean:
                     tmp.append(item)
             if foundError:
-                # print('Performance affected while these items remain')
-                # print('This items have been excluded from cache')
+                print('')
+                print('Caching performance will be affected while these items remain')
+                print('Offending items have been excluded from cache')
                 with open(self.path_cache, 'wb') as f:
                     for item in tmp:
                         f.write(item+'\n')
                 return 2
             else:
-                #print('Unknown error saving data cache')
+                print('Unknown error saving data cache')
                 return 0
 
     def cache_open(self):
