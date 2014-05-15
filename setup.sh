@@ -57,6 +57,10 @@ echo ""
 su $user -c "dmenu_extended_build"
 echo ""
 echo "Creating signature file..."
+if [ ! -w /home/$SUDO_USER/.config/dmenu-extended/signature.txt ]
+then
+    chown $SUDO_USER /home/SUDO_USER/.config/dmenu-extended/signature.txt
+fi
 su $user -c "curl https://github.com/markjones112358/dmenu-extended/archive/master.zip | sha1sum | awk '{print $1}' > /home/$SUDO_USER/.config/dmenu-extended/signature.txt"
 echo "Done!"
 echo ""
