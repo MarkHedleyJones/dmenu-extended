@@ -377,11 +377,14 @@ class dmenu(object):
 
         return cache
 
-    def command_output(self, command):
+    def command_output(self, command, split=True):
         if type(command) == str:
             command = command.split(' ')
         handle = subprocess.Popen(command, stdout=subprocess.PIPE)
-        return handle.communicate()[0].split('\n')
+        if split:
+            return handle.communicate()[0].split('\n')
+        else:
+            return handle.communicate()[0]
 
 
     def scan_binaries(self, filter_binaries=False):
