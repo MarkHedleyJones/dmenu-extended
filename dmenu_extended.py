@@ -242,6 +242,7 @@ class dmenu(object):
         return json.load(self.connect_to(url))
 
     def message_open(self, message):
+        self.load_settings()
         self.message = subprocess.Popen(self.dmenu_args, stdin=subprocess.PIPE, preexec_fn=os.setsid)
         self.message.stdin.write(message.encode('utf-8'))
         self.message.stdin.close()

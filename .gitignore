@@ -2,3 +2,4 @@
 cache.txt
 settings.txt
 build/*
+*.swp
