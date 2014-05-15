@@ -5,7 +5,10 @@ import os
 import subprocess
 import signal
 import json
-import urllib2
+try:
+    import urllib.request as urllib2
+except:
+    import urllib2
 import signal
 import time
 
@@ -240,7 +243,7 @@ class dmenu(object):
 
     def message_open(self, message):
         self.message = subprocess.Popen(self.dmenu_args, stdin=subprocess.PIPE, preexec_fn=os.setsid)
-        self.message.stdin.write(message)
+        self.message.stdin.write(message.encode('utf-8'))
         self.message.stdin.close()
 
 
@@ -255,15 +258,16 @@ class dmenu(object):
         if prompt is not None:
             params += ["-p", prompt]
         p = subprocess.Popen(params, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+
         if type(items) == str:
-            out = p.communicate(items)[0]
+            out = p.communicate(items.encode('utf-8'))[0]
         else:
-            out = p.communicate("\n".join(items))[0]
+            out = p.communicate("\n".join(items).encode('utf-8'))[0]
 
         if out.strip() == '':
             sys.exit()
         else:
-            return out.strip('\n')
+            return out.decode().strip('\n')
 
 
     def select(self, items, prompt=None, numeric=False):
@@ -278,7 +282,10 @@ class dmenu(object):
 
 
     def sort_shortest(self, items):
-        return sorted(items, cmp=lambda x, y: len(x) - len(y))
+        #return sorted(items, cmp=lambda x, y: len(x) - len(y))
+        items.sort(key=len)
+        return items
+        #return items.sort(key=len)
 
 
     def open_url(self, url):
@@ -327,18 +334,20 @@ class dmenu(object):
         if message:
             self.message_open('Building cache...')
         self.load_settings()
+        #print(self.cache_build(debug))
         cache = self.cache_save(self.cache_build(debug))
+        print(cache)
         if message:
             self.message_close()
         return cache
 
     def cache_save(self, items):
         try:
-            with open(self.path_cache, 'wb') as f:
+            with open(self.path_cache, 'w') as f:
                 for item in items:
-                    f.write(item+'\n')
+                    f.write(item+"\n")
             return 1
-        except:
+        except IndexError:
             import string
             tmp = []
             foundError = False
@@ -365,7 +374,9 @@ class dmenu(object):
 
     def cache_open(self):
         try:
-            with open(self.path_cache, 'rb') as f:
+            print('Opening cache')
+            print(self.path_cache)
+            with open(self.path_cache, 'r') as f:
                 return f.read()
         except:
             return False
@@ -387,9 +398,9 @@ class dmenu(object):
             command = command.split(' ')
         handle = subprocess.Popen(command, stdout=subprocess.PIPE)
         if split:
-            return handle.communicate()[0].split('\n')
+            return handle.communicate()[0].decode().split('\n')
         else:
-            return handle.communicate()[0]
+            return handle.communicate()[0].decode()
 
 
     def scan_binaries(self, filter_binaries=False):
@@ -504,7 +515,7 @@ class dmenu(object):
                         if not name.startswith('.'):
                             foldernames.append(os.path.join(root,name))
 
-        foldernames = filter(lambda x: x not in exclude_folders, foldernames)
+        foldernames = list(filter(lambda x: x not in exclude_folders, foldernames))
 
         print('Done!')
 
@@ -561,8 +572,8 @@ class dmenu(object):
 
         plugins = self.sort_shortest(plugin_titles)
         other = self.sort_shortest(include_items + binaries + foldernames + filenames)
+        
         out = plugins
-
         out += other
 
         print('Done!')

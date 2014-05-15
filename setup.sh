@@ -1,5 +1,17 @@
 user=$SUDO_USER
 path=`pwd`
+
+if [ -e /usr/bin/python2 ]
+then
+    python=/usr/bin/python2
+elif [ -e /usr/bin/python ]
+then
+    python=usr/bin/python
+else
+    echo "You must have Python installed (python 2)"
+    exit
+fi
+
 if [ ! -w /usr/bin ]
 then
     echo "This script requires elevated priveledges - run with sudo"
