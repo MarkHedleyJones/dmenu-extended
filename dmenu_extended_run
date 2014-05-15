@@ -61,18 +61,26 @@ def run(argv):
             # Check for store modifications
             if out[0] == '+':
                 out = out[1:]
-                print('Adding item to store: ' + out)
+                d.message_open("Adding item to store: " + out)
                 store = d.load_json(d.path_preferences)
                 if out not in store['include_items']:
                     store['include_items'].append(out)
                 else:
                     store['include_items'].remove(out)
-                #d.save_json(d.path_preferences, store)
-                # Ideally we don't want to rebuild the cache, just add an item to it
-                #d.cache_regenerate()
-                newCache = out+cache
-                d.cache_save(newCache)
-                d.menu(['Success!'])
+                
+                d.save_json(d.path_preferences, store)
+                
+                cache_scanned = d.cache_open(d.path_base + '/cache_scanned.txt')[:-1]
+
+                if cache_scanned == False:
+                    d.cache_regenerate()
+
+                newCache = [out] + cache_scanned.split("\n")
+                newCache.sort(key=len)
+
+                d.cache_save(newCache, d.path_base + '/cache_scanned.txt')
+                
+                d.message_close()
                 sys.exit()
 
             # Check for open-with/filter results modifier

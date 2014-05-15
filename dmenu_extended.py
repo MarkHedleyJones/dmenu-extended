@@ -335,16 +335,24 @@ class dmenu(object):
         if message:
             self.message_open('Building cache...')
         self.load_settings()
-        cache = self.cache_save(self.cache_build(debug))
+        cache = self.cache_build(debug)
         if message:
             self.message_close()
         return cache
 
-    def cache_save(self, items):
+    def cache_save(self, items, location=False):
+        if location == False:
+            path_cache = self.path_cache
+        else:
+            path_cache = location
+
         try:
-            with open(self.path_cache, 'w') as f:
-                for item in items:
-                    f.write(item+"\n")
+            with open(path_cache, 'w') as f:
+                if type(items) == list:
+                    for item in items:
+                        f.write(item+"\n")
+                else:
+                    f.write(items)
             return 1
         except UnicodeEncodeError:
             import string
@@ -364,7 +372,7 @@ class dmenu(object):
                 print('')
                 print('Caching performance will be affected while these items remain')
                 print('Offending items have been excluded from cache')
-                with open(self.path_cache, 'wb') as f:
+                with open(path_cache, 'wb') as f:
                     for item in tmp:
                         f.write(item+'\n')
                 return 2
@@ -372,17 +380,23 @@ class dmenu(object):
                 print('Unknown error saving data cache')
                 return 0
 
-    def cache_open(self):
+    def cache_open(self, location=False):
+        if location == False:
+            path_cache = self.path_cache
+        else:
+            path_cache = location
+
         try:
-            print('Opening cache')
-            print(self.path_cache)
-            with open(self.path_cache, 'r') as f:
+            print('Opening cache at ' + path_cache)
+            with open(path_cache, 'r') as f:
                 return f.read()
         except:
             return False
 
     def cache_load(self):
-        cache = self.cache_open()
+        #cache = self.cache_open()
+        cache = self.cache_open(self.path_base+'/cache_plugins.txt')
+        cache += self.cache_open(self.path_base + '/cache_scanned.txt')
         if cache == False:
             print('Cache was not loaded')
             if self.cache_regenerate() == False:
@@ -572,6 +586,9 @@ class dmenu(object):
 
         plugins = self.sort_shortest(plugin_titles)
         other = self.sort_shortest(include_items + binaries + foldernames + filenames)
+
+        self.cache_save(plugins, self.path_base + '/cache_plugins.txt')
+        self.cache_save(other, self.path_base + '/cache_scanned.txt')
         
         out = plugins
         out += other
