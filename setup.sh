@@ -39,12 +39,12 @@ fi
 echo ""
 echo "Installing dmenu-extended..."
 cd "$path"
-sudo python2 setup.py install
+sudo python setup.py install
 echo "Done!"
 echo ""
-dmenu_extended_build
+su $user -c "dmenu_extended_build"
 echo ""
 echo "Creating signature file..."
-curl https://github.com/markjones112358/dmenu-extended/archive/master.zip | sha1sum | awk '{print $1}' > /home/$SUDO_USER/.config/dmenu-extended/signature.txt
+su $user -c "curl https://github.com/markjones112358/dmenu-extended/archive/master.zip | sha1sum | awk '{print $1}' > /home/$SUDO_USER/.config/dmenu-extended/signature.txt"
 echo "Done!"
 echo ""
