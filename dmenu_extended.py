@@ -334,7 +334,6 @@ class dmenu(object):
         if message:
             self.message_open('Building cache...')
         self.load_settings()
-        #print(self.cache_build(debug))
         cache = self.cache_save(self.cache_build(debug))
         if message:
             self.message_close()
