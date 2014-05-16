@@ -260,10 +260,13 @@ class dmenu(object):
             params += ["-p", prompt]
         p = subprocess.Popen(params, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
-        if type(items) == str:
-            out = p.communicate(items.encode('utf-8'))[0]
-        else:
-            out = p.communicate("\n".join(items).encode('utf-8'))[0]
+        if type(items) == list:
+            items = "\n".join(items)
+
+        if isinstance(items, unicode):
+            items.encode('utf-8')
+
+        out = p.communicate(items)[0]
 
         if out.strip() == '':
             sys.exit()
@@ -411,10 +414,16 @@ class dmenu(object):
         if type(command) == str:
             command = command.split(' ')
         handle = subprocess.Popen(command, stdout=subprocess.PIPE)
+        out = handle.communicate()[0]
+        try:
+            out = unicode(out)
+        except UnicodeDecodeError:
+            pass
+
         if split:
-            return handle.communicate()[0].decode().split('\n')
+            return out.split('\n')
         else:
-            return handle.communicate()[0].decode()
+            return out
 
 
     def scan_binaries(self, filter_binaries=False):
