@@ -244,7 +244,7 @@ class dmenu(object):
     def message_open(self, message):
         self.load_settings()
         self.message = subprocess.Popen(self.dmenu_args, stdin=subprocess.PIPE, preexec_fn=os.setsid)
-        self.message.stdin.write(message.encode('utf-8'))
+        self.message.stdin.write("Please wait: " + message.encode('utf-8'))
         self.message.stdin.close()
 
 
@@ -307,7 +307,7 @@ class dmenu(object):
 
         if hold:
             command += '; echo \'\nFinished!\n\nPress any key to close terminal\'; read var'
-        
+
         full = self.bin_terminal + mid + command
         if direct == False:
             full += '"'
@@ -589,7 +589,7 @@ class dmenu(object):
 
         self.cache_save(plugins, self.path_base + '/cache_plugins.txt')
         self.cache_save(other, self.path_base + '/cache_scanned.txt')
-        
+
         out = plugins
         out += other
 
