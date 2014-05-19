@@ -169,6 +169,7 @@ class dmenu(object):
         if self.plugins_loaded == False:
             self.plugins_loaded = load_plugins()
         elif force:
+            print("Forced reloading of plugins")
             reload(plugins)
             self.plugins_loaded = load_plugins()
 
@@ -437,6 +438,33 @@ class dmenu(object):
                 out.append(binary)
         return out
 
+
+    def plugins_available(self, debug=False):
+        sys.stdout.write('Loading available plugins...')
+        sys.stdout.flush()
+
+        plugins = self.get_plugins(True)
+        plugin_titles = []
+        for plugin in plugins:
+            if hasattr(plugin['plugin'], 'is_submenu') and plugin['plugin'].is_submenu:
+                plugin_titles.append(self.submenu_indicator + plugin['plugin'].title)
+            else:
+                plugin_titles.append(plugin['plugin'].title)
+        print('Done!')
+
+        if debug:
+            print('Plugins loaded:')
+            sys.stdout.write('First 5 items: ')
+            print(plugin_titles[:5])
+            print(str(len(plugin_titles)) + ' loaded in total')
+            print('')
+
+        out = self.sort_shortest(plugin_titles)
+        self.cache_save(out, self.path_base + '/cache_plugins.txt')
+
+        return out
+
+
     def cache_build(self, debug=False):
         print('')
         print('Starting to build the cache:')
@@ -571,32 +599,12 @@ class dmenu(object):
             print(str(len(include_items)) + ' items loaded in total')
             print('')
 
-        sys.stdout.write('Loading available plugins...')
-        sys.stdout.flush()
-
-        plugins = self.get_plugins()
-        plugin_titles = []
-        for plugin in plugins:
-            if hasattr(plugin['plugin'], 'is_submenu') and plugin['plugin'].is_submenu:
-                plugin_titles.append(self.submenu_indicator + plugin['plugin'].title)
-            else:
-                plugin_titles.append(plugin['plugin'].title)
-        print('Done!')
-
-        if debug:
-            print('Plugins loaded:')
-            sys.stdout.write('First 5 items: ')
-            print(plugin_titles[:5])
-            print(str(len(plugin_titles)) + ' loaded in total')
-            print('')
-
         sys.stdout.write('Ordering and combining results...')
         sys.stdout.flush()
 
-        plugins = self.sort_shortest(plugin_titles)
+        plugins = self.plugins_available()
         other = self.sort_shortest(include_items + binaries + foldernames + filenames)
 
-        self.cache_save(plugins, self.path_base + '/cache_plugins.txt')
         self.cache_save(other, self.path_base + '/cache_scanned.txt')
 
         out = plugins
