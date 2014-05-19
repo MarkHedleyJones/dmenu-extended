@@ -133,6 +133,7 @@ def run(argv):
                         command = binary + " '" + os.path.expanduser(cmds[0]) + "'"
                     d.execute(command)
                 else:
+                    d.menu(["Cant find " + cmds[0] + ", is it installed?"])
                     print('Input command not understood')
 
                 sys.exit()
