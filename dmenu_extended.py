@@ -87,7 +87,7 @@ def setup_user_files(path):
     try:
         os.makedirs(path + '/plugins')
     except OSError:
-        print('Target directory already exists - overwriting contents')
+        print('Target directory already exists')
     print('Plugins folder created at: ' + path + '/plugins')
 
     # Change to nicer defaults

@@ -54,7 +54,9 @@ cd "$path"
 sudo python setup.py install
 echo "Done!"
 echo ""
-su $user -c "dmenu_extended_build"
+su $SUDO_USER -c "python -c 'import dmenu_extended
+dmenu_extended.setup_user_files(dmenu_extended.path_base)
+'"
 echo ""
 echo "Creating signature file..."
 if [ ! -w /home/$SUDO_USER/.config/dmenu-extended/signature.txt ]
@@ -63,4 +65,28 @@ then
 fi
 su $user -c "curl https://github.com/markjones112358/dmenu-extended/archive/master.zip | sha1sum | awk '{print $1}' > /home/$SUDO_USER/.config/dmenu-extended/signature.txt"
 echo "Done!"
+echo ""
+echo "*******************************************************************"
+echo "* You should now execute dmenu_extended_build to create the cache *"
+echo "*******************************************************************"
+echo ""
+echo "Doing so will scan your home directory for files and folders. If"
+echo "there are folders you do not wish to include in the cache, you"
+echo "should add them to the 'exclude_folders' entry of:"
+echo "/home/$SUDO_USER/.config/dmenu-extended/user_preferences.conf"
+echo ""
+echo "For example on the line containing:"
+echo "    'exclude_folders': [],"
+echo "Change it to:"
+echo "    'exclude_folders': ['~/Rubbish', '~/Ignore']"
+echo ""
+while true; do
+    read -p "Would you like to build the cache now? [y/n]:" yn
+    case $yn in
+        [Yy]* ) su $user -c "dmenu_extended_build"; break;;
+        [Nn]* ) echo "Build the cache at any time by executing 'dmenu_extended_build'"; break;;
+        * ) echo "Please select either 'yes' or 'no'.";;
+    esac
+done
+echo "Installation finished"
 echo ""
