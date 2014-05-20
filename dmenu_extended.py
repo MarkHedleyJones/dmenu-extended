@@ -78,7 +78,7 @@ default_prefs = {
 
     "filter_binaries": True,
 
-    "follow_symlinks": True
+    "follow_symlinks": False
 }
 
 def setup_user_files(path):
@@ -553,22 +553,30 @@ class dmenu(object):
                 print('Indexing will follow linked folders')
 
         sys.stdout.write('Scanning files and folders, this may take a while...')
+        sys.stdout.write('')
+
         sys.stdout.flush()
 
         for watchdir in watch_folders:
-            for root, dir , files in os.walk(watchdir, followlinks=follow_symlinks):
+            for root, dirs , files in os.walk(watchdir, followlinks=follow_symlinks):
+
+                dirs[:] = [d for d in dirs if os.path.join(root,d) not in exclude_folders]
+
                 if root.find('/.')  == -1:
                     for name in files:
                         if not name.startswith('.'):
                                 if os.path.splitext(name)[1].lower() in valid_extensions:
+                                    print('\rScanning: ' + root.strip()[0:70]),
+                                    for i in range(70-len(root[0:70])):
+                                        print (' '),
                                     filenames.append(os.path.join(root,name))
-                    for name in dir:
+                    for name in dirs:
                         if not name.startswith('.'):
                             foldernames.append(os.path.join(root,name))
 
+        print('\rDone scanning files and folders')
         foldernames = list(filter(lambda x: x not in exclude_folders, foldernames))
 
-        print('Done!')
 
         if debug:
             print('Folders found:')
