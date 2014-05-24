@@ -1,5 +1,6 @@
 # -*- coding: utf8 -*-
 #import commands
+from __future__ import unicode_literals
 import sys
 import os
 import subprocess
@@ -245,7 +246,10 @@ class dmenu(object):
     def message_open(self, message):
         self.load_settings()
         self.message = subprocess.Popen(self.dmenu_args, stdin=subprocess.PIPE, preexec_fn=os.setsid)
-        self.message.stdin.write("Please wait: " + message.encode('utf-8'))
+        msg = str(message)
+        msg = "Please wait: " + msg
+        msg = msg.encode('utf-8')
+        self.message.stdin.write(msg)
         self.message.stdin.close()
 
 
@@ -264,9 +268,7 @@ class dmenu(object):
         if type(items) == list:
             items = "\n".join(items)
 
-        if isinstance(items, unicode):
-            items.encode('utf-8')
-
+        items = items.encode('utf-8')
         out = p.communicate(items)[0]
 
         if out.strip() == '':
@@ -416,15 +418,12 @@ class dmenu(object):
             command = command.split(' ')
         handle = subprocess.Popen(command, stdout=subprocess.PIPE)
         out = handle.communicate()[0]
-        try:
-            out = unicode(out)
-        except UnicodeDecodeError:
-            pass
+
 
         if split:
-            return out.split('\n')
+            return str(out).split('\n')
         else:
-            return out
+            return str(out)
 
 
     def scan_binaries(self, filter_binaries=False):
