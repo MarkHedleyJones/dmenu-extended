@@ -233,7 +233,7 @@ class dmenu(object):
     def connect_to(self, url):
         request = urllib2.Request(url)
         response = urllib2.urlopen(request)
-        return response
+        return response.read().decode('utf-8')
 
 
     def download_text(self, url):
@@ -241,7 +241,7 @@ class dmenu(object):
 
 
     def download_json(self, url):
-        return json.load(self.connect_to(url))
+        return json.loads(self.connect_to(url))
 
     def message_open(self, message):
         self.load_settings()
