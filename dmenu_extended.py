@@ -419,11 +419,10 @@ class dmenu(object):
         handle = subprocess.Popen(command, stdout=subprocess.PIPE)
         out = handle.communicate()[0]
 
-
         if split:
-            return str(out).split('\n')
+            return out.decode().split("\n")
         else:
-            return str(out)
+            return out.decode()
 
 
     def scan_binaries(self, filter_binaries=False):
@@ -435,6 +434,7 @@ class dmenu(object):
                         out.append(binary)
             else:
                 out.append(binary)
+
         return out
 
 
@@ -502,7 +502,7 @@ class dmenu(object):
             print(binaries[:5])
             print(str(len(binaries)) + ' loaded in total')
             print('')
-
+        
         sys.stdout.write('Loading the list of indexed folders...')
         sys.stdout.flush()
         watch_folders = []
