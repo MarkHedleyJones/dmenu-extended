@@ -6,12 +6,14 @@ import os
 import subprocess
 import signal
 import json
+import signal
+import time
+
+# Python 3 urllib import with Python 2 fallback
 try:
     import urllib.request as urllib2
 except:
     import urllib2
-import signal
-import time
 
 path_base = os.path.expanduser('~') + '/.config/dmenu-extended'
 
@@ -44,31 +46,32 @@ default_config = {
 
 default_prefs = {
     "valid_extensions": [
-        "py",   # Python script
-        "svg",  # Vector graphics
-        "pdf",  # Portable document format
-        "txt",  # Plain text
-        "png",  # Image file
-        "jpg",  # Image file
-        "gif",  # Image file
-        "php",  # PHP source-code
-        "tex",  # LaTeX document
-        "odf",  # Open document format
-        "ods",  # Open document spreadsheet
-        "avi",  # Video file
-        "mpg",  # Video file
-        "mp3",  # Music file
-        "lyx",  # Lyx document
-        "bib",  # LaTeX bibliograpy
-        "iso",  # CD image
-        "ps",   # Postscript document
-        "zip",  # Compressed archive
-        "xcf",  # Gimp image format
-        "doc",  # Microsoft document format
-        "docx", # Microsoft document format
-        "xls",  # Microsoft spreadsheet format
-        "xlsx"  # Microsoft spreadsheet format
-        "md"    # Markup document
+        "py",               # Python script
+        "svg",              # Vector graphics
+        "pdf",              # Portable document format
+        "txt",              # Plain text
+        "png",              # Image file
+        "jpg",              # Image file
+        "gif",              # Image file
+        "php",              # PHP source-code
+        "tex",              # LaTeX document
+        "odf",              # Open document format
+        "ods",              # Open document spreadsheet
+        "avi",              # Video file
+        "mpg",              # Video file
+        "mp3",              # Music file
+        "lyx",              # Lyx document
+        "bib",              # LaTeX bibliograpy
+        "iso",              # CD image
+        "ps",               # Postscript document
+        "zip",              # Compressed archive
+        "xcf",              # Gimp image format
+        "doc",              # Microsoft document format
+        "docx"              # Microsoft document format
+        "xls",              # Microsoft spreadsheet format
+        "xlsx",             # Microsoft spreadsheet format
+        "md",               # Markup document
+        "sublime-project"   # Project file for sublime
     ],
 
     "watch_folders": ["~/"],
@@ -82,16 +85,25 @@ default_prefs = {
     "follow_symlinks": False
 }
 
+
 def setup_user_files(path):
+    """ Returns nothing
+
+    Create a path for the users configuration files to be stored in their
+    home folder. Create default config files and place them in the relevant
+    directory.
+    """
 
     print('Setting up dmenu-extended configuration files...')
+
     try:
         os.makedirs(path + '/plugins')
     except OSError:
         print('Target directory already exists')
+
     print('Plugins folder created at: ' + path + '/plugins')
 
-    # Change to nicer defaults
+    # If relevant binaries exist, swap them out for the safer defaults
     if os.path.exists('/usr/bin/gnome-open'):
         default_config['fileopener'] = 'gnome-open'
         default_config['webbrowser'] = 'gnome-open'
@@ -99,6 +111,7 @@ def setup_user_files(path):
     if os.path.exists('/usr/bin/urxvt'):
         default_config['terminal'] = 'urxvt'
 
+    # Dump the configuration file
     if os.path.exists(path + '/' + filename_configuration) == False:
         with open(path + '/' + filename_configuration,'w') as f:
             json.dump(default_config, f, sort_keys=True, indent=4)
@@ -106,6 +119,7 @@ def setup_user_files(path):
     else:
         print('Existing configuration file found, will not overwrite.')
 
+    # Dump the user configuration file
     if os.path.exists(path + '/' + filename_preferences) == False:
         with open(path + '/' + filename_preferences,'w') as f:
             json.dump(default_prefs, f, sort_keys=True, indent=4)
@@ -113,7 +127,7 @@ def setup_user_files(path):
     else:
         print('Existing user preferences file found, will not overwrite')
 
-    # Create package __init__
+    # Create package __init__ - for easy access to the plugins
     with open(path + '/plugins/__init__.py','w') as f:
         f.write('import os\n')
         f.write('import glob\n')
@@ -165,7 +179,14 @@ class dmenu(object):
         if arguments != []:
             self.dmenu_args = ['dmenu'] + arguments
 
+
     def get_plugins(self, force=False):
+        """ Returns a list of loaded plugins
+
+        This method will load plugins in the plugins directory if they
+        havent already been loaded. Optionally, you may force the
+        reloading of plugins by setting the parameter 'force' to true.
+        """
 
         if self.plugins_loaded == False:
             self.plugins_loaded = load_plugins()
@@ -185,7 +206,14 @@ class dmenu(object):
 
         return self.plugins_loaded
 
+
     def load_json(self, path):
+        """ Loads and retuns the parsed contents of a specified json file
+
+        This method will return 'False' if either the file does not exist
+        or the specified file could not be parsed as valid json.
+        """
+
         if os.path.exists(path):
             with open(path) as f:
                 try:
@@ -200,6 +228,8 @@ class dmenu(object):
 
 
     def save_json(self, path, items):
+        """ Saves a dictionary to a specified path using the json format"""
+
         with open(path, 'w') as f:
             json.dump(items, f, sort_keys=True, indent=4)
 
