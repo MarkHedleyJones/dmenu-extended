@@ -171,7 +171,16 @@ class dmenu(object):
             self.plugins_loaded = load_plugins()
         elif force:
             print("Forced reloading of plugins")
-            reload(plugins)
+
+            # For Python2/3 compatibility
+            try:
+                # Python2
+                reload(plugins)
+            except NameError:
+                # Python3
+                from imp import reload
+                reload(plugins)
+
             self.plugins_loaded = load_plugins()
 
         return self.plugins_loaded
@@ -237,11 +246,12 @@ class dmenu(object):
 
 
     def download_text(self, url):
-        return self.connect_to(url).readlines()
+        return self.connect_to(url)
 
 
     def download_json(self, url):
         return json.loads(self.connect_to(url))
+
 
     def message_open(self, message):
         self.load_settings()
@@ -289,10 +299,8 @@ class dmenu(object):
 
 
     def sort_shortest(self, items):
-        #return sorted(items, cmp=lambda x, y: len(x) - len(y))
         items.sort(key=len)
         return items
-        #return items.sort(key=len)
 
 
     def open_url(self, url):
