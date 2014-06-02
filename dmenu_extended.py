@@ -16,6 +16,7 @@ except:
     import urllib2
 
 path_base = os.path.expanduser('~') + '/.config/dmenu-extended'
+path_cache = path_base + '/cache'
 
 filename_preferences = "user_preferences.conf"
 filename_configuration = "configuration.conf"
@@ -98,10 +99,17 @@ def setup_user_files(path):
 
     try:
         os.makedirs(path + '/plugins')
+        print('Plugins directory created')
     except OSError:
-        print('Target directory already exists')
+        print('Plugins directory exists - skipped')
 
     print('Plugins folder created at: ' + path + '/plugins')
+
+    try:
+        os.makedirs(path + '/cache')
+        print('Cache directory created')
+    except OSError:
+        print('Cache directory exists - skipped')
 
     # If relevant binaries exist, swap them out for the safer defaults
     if os.path.exists('/usr/bin/gnome-open'):
@@ -135,6 +143,7 @@ def setup_user_files(path):
 
 
 if (os.path.exists(path_base + '/plugins') and
+    os.path.exists(path_base + '/cache') and
     os.path.exists(path_base + '/' + filename_configuration) and
     os.path.exists(path_base + '/' + filename_preferences)):
     sys.path.append(path_base)
@@ -157,7 +166,11 @@ def load_plugins():
 class dmenu(object):
 
     path_base = os.path.expanduser('~') + '/.config/dmenu-extended'
-    path_cache = path_base + '/cache.txt'
+    
+    path_cache = path_base + '/cache'
+    path_cache_plugins = path_cache + '/dmenu-extended_plugins.txt'
+    path_cache_main = path_cache + '/dmenu-extended_cache.txt'
+    
     path_preferences = path_base + '/' + filename_preferences
     path_configuration = path_base + '/' + filename_configuration
 
@@ -437,19 +450,26 @@ class dmenu(object):
         except:
             return False
 
-    def cache_load(self):
-        #cache = self.cache_open()
-        cache = self.cache_open(self.path_base+'/cache_plugins.txt')
-        cache += self.cache_open(self.path_base + '/cache_scanned.txt')
-        if cache == False:
-            print('Cache was not loaded')
-            if self.cache_regenerate() == False:
-                self.menu(['Error caching data'])
+
+    def cache_load(self, exitOnFail=False):
+        cache_plugins = self.cache_open(self.path_cache_plugins)
+        cache_scanned = self.cache_open(self.path_cache_main)
+
+        if cache_plugins == False or cache_scanned == False:
+            if exitOnFail:
+                print('The cache could not be opened, exiting')
                 sys.exit()
             else:
-                cache = self.cache_open()
+                print('The cache was not loaded, attempting to regenerate...')
+                if self.cache_regenerate() == False:
+                    print('Cache regeneration failed')
+                    self.menu(['Error caching data'])
+                    sys.exit()
+                else:
+                    self.cache_load(exitOnFail=True)
 
-        return cache
+        return cache_plugins + cache_scanned
+
 
     def command_output(self, command, split=True):
         if type(command) == str:
@@ -497,7 +517,7 @@ class dmenu(object):
             print('')
 
         out = self.sort_shortest(plugin_titles)
-        self.cache_save(out, self.path_base + '/cache_plugins.txt')
+        self.cache_save(out, self.path_cache_plugins)
 
         return out
 
@@ -650,7 +670,7 @@ class dmenu(object):
         plugins = self.plugins_available()
         other = self.sort_shortest(include_items + binaries + foldernames + filenames)
 
-        self.cache_save(other, self.path_base + '/cache_scanned.txt')
+        self.cache_save(other, self.path_cache_main)
 
         out = plugins
         out += other

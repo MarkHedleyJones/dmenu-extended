@@ -71,7 +71,7 @@ def run(argv):
                 
                 d.save_json(d.path_preferences, store)
                 
-                cache_scanned = d.cache_open(d.path_base + '/cache_scanned.txt')[:-1]
+                cache_scanned = d.cache_open(d.path_cache_main)[:-1]
 
                 if cache_scanned == False:
                     d.message_open("Performing action with: " + out)
@@ -91,7 +91,7 @@ def run(argv):
                     d.message_open("Removing item from store: " + out)
                     cache_scanned.remove(out)
 
-                d.cache_save(cache_scanned, d.path_base + '/cache_scanned.txt')
+                d.cache_save(cache_scanned, d.path_cache_main)
                 
                 d.message_close()
                 if operation_is_add:

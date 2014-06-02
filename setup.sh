@@ -1,14 +1,9 @@
 user=$SUDO_USER
 path=`pwd`
 
-if [ -e /usr/bin/python2 ]
+if [ ! -e /usr/bin/python ]
 then
-    python=/usr/bin/python2
-elif [ -e /usr/bin/python ]
-then
-    python=usr/bin/python
-else
-    echo "You must have Python installed (python 2)"
+    echo "You must have Python installed"
     exit
 fi
 
@@ -67,7 +62,7 @@ echo "Downloading zip file to create sha1sum signature..."
 su $user -c "curl https://github.com/markjones112358/dmenu-extended/archive/master.zip | sha1sum | awk '{print $1}' > /home/$SUDO_USER/.config/dmenu-extended/signature.txt"
 echo "Done!"
 echo ""
-if [ -e /home/$SUDO_USER/.config/dmenu-extended/cache_scanned.txt ]
+if [ -e /home/$SUDO_USER/.config/dmenu-extended/cache/dmenu-extended_main.txt ]
 then
     echo "Existing cache file found, skipping cache rebuild"
 else
@@ -91,6 +86,34 @@ else
         case $yn in
             [Yy]* ) su $user -c "dmenu_extended_build"; break;;
             [Nn]* ) echo "Build the cache at any time by executing 'dmenu_extended_build'"; break;;
+            * ) echo "Please select either 'yes' or 'no'.";;
+        esac
+    done
+fi
+echo ""
+if [ ! -e /home/$SUDO_USER/.config/dmenu-extended/plugins/dmenuExtended_settings.py ]
+then
+    echo "*******************************************************************"
+    echo "*     You do not have the extended settings plugin installed      *"
+    echo "*******************************************************************"
+    echo ""
+    echo "To get the most out of dmenu-extended you can choose to install the"
+    echo "extended settings plugin.  This enables extra features, such as a"
+    echo "plugin manager where you can easily add new features as well as access"
+    echo "easy access to configuration files."
+    echo ""
+    echo "This plugin can be installed at a later time"
+    echo ""
+    while true; do
+        read -p "Would you like to install this plugin now? [y/n]" yn
+        case $yn in
+            [Yy]* ) cd /home/$SUDO_USER/.config/dmenu-extended/plugins;
+                su $SUDO_USER -c "wget https://gist.github.com/markjones112358/7700097/raw/dmenuExtended_settings.py &&
+echo 'import dmenu_extended
+a=dmenu_extended.dmenu()
+a.plugins_available()' | python"
+                break;;
+            [Nn]* ) echo "Dmenu-extendedSettings plugin not installed"; break;;
             * ) echo "Please select either 'yes' or 'no'.";;
         esac
     done
