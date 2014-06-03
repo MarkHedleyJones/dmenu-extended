@@ -472,15 +472,11 @@ class dmenu(object):
 
 
     def command_output(self, command, split=True):
-        if type(command) == str:
-            command = command.split(' ')
-        handle = subprocess.Popen(command, stdout=subprocess.PIPE)
-        out = handle.communicate()[0]
-
-        if split:
-            return out.decode().split("\n")
-        else:
-            return out.decode()
+	out = subprocess.check_output(command.split(" ")).decode()
+	if split:
+             return out.split("\n")
+	else:
+             return out
 
 
     def scan_binaries(self, filter_binaries=False):
