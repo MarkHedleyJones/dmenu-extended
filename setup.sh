@@ -62,7 +62,7 @@ echo "Downloading zip file to create sha1sum signature..."
 su $user -c "curl https://github.com/markjones112358/dmenu-extended/archive/master.zip | sha1sum | awk '{print $1}' > /home/$SUDO_USER/.config/dmenu-extended/signature.txt"
 echo "Done!"
 echo ""
-if [ -e /home/$SUDO_USER/.config/dmenu-extended/cache/dmenu-extended_main.txt ]
+if [ -e /home/$SUDO_USER/.config/dmenu-extended/cache/dmenu-extended_cache.txt ]
 then
     echo "Existing cache file found, skipping cache rebuild"
 else

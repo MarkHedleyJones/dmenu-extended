@@ -320,7 +320,7 @@ class dmenu(object):
 
         if type(items) == list:
             items = "\n".join(items)
-
+        
         items = items.encode('utf-8')
         out = p.communicate(items)[0]
 
@@ -466,17 +466,17 @@ class dmenu(object):
                     self.menu(['Error caching data'])
                     sys.exit()
                 else:
-                    self.cache_load(exitOnFail=True)
+                    return self.cache_load(exitOnFail=True)
 
         return cache_plugins + cache_scanned
 
 
     def command_output(self, command, split=True):
-	out = subprocess.check_output(command.split(" ")).decode()
-	if split:
-             return out.split("\n")
-	else:
-             return out
+        out = subprocess.check_output(command.split(" ")).decode()
+        if split:
+            return out.split("\n")
+        else:
+            return out
 
 
     def scan_binaries(self, filter_binaries=False):
