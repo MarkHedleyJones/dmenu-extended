@@ -17,6 +17,7 @@ except:
 
 path_base = os.path.expanduser('~') + '/.config/dmenu-extended'
 path_cache = path_base + '/cache'
+path_tmpCmd = '/tmp/dmenu-extended_shellCommand.sh'
 
 filename_preferences = "user_preferences.conf"
 filename_configuration = "configuration.conf"
@@ -358,17 +359,17 @@ class dmenu(object):
 
     def open_terminal(self, command, hold=False, direct=False):
 
-        if hold:
-            command += '; echo \'\nFinished!\n\nPress any key to close terminal\'; read var'
+        with open(path_tmpCmd, 'w') as f:
+            f.write("#! /bin/bash\n")
+            f.write(command + ";\n")
+            
+            if hold == True:
+                f.write('echo "\nFinished\n\nPress any key to close terminal\n";')
+                f.write('\nread var;')
 
-        full = self.bin_terminal + ' -e '
-        if self.bin_terminal == 'gnome-terminal':
-            full += '"' + command + '"'
-        else:
-            full += command
-        
-        print(full)
-        os.system(full)
+        os.chmod(path_tmpCmd, 0744)
+
+        os.system(self.bin_terminal + ' -e ' + path_tmpCmd) 
 
 
     def open_file(self, path):
@@ -471,7 +472,15 @@ class dmenu(object):
 
 
     def command_output(self, command, split=True):
-        out = subprocess.check_output(command.split(" ")).decode()
+        if type(command) != list:
+            command = command.split(" ")
+        tmp = subprocess.check_output(command)
+
+        try:
+            out = tmp.decode()
+        except UnicodeDecodeError:
+            out = tmp.decode('utf-8')
+            
         if split:
             return out.split("\n")
         else:
