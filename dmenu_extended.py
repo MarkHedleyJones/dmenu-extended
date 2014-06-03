@@ -357,17 +357,16 @@ class dmenu(object):
 
 
     def open_terminal(self, command, hold=False, direct=False):
-        if direct == False:
-            mid = ' -e sh -c "'
-        else:
-            mid = ' '
 
         if hold:
             command += '; echo \'\nFinished!\n\nPress any key to close terminal\'; read var'
 
-        full = self.bin_terminal + mid + command
-        if direct == False:
-            full += '"'
+        full = self.bin_terminal + ' -e '
+        if self.bin_terminal == 'gnome-terminal':
+            full += '"' + command + '"'
+        else:
+            full += command
+        
         print(full)
         os.system(full)
 
