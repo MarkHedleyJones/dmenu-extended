@@ -158,10 +158,11 @@ def load_plugins():
                 __import__('plugins.' + plugin)
                 exec('plugins_loaded.append({"filename": "' + plugin + '.py", "plugin": plugins.' + plugin + '.extension()})')
                 print('Loaded plugin ' + plugin)
-            except:
+            except Exception as e:
                 print('Error loading plugin ' + plugin)
+                print(str(e))
                 os.remove(path_plugins + '/' + plugin + '.py')
-                print('Plugin removed')
+                print('!! Plugin was deleted to prevent interruption to dmenuExtended')
     return plugins_loaded
 
 
@@ -333,7 +334,7 @@ class dmenu(object):
                 f.write('echo "\nFinished\n\nPress any key to close terminal\n";')
                 f.write('\nread var;')
 
-        os.chmod(path_tmpCmd, 0o744)
+        os.chmod(file_shCmd, 0o744)
         os.system(self.prefs['terminal'] + ' -e ' + file_shCmd) 
 
 
