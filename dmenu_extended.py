@@ -367,7 +367,7 @@ class dmenu(object):
                 f.write('echo "\nFinished\n\nPress any key to close terminal\n";')
                 f.write('\nread var;')
 
-        os.chmod(path_tmpCmd, 0744)
+        os.chmod(path_tmpCmd, 0o744)
 
         os.system(self.bin_terminal + ' -e ' + path_tmpCmd) 
 
@@ -390,7 +390,7 @@ class dmenu(object):
 
     def cache_regenerate(self, debug=False, message=True):
         if message:
-            self.message_open('Building cache...')
+            self.message_open('building cache...')
         self.load_settings()
         cache = self.cache_build(debug)
         if message:
