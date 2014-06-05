@@ -56,11 +56,12 @@ def handle_command(d, out):
 
             sys.exit()
 
-def run():
 
-    d = dmenu_extended.dmenu()
+def run():
+    d = dmenu_extended.dmenu()   
     cache = d.cache_load()
     out = d.menu(cache,'Open:').strip()
+    
 
     if len(out) > 0:
         # Check if the action relates to a plugin
@@ -83,8 +84,6 @@ def run():
             # Check for store modifications
             if out[0] == '+':
                 out = out[1:]
-                #store = d.prefs['include_items']
-                #store = d.load_json(d.path_preferences)
                 operation_is_add = True
                 if out not in self.prefs['include_items']:
                     self.prefs['include_items'].append(out)

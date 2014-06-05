@@ -471,8 +471,7 @@ class dmenu(object):
 
     def plugins_available(self, debug=False):
         self.load_preferences()
-        sys.stdout.write('Loading available plugins...')
-        sys.stdout.flush()
+        print('Loading available plugins...')
 
         plugins = self.get_plugins(True)
         plugin_titles = []
@@ -485,7 +484,7 @@ class dmenu(object):
 
         if debug:
             print('Plugins loaded:')
-            sys.stdout.write('First 5 items: ')
+            print('First 5 items: ')
             print(plugin_titles[:5])
             print(str(len(plugin_titles)) + ' loaded in total')
             print('')
@@ -498,11 +497,7 @@ class dmenu(object):
 
     def cache_build(self, debug=False):
         self.load_preferences()
-        print('')
-        print('Starting to build the cache:')
 
-        sys.stdout.write('Loading the list of valid file extensions...')
-        sys.stdout.flush()
         valid_extensions = []
         if 'valid_extensions' in self.prefs:
             for extension in self.prefs['valid_extensions']:
@@ -513,12 +508,12 @@ class dmenu(object):
 
         if debug:
             print('Valid extensions:')
-            sys.stdout.write('First 5 items: ')
+            print('First 5 items: ')
             print(valid_extensions[:5])
             print(str(len(valid_extensions)) + ' loaded in total')
             print('')
 
-        sys.stdout.write('Scanning user binaries...')
+        print('Scanning user binaries...')
         filter_binaries = True
         try:
             if self.prefs['filter_binaries'] == False:
@@ -531,13 +526,13 @@ class dmenu(object):
 
         if debug:
             print('Valid binaries:')
-            sys.stdout.write('First 5 items: ')
+            print('First 5 items: ')
             print(binaries[:5])
             print(str(len(binaries)) + ' loaded in total')
             print('')
         
-        sys.stdout.write('Loading the list of indexed folders...')
-        sys.stdout.flush()
+        print('Loading the list of indexed folders...')
+        
         watch_folders = []
         if 'watch_folders' in self.prefs:
             watch_folders = self.prefs['watch_folders']
@@ -546,13 +541,13 @@ class dmenu(object):
 
         if debug:
             print('Watch folders:')
-            sys.stdout.write('First 5 items: ')
+            print('First 5 items: ')
             print(watch_folders[:5])
             print(str(len(watch_folders)) + ' loaded in total')
             print('')
 
-        sys.stdout.write('Loading the list of folders to be excluded from the index...')
-        sys.stdout.flush()
+        print('Loading the list of folders to be excluded from the index...')
+        
         ignore_folders = []
 
         if 'ignore_folders' in self.prefs:
@@ -563,7 +558,7 @@ class dmenu(object):
 
         if debug:
             print('Excluded folders:')
-            sys.stdout.write('First 5 items: ')
+            print('First 5 items: ')
             print(ignore_folders[:5])
             print(str(len(ignore_folders)) + ' ignore_folders loaded in total')
             print('')
@@ -584,10 +579,8 @@ class dmenu(object):
             else:
                 print('Indexing will follow linked folders')
 
-        sys.stdout.write('Scanning files and folders, this may take a while...')
-        sys.stdout.write('')
-
-        sys.stdout.flush()
+        print('Scanning files and folders, this may take a while...')
+        print('')
 
         for watchdir in watch_folders:
             for root, dirs , files in os.walk(watchdir, followlinks=follow_symlinks):
@@ -609,22 +602,20 @@ class dmenu(object):
         print('\rDone scanning files and folders')
         foldernames = list(filter(lambda x: x not in ignore_folders, foldernames))
 
-
         if debug:
             print('Folders found:')
-            sys.stdout.write('First 5 items: ')
+            print('First 5 items: ')
             print(foldernames[:5])
             print(str(len(foldernames)) + ' found in total')
             print('')
 
             print('Files found:')
-            sys.stdout.write('First 5 items: ')
+            print('First 5 items: ')
             print(filenames[:5])
             print(str(len(filenames)) + ' found in total')
             print('')
 
-        sys.stdout.write('Loading manually added items from preferences file...')
-        sys.stdout.flush()
+        print('Loading manually added items from preferences file...')
 
         if 'include_items' in self.prefs:
             include_items = self.prefs['include_items']
@@ -634,14 +625,13 @@ class dmenu(object):
 
         if debug:
             print('Stored items:')
-            sys.stdout.write('First 5 items: ')
+            print('First 5 items: ')
             print(include_items[:5])
             print(str(len(include_items)) + ' items loaded in total')
             print('')
 
-        sys.stdout.write('Ordering and combining results...')
-        sys.stdout.flush()
-
+        print('Ordering and combining results...')
+        
         plugins = self.plugins_available()
         other = self.sort_shortest(include_items + binaries + foldernames + filenames)
 
