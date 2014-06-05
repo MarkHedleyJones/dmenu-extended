@@ -355,7 +355,6 @@ class dmenu(object):
 
 
     def cache_regenerate(self, debug=False, message=True):
-        self.load_settings()
         if message:
             self.message_open('building cache...')
         cache = self.cache_build(debug)
