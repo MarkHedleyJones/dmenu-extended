@@ -154,8 +154,8 @@ def load_plugins():
     plugins_loaded = []
     for plugin in plugins.__all__:
         if plugin != '__init__':
-            __import__('plugins.' + plugin)
             try:
+                __import__('plugins.' + plugin)
                 exec('plugins_loaded.append({"filename": "' + plugin + '.py", "plugin": plugins.' + plugin + '.extension()})')
                 print('Loaded plugin ' + plugin)
             except:
