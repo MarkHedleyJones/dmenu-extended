@@ -50,7 +50,6 @@ sudo python setup.py install
 echo "Done!"
 echo ""
 su $SUDO_USER -c "python -c 'import dmenu_extended
-dmenu_extended.setup_user_files(dmenu_extended.path_base)
 '"
 echo ""
 echo "Creating signature file..."
@@ -62,7 +61,7 @@ echo "Downloading zip file to create sha1sum signature..."
 su $user -c "curl https://github.com/markjones112358/dmenu-extended/archive/master.zip | sha1sum | awk '{print $1}' > /home/$SUDO_USER/.config/dmenu-extended/signature.txt"
 echo "Done!"
 echo ""
-if [ -e /home/$SUDO_USER/.config/dmenu-extended/cache/dmenu-extended_cache.txt ]
+if [ -e /home/$SUDO_USER/.config/dmenu-extended/cache/dmenuExtended_main.txt ]
 then
     echo "Existing cache file found, skipping cache rebuild"
 else
@@ -82,7 +81,7 @@ else
     echo "    'exclude_folders': ['~/Rubbish', '~/Ignore']"
     echo ""
     while true; do
-        read -p "Would you like to build the cache now? [y/n]:" yn
+        read -p "Would you like to build the cache now? [y/n]: " yn
         case $yn in
             [Yy]* ) su $user -c "dmenu_extended_build"; break;;
             [Nn]* ) echo "Build the cache at any time by executing 'dmenu_extended_build'"; break;;
@@ -105,13 +104,13 @@ then
     echo "This plugin can be installed at a later time"
     echo ""
     while true; do
-        read -p "Would you like to install this plugin now? [y/n]" yn
+        read -p "Would you like to install this plugin now? [y/n]: " yn
         case $yn in
             [Yy]* ) cd /home/$SUDO_USER/.config/dmenu-extended/plugins;
-                su $SUDO_USER -c "wget https://gist.github.com/markjones112358/7700097/raw/dmenuExtended_settings.py &&
-echo 'import dmenu_extended
+                su $SUDO_USER -c "wget https://gist.github.com/markjones112358/7700097/raw/dmenuExtended_settings.py"
+                su $SUDO_USER -c "python -c 'import dmenu_extended
 a=dmenu_extended.dmenu()
-a.plugins_available()' | python"
+a.plugins_available()'"
                 break;;
             [Nn]* ) echo "Dmenu-extendedSettings plugin not installed"; break;;
             * ) echo "Please select either 'yes' or 'no'.";;
