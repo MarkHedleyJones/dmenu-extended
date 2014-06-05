@@ -155,8 +155,13 @@ def load_plugins():
     for plugin in plugins.__all__:
         if plugin != '__init__':
             __import__('plugins.' + plugin)
-            exec('plugins_loaded.append({"filename": "' + plugin + '.py", "plugin": plugins.' + plugin + '.extension()})')
-            print('Loaded ' + plugin)
+            try:
+                exec('plugins_loaded.append({"filename": "' + plugin + '.py", "plugin": plugins.' + plugin + '.extension()})')
+                print('Loaded plugin ' + plugin)
+            except:
+                print('Error loading plugin ' + plugin)
+                os.remove(path_plugins + '/' + plugin + '.py')
+                print('Plugin removed')
     return plugins_loaded
 
 
@@ -231,7 +236,6 @@ class dmenu(object):
                 for key, value in default_prefs.items():
                     if key not in self.prefs:
                         self.prefs[key] = value
-            print(self.prefs)
 
 
     def save_preferences(self):
