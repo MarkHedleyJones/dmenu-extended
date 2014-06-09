@@ -584,16 +584,12 @@ class dmenu(object):
 
         for watchdir in watch_folders:
             for root, dirs , files in os.walk(watchdir, followlinks=follow_symlinks):
-
                 dirs[:] = [d for d in dirs if os.path.join(root,d) not in ignore_folders]
 
                 if root.find('/.')  == -1:
                     for name in files:
                         if not name.startswith('.'):
                                 if os.path.splitext(name)[1].lower() in valid_extensions:
-                                    print('\rScanning: ' + root.strip()[0:70]),
-                                    for i in range(70-len(root[0:70])):
-                                        print (' '),
                                     filenames.append(os.path.join(root,name))
                     for name in dirs:
                         if not name.startswith('.'):
