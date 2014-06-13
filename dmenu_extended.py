@@ -240,7 +240,7 @@ class dmenu(object):
 
 
     def save_preferences(self):
-        save_json(file_prefs, self.prefs)
+        self.save_json(file_prefs, self.prefs)
 
 
     def connect_to(self, url):

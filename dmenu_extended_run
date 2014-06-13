@@ -85,15 +85,15 @@ def run():
             if out[0] == '+':
                 out = out[1:]
                 operation_is_add = True
-                if out not in self.prefs['include_items']:
-                    self.prefs['include_items'].append(out)
+                if out not in d.prefs['include_items']:
+                    d.prefs['include_items'].append(out)
                 else:
-                    self.prefs['include_items'].remove(out)
+                    d.prefs['include_items'].remove(out)
                     operation_is_add = False
                
                 d.save_preferences()
                 
-                cache_scanned = d.cache_open(d.path_cache_main)[:-1]
+                cache_scanned = d.cache_open(dmenu_extended.file_cacheScanned)[:-1]
 
                 if cache_scanned == False:
                     d.message_open("Performing action with: " + out)
@@ -111,9 +111,13 @@ def run():
                 else:
                     print("Removing item from store: " + out)
                     d.message_open("Removing item from store: " + out)
-                    cache_scanned.remove(out)
+                    try:
+                        cache_scanned.remove(out)
+                    except ValueError:
+                        pass
+                    
 
-                d.cache_save(cache_scanned, d.path_cache_main)
+                d.cache_save(cache_scanned,dmenu_extended.file_cacheScanned)
                 
                 d.message_close()
                 if operation_is_add:
