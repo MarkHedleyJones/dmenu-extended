@@ -1,5 +1,4 @@
 # -*- coding: utf8 -*-
-#import commands
 from __future__ import unicode_literals
 import sys
 import os
