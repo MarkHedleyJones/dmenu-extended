@@ -55,7 +55,7 @@ default_prefs = {
         "sublime-project"       # Project file for sublime
     ],
     "watch_folders": ["~/"],    # Base folders through which to search
-    "follow_symlinks": False,   # Follow links to other locations 
+    "follow_symlinks": False,   # Follow links to other locations
     "ignore_folders": [],      # Folders to exclude from the search
     "include_items": [],        # Extra items to display - manually added
     "exclude_items": [],        # Items to hide - manually hidden
@@ -73,9 +73,9 @@ default_prefs = {
         "-sb",                  # Selected element background colour
         "#1D1F21",
         "-fn",                  # Font and size
-        "Terminus:12",
+        "-*-terminus-medium-*-*-*-12-*-*-*-*-*-*-*",
         "-l",                   # Number of lines to display
-        "30" 
+        "30"
     ],
     "fileopener": "xdg-open",   # Program to handle opening files
     "filebrowser": "xdg-open",  # Program to handle opening paths
@@ -286,7 +286,7 @@ class dmenu(object):
 
         if type(items) == list:
             items = "\n".join(items)
-        
+
         items = items.encode('utf-8')
         out = p.communicate(items)[0]
 
@@ -329,13 +329,13 @@ class dmenu(object):
         with open(file_shCmd, 'w') as f:
             f.write("#! /bin/bash\n")
             f.write(command + ";\n")
-            
+
             if hold == True:
-                f.write('echo "\nFinished\n\nPress any key to close terminal\n";')
+                f.write('echo "\n\nPress any key to close terminal\n";')
                 f.write('\nread var;')
 
         os.chmod(file_shCmd, 0o744)
-        os.system(self.prefs['terminal'] + ' -e ' + file_shCmd) 
+        os.system(self.prefs['terminal'] + ' -e ' + file_shCmd)
 
 
     def open_file(self, path):
@@ -449,7 +449,7 @@ class dmenu(object):
             out = tmp.decode()
         except UnicodeDecodeError:
             out = tmp.decode('utf-8')
-            
+
         if split:
             return out.split("\n")
         else:
@@ -530,9 +530,9 @@ class dmenu(object):
             print(binaries[:5])
             print(str(len(binaries)) + ' loaded in total')
             print('')
-        
+
         print('Loading the list of indexed folders...')
-        
+
         watch_folders = []
         if 'watch_folders' in self.prefs:
             watch_folders = self.prefs['watch_folders']
@@ -547,7 +547,7 @@ class dmenu(object):
             print('')
 
         print('Loading the list of folders to be excluded from the index...')
-        
+
         ignore_folders = []
 
         if 'ignore_folders' in self.prefs:
@@ -627,7 +627,7 @@ class dmenu(object):
             print('')
 
         print('Ordering and combining results...')
-        
+
         plugins = self.plugins_available()
         other = self.sort_shortest(include_items + binaries + foldernames + filenames)
 

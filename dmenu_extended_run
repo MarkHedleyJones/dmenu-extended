@@ -5,13 +5,18 @@ import os
 import sys
 
 def handle_command(d, out):
-    if out[0] == ';' or out[-1] == ';':
+    if out[-1] == ';':
+        terminal_hold = False
+        if out[-2] == ';':
+            terminal_hold = True
         for command in out.split('&&'):
             if command.find('/') != -1:
-                print("-cd " + command.replace(';',''))
-                d.open_terminal("-cd " + command.replace(';',''),direct=True)
+                d.open_terminal("-cd " + command.replace(';',''),
+                                direct=True,
+                                hold=terminal_hold)
             else:
-                d.open_terminal(command.replace(';',''))
+                d.open_terminal(command.replace(';',''),
+                                hold=terminal_hold)
 
     elif out[:7] == 'http://' or out[:8] == 'https://':
         d.open_url(out)
@@ -58,10 +63,10 @@ def handle_command(d, out):
 
 
 def run():
-    d = dmenu_extended.dmenu()   
+    d = dmenu_extended.dmenu()
     cache = d.cache_load()
     out = d.menu(cache,'Open:').strip()
-    
+
 
     if len(out) > 0:
         # Check if the action relates to a plugin
@@ -90,9 +95,9 @@ def run():
                 else:
                     d.prefs['include_items'].remove(out)
                     operation_is_add = False
-               
+
                 d.save_preferences()
-                
+
                 cache_scanned = d.cache_open(dmenu_extended.file_cacheScanned)[:-1]
 
                 if cache_scanned == False:
@@ -115,10 +120,10 @@ def run():
                         cache_scanned.remove(out)
                     except ValueError:
                         pass
-                    
+
 
                 d.cache_save(cache_scanned,dmenu_extended.file_cacheScanned)
-                
+
                 d.message_close()
                 if operation_is_add:
                     d.menu("Item added to cache")
@@ -136,7 +141,13 @@ def run():
                     cmds = list(map(lambda x: x.strip(), tmp))
 
                 run_withshell = False
-                if cmds[0][0] == ';' or cmds[0][-1] == ';':
+                shell_hold = False
+                if cmds[0][-1] == ';':
+                    if cmds[0][-2] == ';':
+                        shell_hold = True
+                        print('Will hold')
+                    else:
+                        print('Wont hold')
                     cmds[0] = cmds[0].replace(';','')
                     run_withshell = True
 
@@ -155,7 +166,7 @@ def run():
                     filename = os.path.expanduser(filename)
                     command = cmds[0] + " '" + filename + "'"
                     if run_withshell:
-                        d.open_terminal(command)
+                        d.open_terminal(command, shell_hold)
                     else:
                         d.execute(command)
                 elif cmds[0].find('/') != -1:
