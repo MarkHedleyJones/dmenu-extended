@@ -82,7 +82,8 @@ default_prefs = {
     "webbrowser": "xdg-open",   # Program to hangle opening urls
     "terminal": "xterm",        # Terminal
     "indicator_submenu": "-> ", # Symbol to indicate a submenu item
-    "indicator_edit": "* "      # Symbol to indicate an item will launch an editor
+    "indicator_edit": "* ",     # Symbol to indicate an item will launch an editor
+    "indicator_alias": "# "     # Symbol to indecate an aliased command
 }
 
 
@@ -331,8 +332,8 @@ class dmenu(object):
             f.write(command + ";\n")
 
             if hold == True:
-                f.write('echo "\n\nPress any key to close terminal\n";')
-                f.write('\nread var;')
+                f.write('echo "\n\nPress any key to close terminal";')
+                f.write('read var;')
 
         os.chmod(file_shCmd, 0o744)
         os.system(self.prefs['terminal'] + ' -e ' + file_shCmd)
@@ -357,7 +358,7 @@ class dmenu(object):
 
     def cache_regenerate(self, debug=False, message=True):
         if message:
-            self.message_open('building cache...')
+            self.message_open('building cache...\nThis may take a while (press enter to run in background).')
         cache = self.cache_build(debug)
         if message:
             self.message_close()
@@ -614,7 +615,16 @@ class dmenu(object):
         print('Loading manually added items from preferences file...')
 
         if 'include_items' in self.prefs:
-            include_items = self.prefs['include_items']
+            include_items = []
+            for item in self.prefs['include_items']:
+                if type(item) == list:
+                    if len(item) > 1:
+                        include_items.append(self.prefs['indicator_alias'] + item[0])
+                    else:
+                        if debug:
+                            print("There are aliased items in the configuration with no command.")
+                else:
+                    include_items.append(item)
         else:
             include_items = []
         print('Done!')

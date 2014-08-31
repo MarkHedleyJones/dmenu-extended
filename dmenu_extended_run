@@ -86,50 +86,59 @@ def run():
             plugin_hook.run(out[len(pluginTitle):])
         else:
 
-            # Check for store modifications
-            if out[0] == '+':
-                out = out[1:]
-                operation_is_add = True
-                if out not in d.prefs['include_items']:
-                    d.prefs['include_items'].append(out)
-                else:
-                    d.prefs['include_items'].remove(out)
-                    operation_is_add = False
+            # Check for command alias
+            alias = d.prefs['indicator_alias']
+            if out[0:len(alias)] == alias:
+                command_key = out[len(alias):]
+                for item in [x for x in d.prefs['include_items'] if type(x) == list]:
+                    if item[0] == command_key:
+                        out = item[1]
+            else:
+                # Check for store modifications
+                # Dont allow command aliases that add new commands
+                if out[0] == '+':
+                    out = out[1:]
+                    operation_is_add = True
+                    if out not in d.prefs['include_items']:
+                        d.prefs['include_items'].append(out)
+                    else:
+                        d.prefs['include_items'].remove(out)
+                        operation_is_add = False
 
-                d.save_preferences()
+                    d.save_preferences()
 
-                cache_scanned = d.cache_open(dmenu_extended.file_cacheScanned)[:-1]
+                    cache_scanned = d.cache_open(dmenu_extended.file_cacheScanned)[:-1]
 
-                if cache_scanned == False:
-                    d.message_open("Performing action with: " + out)
-                    d.cache_regenerate()
+                    if cache_scanned == False:
+                        d.message_open("Performing action with: " + out)
+                        d.cache_regenerate()
+                        d.message_close()
+                        sys.exit()
+                    else:
+                        cache_scanned = cache_scanned.split("\n")
+
+                    if operation_is_add:
+                        print("Adding item to store: " + out)
+                        d.message_open("Adding item to store: " + out)
+                        cache_scanned = [out] + cache_scanned
+                        cache_scanned.sort(key=len)
+                    else:
+                        print("Removing item from store: " + out)
+                        d.message_open("Removing item from store: " + out)
+                        try:
+                            cache_scanned.remove(out)
+                        except ValueError:
+                            pass
+
+
+                    d.cache_save(cache_scanned,dmenu_extended.file_cacheScanned)
+
                     d.message_close()
+                    if operation_is_add:
+                        d.menu("Item added to cache")
+                    else:
+                        d.menu("Item removed from cache")
                     sys.exit()
-                else:
-                    cache_scanned = cache_scanned.split("\n")
-
-                if operation_is_add:
-                    print("Adding item to store: " + out)
-                    d.message_open("Adding item to store: " + out)
-                    cache_scanned = [out] + cache_scanned
-                    cache_scanned.sort(key=len)
-                else:
-                    print("Removing item from store: " + out)
-                    d.message_open("Removing item from store: " + out)
-                    try:
-                        cache_scanned.remove(out)
-                    except ValueError:
-                        pass
-
-
-                d.cache_save(cache_scanned,dmenu_extended.file_cacheScanned)
-
-                d.message_close()
-                if operation_is_add:
-                    d.menu("Item added to cache")
-                else:
-                    d.menu("Item removed from cache")
-                sys.exit()
 
             # Check for open-with/filter results modifier
             if out.find(':') != -1:
