@@ -5,6 +5,7 @@ import os
 import sys
 
 def handle_command(d, out):
+    print(out)
     if out[-1] == ';':
         terminal_hold = False
         if out[-2] == ';':
@@ -51,12 +52,11 @@ def handle_command(d, out):
             message = ["Your intention was not understood. To prevent system damage, no action was taken."]
             if out in d.cache_load():
                 print('The item exists in the cache, cache may need rebuilding')
-                message.append("-> Exit")
-                message.append("-> Rebuild cache")
+                message.append(d.prefs['indicator_submenu'] + " Rebuild cache")
 
             response = d.select(message, numeric=True)
-            print(response)
-            if response == 2:
+            # print(response)
+            if response == 1:
                 d.cache_regenerate()
 
             sys.exit()
@@ -74,7 +74,7 @@ def run():
         plugin_hook = False
         for plugin in plugins:
             if hasattr(plugin['plugin'], 'is_submenu') and plugin['plugin'].is_submenu == True:
-                pluginTitle = d.prefs['indicator_submenu'] + plugin['plugin'].title.strip()
+                pluginTitle = d.prefs['indicator_submenu'] + ' ' + plugin['plugin'].title.strip()
             else:
                 pluginTitle = plugin['plugin'].title.strip()
 
@@ -85,42 +85,90 @@ def run():
         if plugin_hook != False:
             plugin_hook.run(out[len(pluginTitle):])
         else:
-
             # Check for command alias
             alias = d.prefs['indicator_alias']
             if out[0:len(alias)] == alias:
-                command_key = out[len(alias):]
+                command_key = out[len(alias):].lstrip()
                 for item in [x for x in d.prefs['include_items'] if type(x) == list]:
                     if item[0] == command_key:
                         out = item[1]
             else:
                 # Check for store modifications
                 # Dont allow command aliases that add new commands
-                if out[0] == '+':
+                if out[0] in "+-":
+
+                    action = out[0]
                     out = out[1:]
-                    operation_is_add = True
-                    if out not in d.prefs['include_items']:
-                        d.prefs['include_items'].append(out)
+                    aliased = False
+                    # Check for aliased command
+                    if out.find(d.prefs['indicator_alias']) != -1 and action == '+':
+                        print("aliased command to add")
+                        aliased = True
+                        tmp = out.split(d.prefs['indicator_alias'])
+                        # out = [tmp[1].lstrip(), tmp[0].rstrip()]
+                        out = tmp[1].lstrip()
+                        command = tmp[0].rstrip()
+                        if len(out) == 0:
+                            item = command
+                        else:
+                            item = [out, command]
+                    elif out[:len(d.prefs['indicator_alias'])] == d.prefs['indicator_alias']:
+                        item = out[len(d.prefs['indicator_alias']):].lstrip()
+                        print("remove aliased indicator")
                     else:
-                        d.prefs['include_items'].remove(out)
-                        operation_is_add = False
+                        item = out
+
+                    found_in_store = False
+                    for store_item in d.prefs['include_items']:
+                        if type(store_item) == list and item == store_item[0]:
+                            found_in_store = True
+                            break;
+                        elif item == store_item:
+                            found_in_store = True
+                            break;
+
+                    if action == '+' and found_in_store:
+                        option = d.prefs['indicator_submenu'] + " Remove from store"
+                        answer = d.menu("Item '" + str(item) + "' already in store\n"+option)
+                        if answer != option:
+                            sys.exit()
+                        action = '-'
+                    elif action == '-' and found_in_store == False:
+                        option = d.prefs['indicator_submenu'] + " Add to store"
+                        answer = d.menu("Item '" + (item) + "' was not found in store\n"+option)
+                        if answer != option:
+                            sys.exit()
+                        action = '+'
+
+                    if action == '+':
+                        d.prefs['include_items'].append(item)
+                    elif action == '-':
+                        d.prefs['include_items'].remove(item)
+                    else:
+                        d.message_close()
+                        d.menu("An error occured while servicing your command.\nYou may need to delete your configuration file.")
+                        sys.exit()
 
                     d.save_preferences()
+
+                    # Recreate the cache
 
                     cache_scanned = d.cache_open(dmenu_extended.file_cacheScanned)[:-1]
 
                     if cache_scanned == False:
-                        d.message_open("Performing action with: " + out)
                         d.cache_regenerate()
                         d.message_close()
                         sys.exit()
                     else:
                         cache_scanned = cache_scanned.split("\n")
 
-                    if operation_is_add:
+                    if action == '+':
                         print("Adding item to store: " + out)
                         d.message_open("Adding item to store: " + out)
-                        cache_scanned = [out] + cache_scanned
+                        if aliased:
+                            cache_scanned = [d.prefs['indicator_alias'] + ' ' + out] + cache_scanned
+                        else:
+                            cache_scanned = [out] + cache_scanned
                         cache_scanned.sort(key=len)
                     else:
                         print("Removing item from store: " + out)
@@ -130,14 +178,18 @@ def run():
                         except ValueError:
                             pass
 
-
                     d.cache_save(cache_scanned,dmenu_extended.file_cacheScanned)
 
                     d.message_close()
-                    if operation_is_add:
-                        d.menu("Item added to cache")
+                    if action == '+':
+                        if aliased == True:
+                            message = "New item (" + command + " aliased as '" + out + "') added to cache."
+                        else:
+                            message = "New item (" + out + ") added to cache."
                     else:
-                        d.menu("Item removed from cache")
+                        message = "Existing item (" + out + ") removed from cache."
+
+                    d.menu(message)
                     sys.exit()
 
             # Check for open-with/filter results modifier

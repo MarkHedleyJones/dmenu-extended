@@ -213,7 +213,11 @@ class dmenu(object):
                     return json.load(f)
                 except:
                     print("Error parsing prefs from json file " + path)
-                    return False
+                    self.prefs = default_prefs
+                    option = self.prefs['indicator_edit'] +" Edit file manually"
+                    response = self.menu("There is an error opening " + path + "\n" + option)
+                    if response == option:
+                        self.open_file(path)
         else:
             print('Error opening json file ' + path)
             print('File does not exist')
@@ -297,7 +301,7 @@ class dmenu(object):
             return out.decode().strip('\n')
 
 
-    def select(self, items, prompt=None, numeric=False):
+    def select(self, items, prompt=False, numeric=False):
         result = self.menu(items, prompt)
         for index, item in enumerate(items):
             if result.find(item) != -1:
@@ -332,7 +336,7 @@ class dmenu(object):
             f.write(command + ";\n")
 
             if hold == True:
-                f.write('echo "\n\nPress any key to close terminal";')
+                f.write('echo "\n\nPress enter to exit";')
                 f.write('read var;')
 
         os.chmod(file_shCmd, 0o744)
@@ -478,7 +482,7 @@ class dmenu(object):
         plugin_titles = []
         for plugin in plugins:
             if hasattr(plugin['plugin'], 'is_submenu') and plugin['plugin'].is_submenu:
-                plugin_titles.append(self.prefs['indicator_submenu'] + plugin['plugin'].title)
+                plugin_titles.append(self.prefs['indicator_submenu'] + ' ' + plugin['plugin'].title)
             else:
                 plugin_titles.append(plugin['plugin'].title)
         print('Done!')
@@ -619,7 +623,7 @@ class dmenu(object):
             for item in self.prefs['include_items']:
                 if type(item) == list:
                     if len(item) > 1:
-                        include_items.append(self.prefs['indicator_alias'] + item[0])
+                        include_items.append(self.prefs['indicator_alias'] + ' ' + item[0])
                     else:
                         if debug:
                             print("There are aliased items in the configuration with no command.")
