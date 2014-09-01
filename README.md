@@ -59,7 +59,7 @@ Dmenu-extended understands the following modifier characters:
 2. **-** (minus) - Remove the following command
 3. **:** (colon) - Open with
 4. **;** (semi-colon) - Execute in terminal
-5. **;;** (double semi-colon) - Execute in terminal and hold open on complete
+5. **;;** (double semi-colon) - Execute in terminal and hold on exit
 
 These modifiers are entered into the menu; examples follow.
 
@@ -91,8 +91,8 @@ For example,
 * `htop;` - Launches htop in a terminal window. Without the semi-colon nothing would happen.
 * `alsamixer;` - Launches the ALSA sound volume manager in a terminal. Without the semicolon nothing would happen.
 
-### **;;** (double semi-colon) - Execute in terminal and hold
-This is the same as a single semi-colon except once the program has completed the terminal window remains open until the used presses enter. This is useful for things commands like `inxi` that returns to the shell on completion.
+### **;;** (double semi-colon) - Execute in terminal and hold on exit
+This is the same using a single semi-colon except once your program has completed the terminal window remains open until you presses enter. This is useful for running programs like `inxi` that exit on completion. You'll want to use this if you see your program flash up and disappear before you get a chance to see the output.
 
 
 ## Rebuilding the cache (without dmenuExtended_settings)
