@@ -60,6 +60,7 @@ Dmenu-extended understands the following modifier characters:
 3. **:** (colon) - Open with
 4. **;** (semi-colon) - Execute in terminal
 5. **;;** (double semi-colon) - Execute in terminal and hold on exit
+6. **#** (hash) - Command alias
 
 These modifiers are entered into the menu; examples follow.
 
@@ -93,6 +94,13 @@ For example,
 
 ### **;;** (double semi-colon) - Execute in terminal and hold on exit
 This is the same using a single semi-colon except once your program has completed the terminal window remains open until you presses enter. This is useful for running programs like `inxi` that exit on completion. You'll want to use this if you see your program flash up and disappear before you get a chance to see the output.
+
+### **#** (hash) - Command alias
+Allows the addition of a more descriptive label for a stored command.
+For instance, entering `htop;#View system processes (htop)` will add htop to the menu but it will be visible as '# View system processes (htop)'.
+Similarly, entering `alsamixer;#View and control system audio controls (alsamixer)` will do the same for alsamixer.
+
+*Tip:* Appending the command name in brackets will allow the user to find the command by entering its name.
 
 
 ## Rebuilding the cache (without dmenuExtended_settings)
