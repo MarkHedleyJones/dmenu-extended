@@ -5,7 +5,6 @@ import os
 import sys
 
 def handle_command(d, out):
-    print(out)
     if out[-1] == ';':
         terminal_hold = False
         if out[-2] == ';':
@@ -49,13 +48,13 @@ def handle_command(d, out):
         else:
             print('The item was not found in either')
             print('Dmenu-extended will not execute the item for security reasons')
-            message = ["Your intention was not understood. To prevent system damage, no action was taken."]
+            message = ["The command was not understood (press enter to close)"]
+
             if out in d.cache_load():
                 print('The item exists in the cache, cache may need rebuilding')
                 message.append(d.prefs['indicator_submenu'] + " Rebuild cache")
 
             response = d.select(message, numeric=True)
-            # print(response)
             if response == 1:
                 d.cache_regenerate()
 
