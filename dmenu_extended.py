@@ -75,15 +75,15 @@ default_prefs = {
         "-fn",                  # Font and size
         "-*-terminus-medium-*-*-*-12-*-*-*-*-*-*-*",
         "-l",                   # Number of lines to display
-        "30"
+        "20"
     ],
     "fileopener": "xdg-open",   # Program to handle opening files
     "filebrowser": "xdg-open",  # Program to handle opening paths
     "webbrowser": "xdg-open",   # Program to hangle opening urls
     "terminal": "xterm",        # Terminal
-    "indicator_submenu": "-> ", # Symbol to indicate a submenu item
-    "indicator_edit": "* ",     # Symbol to indicate an item will launch an editor
-    "indicator_alias": "# "     # Symbol to indecate an aliased command
+    "indicator_submenu": "->", # Symbol to indicate a submenu item
+    "indicator_edit": "*",     # Symbol to indicate an item will launch an editor
+    "indicator_alias": "#"     # Symbol to indecate an aliased command
 }
 
 
