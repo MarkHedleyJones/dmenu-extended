@@ -105,26 +105,41 @@ def run():
                         aliased = True
                         tmp = out.split(d.prefs['indicator_alias'])
                         # out = [tmp[1].lstrip(), tmp[0].rstrip()]
+
                         command = tmp[0].rstrip()
-                        out = tmp[1].lstrip() + ' (' + command.replace(';', '') + ')'
+                        if command is not '':
+                            out = tmp[1].lstrip() + ' (' + command.replace(';', '') + ')'
+                        else:
+                            out = tmp[1].lstrip()
+
                         if len(out) == 0:
                             item = command
                         else:
                             item = [out, command]
                     elif out[:len(d.prefs['indicator_alias'])] == d.prefs['indicator_alias']:
                         item = out[len(d.prefs['indicator_alias']):].lstrip()
-                        print("remove aliased indicator")
+                        aliased = True
+                        print("Remove aliased indicator")
                     else:
                         item = out
 
+                    print("The item is:")
+                    print(item)
+
                     found_in_store = False
                     for store_item in d.prefs['include_items']:
-                        if type(store_item) == list and item == store_item[0]:
+                        print("is " + str(store_item) + " = " + str(item) + " ?")
+                        if type(store_item) == list and out == store_item[0]:
                             found_in_store = True
                             break;
                         elif item == store_item:
                             found_in_store = True
                             break;
+
+                    if found_in_store:
+                        print("Yes")
+                    else:
+                        print("No")
 
                     if action == '+' and found_in_store:
                         option = d.prefs['indicator_submenu'] + " Remove from store"
@@ -139,13 +154,28 @@ def run():
                             sys.exit()
                         action = '+'
 
+                    print("These are the stored items")
+                    print(d.prefs['include_items'])
+
                     if action == '+':
                         d.prefs['include_items'].append(item)
                     elif action == '-':
-                        d.prefs['include_items'].remove(item)
+                        if aliased:
+                            to_remove = None
+                            for include_item in d.prefs['include_items']:
+                                if include_item[0] == out:
+                                    to_remove = include_item
+                            if to_remove is not None:
+                                print("Item found and is")
+                                print(to_remove)
+                                d.prefs['include_items'].remove(to_remove) 
+                            else:
+                                print("Couldn't remove the item (item could not be located)")
+                        else:
+                            d.prefs['include_items'].remove(item)
                     else:
                         d.message_close()
-                        d.menu("An error occured while servicing your command.\nYou may need to delete your configuration file.")
+                        d.menu("An error occured while servicing your request.\nYou may need to delete your configuration file.")
                         sys.exit()
 
                     d.save_preferences()
@@ -170,12 +200,16 @@ def run():
                             cache_scanned = [out] + cache_scanned
                         cache_scanned.sort(key=len)
                     else:
-                        print("Removing item from store: " + out)
-                        d.message_open("Removing item from store: " + out)
+                        if aliased:
+                            to_remove = d.prefs['indicator_alias'] + ' ' + out
+                            print("Removing item from store: " + to_remove)
+                        else:
+                            to_remove = out
+                        d.message_open("Removing item from store: " + to_remove)
                         try:
-                            cache_scanned.remove(out)
+                            cache_scanned.remove(to_remove)
                         except ValueError:
-                            pass
+                            print("Couldnt actually remove item from the cache")
 
                     d.cache_save(cache_scanned,dmenu_extended.file_cacheScanned)
 
