@@ -54,7 +54,7 @@ default_prefs = {
         "sublime-project"       # Project file for sublime
     ],
     "watch_folders": ["~/"],    # Base folders through which to search
-    "follow_symlinks": False,   # Follow links to other locations 
+    "follow_symlinks": False,   # Follow links to other locations
     "ignore_folders": [],      # Folders to exclude from the search
     "include_items": [],        # Extra items to display - manually added
     "exclude_items": [],        # Items to hide - manually hidden
@@ -72,16 +72,17 @@ default_prefs = {
         "-sb",                  # Selected element background colour
         "#1D1F21",
         "-fn",                  # Font and size
-        "Terminus:12",
+        "-*-terminus-medium-*-*-*-12-*-*-*-*-*-*-*",
         "-l",                   # Number of lines to display
-        "30" 
+        "20"
     ],
     "fileopener": "xdg-open",   # Program to handle opening files
     "filebrowser": "xdg-open",  # Program to handle opening paths
     "webbrowser": "xdg-open",   # Program to hangle opening urls
     "terminal": "xterm",        # Terminal
-    "indicator_submenu": "-> ", # Symbol to indicate a submenu item
-    "indicator_edit": "* "      # Symbol to indicate an item will launch an editor
+    "indicator_submenu": "->", # Symbol to indicate a submenu item
+    "indicator_edit": "*",     # Symbol to indicate an item will launch an editor
+    "indicator_alias": "#"     # Symbol to indecate an aliased command
 }
 
 
@@ -211,7 +212,11 @@ class dmenu(object):
                     return json.load(f)
                 except:
                     print("Error parsing prefs from json file " + path)
-                    return False
+                    self.prefs = default_prefs
+                    option = self.prefs['indicator_edit'] +" Edit file manually"
+                    response = self.menu("There is an error opening " + path + "\n" + option)
+                    if response == option:
+                        self.open_file(path)
         else:
             print('Error opening json file ' + path)
             print('File does not exist')
@@ -285,7 +290,7 @@ class dmenu(object):
 
         if type(items) == list:
             items = "\n".join(items)
-        
+
         items = items.encode('utf-8')
         out = p.communicate(items)[0]
 
@@ -295,7 +300,7 @@ class dmenu(object):
             return out.decode().strip('\n')
 
 
-    def select(self, items, prompt=None, numeric=False):
+    def select(self, items, prompt=False, numeric=False):
         result = self.menu(items, prompt)
         for index, item in enumerate(items):
             if result.find(item) != -1:
@@ -328,13 +333,13 @@ class dmenu(object):
         with open(file_shCmd, 'w') as f:
             f.write("#! /bin/bash\n")
             f.write(command + ";\n")
-            
+
             if hold == True:
-                f.write('echo "\nFinished\n\nPress any key to close terminal\n";')
-                f.write('\nread var;')
+                f.write('echo "\n\nPress enter to exit";')
+                f.write('read var;')
 
         os.chmod(file_shCmd, 0o744)
-        os.system(self.prefs['terminal'] + ' -e ' + file_shCmd) 
+        os.system(self.prefs['terminal'] + ' -e ' + file_shCmd)
 
 
     def open_file(self, path):
@@ -356,7 +361,7 @@ class dmenu(object):
 
     def cache_regenerate(self, debug=False, message=True):
         if message:
-            self.message_open('building cache...')
+            self.message_open('building cache...\nThis may take a while (press enter to run in background).')
         cache = self.cache_build(debug)
         if message:
             self.message_close()
@@ -448,7 +453,7 @@ class dmenu(object):
             out = tmp.decode()
         except UnicodeDecodeError:
             out = tmp.decode('utf-8')
-            
+
         if split:
             return out.split("\n")
         else:
@@ -476,7 +481,7 @@ class dmenu(object):
         plugin_titles = []
         for plugin in plugins:
             if hasattr(plugin['plugin'], 'is_submenu') and plugin['plugin'].is_submenu:
-                plugin_titles.append(self.prefs['indicator_submenu'] + plugin['plugin'].title)
+                plugin_titles.append(self.prefs['indicator_submenu'] + ' ' + plugin['plugin'].title)
             else:
                 plugin_titles.append(plugin['plugin'].title)
         print('Done!')
@@ -529,9 +534,9 @@ class dmenu(object):
             print(binaries[:5])
             print(str(len(binaries)) + ' loaded in total')
             print('')
-        
+
         print('Loading the list of indexed folders...')
-        
+
         watch_folders = []
         if 'watch_folders' in self.prefs:
             watch_folders = self.prefs['watch_folders']
@@ -546,7 +551,7 @@ class dmenu(object):
             print('')
 
         print('Loading the list of folders to be excluded from the index...')
-        
+
         ignore_folders = []
 
         if 'ignore_folders' in self.prefs:
@@ -613,7 +618,16 @@ class dmenu(object):
         print('Loading manually added items from preferences file...')
 
         if 'include_items' in self.prefs:
-            include_items = self.prefs['include_items']
+            include_items = []
+            for item in self.prefs['include_items']:
+                if type(item) == list:
+                    if len(item) > 1:
+                        include_items.append(self.prefs['indicator_alias'] + ' ' + item[0])
+                    else:
+                        if debug:
+                            print("There are aliased items in the configuration with no command.")
+                else:
+                    include_items.append(item)
         else:
             include_items = []
         print('Done!')
@@ -626,7 +640,7 @@ class dmenu(object):
             print('')
 
         print('Ordering and combining results...')
-        
+
         plugins = self.plugins_available()
         other = self.sort_shortest(include_items + binaries + foldernames + filenames)
 
