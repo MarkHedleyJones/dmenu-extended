@@ -105,8 +105,8 @@ def run():
                         aliased = True
                         tmp = out.split(d.prefs['indicator_alias'])
                         # out = [tmp[1].lstrip(), tmp[0].rstrip()]
-                        out = tmp[1].lstrip()
                         command = tmp[0].rstrip()
+                        out = tmp[1].lstrip() + ' (' + command.replace(';', '') + ')'
                         if len(out) == 0:
                             item = command
                         else:
