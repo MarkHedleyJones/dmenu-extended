@@ -1,4 +1,4 @@
-INSTALL_PATH=`pwd`
+INSTALL_PATH=$(pwd)
 
 # Check that Python is installed and exit if not
 if [ ! -e "/usr/bin/python" ]
