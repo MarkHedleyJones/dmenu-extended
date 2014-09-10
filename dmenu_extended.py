@@ -5,8 +5,6 @@ import os
 import subprocess
 import signal
 import json
-import signal
-import time
 
 # Python 3 urllib import with Python 2 fallback
 try:
@@ -72,7 +70,7 @@ default_prefs = {
         "-sb",                  # Selected element background colour
         "#1D1F21",
         "-fn",                  # Font and size
-        "-*-terminus-medium-*-*-*-12-*-*-*-*-*-*-*",
+        "-*-terminus-medium-*-*-*-14-*-*-*-*-*-*-*",
         "-l",                   # Number of lines to display
         "20"
     ],
@@ -84,7 +82,6 @@ default_prefs = {
     "indicator_edit": "*",     # Symbol to indicate an item will launch an editor
     "indicator_alias": "#"     # Symbol to indecate an aliased command
 }
-
 
 
 def setup_user_files():
@@ -151,9 +148,10 @@ import plugins
 
 def load_plugins():
     print('Loading plugins')
-    plugins_loaded = []
+    plugins_loaded = [{"filename": "dmenuExtended_settings.py",
+                       "plugin": extension()}]
     for plugin in plugins.__all__:
-        if plugin != '__init__':
+        if plugin not in ['__init__', 'dmenuExtended_settings.py']:
             try:
                 __import__('plugins.' + plugin)
                 exec('plugins_loaded.append({"filename": "' + plugin + '.py", "plugin": plugins.' + plugin + '.extension()})')
@@ -291,7 +289,9 @@ class dmenu(object):
         if type(items) == list:
             items = "\n".join(items)
 
-        items = items.encode('utf-8')
+        if type(items) != str:
+            items = items.encode('utf-8')
+
         out = p.communicate(items)[0]
 
         if out.strip() == '':
@@ -508,7 +508,6 @@ class dmenu(object):
                 if extension[0] != '.':
                     extension = '.' + extension
                 valid_extensions.append(extension.lower())
-        print('Done!')
 
         if debug:
             print('Valid extensions:')
@@ -516,7 +515,6 @@ class dmenu(object):
             print(valid_extensions[:5])
             print(str(len(valid_extensions)) + ' loaded in total')
             print('')
-
         print('Scanning user binaries...')
         filter_binaries = True
         try:
@@ -584,7 +582,6 @@ class dmenu(object):
                 print('Indexing will follow linked folders')
 
         print('Scanning files and folders, this may take a while...')
-        print('')
 
         for watchdir in watch_folders:
             for root, dirs , files in os.walk(watchdir, followlinks=follow_symlinks):
@@ -599,7 +596,7 @@ class dmenu(object):
                         if not name.startswith('.'):
                             foldernames.append(os.path.join(root,name))
 
-        print('\rDone scanning files and folders')
+        print('Done!')
         foldernames = list(filter(lambda x: x not in ignore_folders, foldernames))
 
         if debug:
@@ -653,3 +650,494 @@ class dmenu(object):
         print('Cache building has finished.')
         print('')
         return out
+
+
+class extension(dmenu):
+
+    title = 'Menu configuration'
+    is_submenu = True
+
+    def __init__(self):
+        self.load_preferences()
+
+    plugins_index_url = 'https://gist.github.com/markjones112358/7699540/raw/dmenu-extended-plugins.txt'
+
+    def rebuild_cache(self):
+        print('Counting items in original cache')
+        cacheSize = len(self.cache_load().split("\n"))
+
+        print('Rebuilding the cache...')
+        result = self.cache_regenerate()
+        print('Cache built')
+
+        print('Counting items in new cache')
+        newSize = len(self.cache_load().split("\n"))
+        print('New cache size = ' + str(newSize))
+        cacheSizeChange = newSize - cacheSize
+        if cacheSizeChange != 0:
+            print('This differs from original by ' + str(cacheSizeChange) + ' items')
+        else:
+            print('Cache size did not change')
+
+        response = []
+
+        if cacheSizeChange > 0:
+            if cacheSizeChange == 1:
+                status = 'One new item was added'
+            elif cacheSizeChange == -1:
+                status = 'One item was removed'
+            elif cacheSizeChange > 0:
+                status = str(cacheSizeChange) + ' items were added'
+            elif cacheSizeChange < 0:
+                status = str(abs(cacheSizeChange)) + ' items were removed'
+            else:
+                status = 'No new items were added'
+
+            response.append('Cache updated successfully - ' + status)
+
+            if result == 2:
+                response.append('NOTICE: Performance issues were encountered while caching data')
+
+        else:
+            response.append('Cache rebuilt; its size did not change.')
+
+        response.append('The cache contains ' + str(cacheSize) + ' items.')
+
+        self.menu(response)
+
+
+    def rebuild_cache_plugin(self):
+        self.plugins_loaded = self.get_plugins(True)
+        self.cache_regenerate()
+
+
+    def download_plugins(self):
+        self.message_open('Downloading a list of plugins...')
+
+        try:
+            plugins = self.download_json(self.plugins_index_url)
+        except:
+            self.message_close()
+            self.menu(["Error: Could not connect to plugin repository.",
+                       "Please check your internet connection and try again."])
+            sys.exit()
+
+        items = []
+
+        substitute = ('dmenuExtended_', '')
+
+        installed_plugins = self.get_plugins()
+        installed_pluginFilenames = []
+
+        for tmp in installed_plugins:
+            installed_pluginFilenames.append(tmp['filename'])
+
+        for plugin in plugins:
+            if plugin + '.py' not in installed_pluginFilenames:
+                items.append(plugin.replace(substitute[0], substitute[1]) + ' - ' + plugins[plugin]['desc'])
+
+        self.message_close()
+
+        if len(items) == 0:
+            self.menu(['There are no new plugins to install'])
+        else:
+            item = substitute[0] + self.select(items, 'Install:')
+
+            if item != -1:
+                self.message_open("Downloading selected plugin...")
+                plugin_name = item.split(' - ')[0]
+                plugin = plugins[plugin_name]
+                plugin_source = self.download_text(plugin['url'])
+
+                with open(path_plugins + '/' + plugin_name + '.py', 'w') as f:
+                    for line in plugin_source:
+                        f.write(line)
+
+                self.get_plugins(True)
+                self.message_close()
+                self.message_open("Rebuilding plugin cache")
+                self.plugins_available()
+                self.message_close()
+
+                self.menu(['Plugin downloaded and installed successfully'])
+
+                print("Plugins available:")
+                for plugin in self.plugins_available():
+                    print(plugin)
+
+
+    def installed_plugins(self):
+        plugins = []
+        for plugin in self.get_plugins():
+            plugins.append(plugin["plugin"].title.replace(':','') + ' (' + plugin["filename"] + ')')
+        return plugins
+
+
+    def remove_plugin(self):
+        plugins = self.installed_plugins()
+        pluginText = self.select(plugins, prompt='Plugin to remove:')
+        if pluginText != -1:
+            plugin = pluginText.split('(')[1].replace(')', '')
+            path = path_plugins + '/' + plugin
+            if os.path.exists(path):
+                os.remove(path)
+                self.menu(['Plugin "' + plugin + '" was removed.'])
+                print("Plugins available:")
+                for plugin in self.plugins_available():
+                    print(plugin)
+            else:
+                print('Error - Plugin not found')
+        else:
+            print('Selection was not understood')
+
+
+    def update_plugins(self):
+        self.message_open('Checking for plugin updates...')
+        plugins_here = map(lambda x: x['filename'].split('.')[0], self.get_plugins())
+        plugins_there = self.download_json(self.plugins_index_url)
+        updated = []
+        for here in plugins_here:
+            for there in plugins_there:
+                if there == here:
+                    there_sha = plugins_there[there]['sha1sum']
+                    here_sha = self.command_output("sha1sum " + path_plugins + '/' + here + '.py')[0].split()[0]
+                    print('Checking ' + here)
+                    print('Local copy has sha of ' + here_sha)
+                    print('Remote copy has sha of ' + there_sha)
+                    if there_sha != here_sha:
+                        sys.stdout.write("Hashes do not match, updating...\n")
+                        if os.path.exists('/tmp/' + there + '.py'):
+                            os.remove('/tmp/' + there + '.py')
+                        os.system('wget ' + plugins_there[there]['url'] + ' -P /tmp')
+                        download_sha = self.command_output("sha1sum /tmp/" + here + '.py')[0].split()[0]
+                        if download_sha != there_sha:
+                            print('Downloaded version of ' + there + ' does not verify against package manager sha1sum key')
+                            print('SHA1SUM of downloaded version = ' + download_sha)
+                            print('SHA1SUM specified by package manager = ' + there_sha)
+                            print('Plugin not updated')
+                        else:
+                            os.remove(path_plugins + '/' + here + '.py')
+                            os.system('mv /tmp/' + here + '.py ' + path_plugins + '/' + here + '.py')
+                            print('Done!')
+                            updated += [here]
+                    else:
+                        print(here + 'is up-to-date')
+        self.message_close()
+        if len(updated) == 0:
+            self.menu(['There are no new updates for installed plugins'])
+        elif len(updated) == 1:
+            self.menu([updated[0] + ' was updated to the latest version'])
+        else:
+            self.menu(['The following plugins were updated:'] + updated)
+
+
+    def run(self, inputText):
+        items = ['Rebuild cache',
+                 self.prefs['indicator_submenu'] + ' Download new plugins',
+                 self.prefs['indicator_submenu'] + ' Remove existing plugins',
+                 self.prefs['indicator_edit'] + ' Edit menu preferences',
+                 'Update installed plugins']
+
+        selectedIndex = self.select(items, "Action:", numeric=True)
+
+        if selectedIndex != -1:
+            if selectedIndex == 0:
+                self.rebuild_cache()
+            elif selectedIndex == 1:
+                self.download_plugins()
+            elif selectedIndex == 2:
+                self.remove_plugin()
+            elif selectedIndex == 3:
+                self.open_file(file_prefs)
+                self.plugins_available() # Refresh the plugin cache
+            elif selectedIndex == 4:
+                self.update_plugins()
+
+
+def handle_command(d, out):
+    if out[-1] == ';':
+        terminal_hold = False
+        if out[-2] == ';':
+            terminal_hold = True
+        for command in out.split('&&'):
+            if command.find('/') != -1:
+                d.open_terminal("-cd " + command.replace(';',''),
+                                direct=True,
+                                hold=terminal_hold)
+            else:
+                d.open_terminal(command.replace(';',''),
+                                hold=terminal_hold)
+
+    elif out[:7] == 'http://' or out[:8] == 'https://':
+        d.open_url(out)
+
+    elif out.find('/') != -1:
+        if out.find(' ') != -1:
+            parts = out.split(' ')
+            if parts[0] in d.scan_binaries():
+                d.execute(out)
+            else:
+                if os.path.isdir(out):
+                    d.open_directory(out)
+                else:
+                    d.open_file(out)
+        else:
+            if os.path.isdir(out):
+                d.open_directory(out)
+            else:
+                d.open_file(out)
+    else:
+        print('It is not clear what do to with this item')
+        print('dmenu-extended will now search /bin, /usr/bin and /usr/local/bin')
+        if (os.path.exists('/bin/' + str(out)) or
+            os.path.exists('/usr/bin/' + str(out)) or
+            os.path.exists('/usr/local/bin/' + str(out))):
+            print('Item was found')
+            print('Will execute the item')
+            d.execute(out)
+        else:
+            print('The item was not found in either')
+            print('dmenu-extended will not execute the item for security reasons')
+            message = ["The command was not understood (press enter to close)"]
+
+            if out in d.cache_load():
+                print('The item exists in the cache, cache may need rebuilding')
+                message.append(d.prefs['indicator_submenu'] + " Rebuild cache")
+
+            response = d.select(message, numeric=True)
+            if response == 1:
+                d.cache_regenerate()
+
+            sys.exit()
+
+
+def run():
+    d = dmenu()
+    cache = d.cache_load()
+    out = d.menu(cache,'Open:').strip()
+
+
+    if len(out) > 0:
+        # Check if the action relates to a plugin
+        plugins = load_plugins()
+        plugin_hook = False
+        for plugin in plugins:
+            if hasattr(plugin['plugin'], 'is_submenu') and plugin['plugin'].is_submenu == True:
+                pluginTitle = d.prefs['indicator_submenu'] + ' ' + plugin['plugin'].title.strip()
+            else:
+                pluginTitle = plugin['plugin'].title.strip()
+
+            if out[:len(pluginTitle)] == pluginTitle:
+                plugin_hook = plugin["plugin"]
+
+        # Check for plugin call
+        if plugin_hook != False:
+            plugin_hook.run(out[len(pluginTitle):])
+        else:
+            # Check for command alias
+            alias = d.prefs['indicator_alias']
+            if out[0:len(alias)] == alias:
+                command_key = out[len(alias):].lstrip()
+                for item in [x for x in d.prefs['include_items'] if type(x) == list]:
+                    if item[0] == command_key:
+                        out = item[1]
+            else:
+                # Check for store modifications
+                # Dont allow command aliases that add new commands
+                if out[0] in "+-":
+
+                    action = out[0]
+                    out = out[1:]
+                    aliased = False
+                    # Check for aliased command
+                    if out.find(d.prefs['indicator_alias']) != -1 and action == '+':
+                        print("aliased command to add")
+                        aliased = True
+                        tmp = out.split(d.prefs['indicator_alias'])
+                        # out = [tmp[1].lstrip(), tmp[0].rstrip()]
+
+                        command = tmp[0].rstrip()
+                        if command is not '':
+                            out = tmp[1].lstrip() + ' (' + command.replace(';', '') + ')'
+                        else:
+                            out = tmp[1].lstrip()
+
+                        if len(out) == 0:
+                            item = command
+                        else:
+                            item = [out, command]
+                    elif out[:len(d.prefs['indicator_alias'])] == d.prefs['indicator_alias']:
+                        item = out[len(d.prefs['indicator_alias']):].lstrip()
+                        aliased = True
+                        print("Remove aliased indicator")
+                    else:
+                        item = out
+
+                    print("The item is:")
+                    print(item)
+
+                    found_in_store = False
+                    for store_item in d.prefs['include_items']:
+                        print("is " + str(store_item) + " = " + str(item) + " ?")
+                        if type(store_item) == list and out == store_item[0]:
+                            found_in_store = True
+                            break;
+                        elif item == store_item:
+                            found_in_store = True
+                            break;
+
+                    if found_in_store:
+                        print("Yes")
+                    else:
+                        print("No")
+
+                    if action == '+' and found_in_store:
+                        option = d.prefs['indicator_submenu'] + " Remove from store"
+                        answer = d.menu("Item '" + str(item) + "' already in store\n"+option)
+                        if answer != option:
+                            sys.exit()
+                        action = '-'
+                    elif action == '-' and found_in_store == False:
+                        option = d.prefs['indicator_submenu'] + " Add to store"
+                        answer = d.menu("Item '" + (item) + "' was not found in store\n"+option)
+                        if answer != option:
+                            sys.exit()
+                        action = '+'
+
+                    print("These are the stored items")
+                    print(d.prefs['include_items'])
+
+                    if action == '+':
+                        d.prefs['include_items'].append(item)
+                    elif action == '-':
+                        if aliased:
+                            to_remove = None
+                            for include_item in d.prefs['include_items']:
+                                if include_item[0] == out:
+                                    to_remove = include_item
+                            if to_remove is not None:
+                                print("Item found and is")
+                                print(to_remove)
+                                d.prefs['include_items'].remove(to_remove) 
+                            else:
+                                print("Couldn't remove the item (item could not be located)")
+                        else:
+                            d.prefs['include_items'].remove(item)
+                    else:
+                        d.message_close()
+                        d.menu("An error occured while servicing your request.\nYou may need to delete your configuration file.")
+                        sys.exit()
+
+                    d.save_preferences()
+
+                    # Recreate the cache
+
+                    cache_scanned = d.cache_open(file_cacheScanned)[:-1]
+
+                    if cache_scanned == False:
+                        d.cache_regenerate()
+                        d.message_close()
+                        sys.exit()
+                    else:
+                        cache_scanned = cache_scanned.split("\n")
+
+                    if action == '+':
+                        print("Adding item to store: " + out)
+                        d.message_open("Adding item to store: " + out)
+                        if aliased:
+                            cache_scanned = [d.prefs['indicator_alias'] + ' ' + out] + cache_scanned
+                        else:
+                            cache_scanned = [out] + cache_scanned
+                        cache_scanned.sort(key=len)
+                    else:
+                        if aliased:
+                            to_remove = d.prefs['indicator_alias'] + ' ' + out
+                            print("Removing item from store: " + to_remove)
+                        else:
+                            to_remove = out
+                        d.message_open("Removing item from store: " + to_remove)
+                        try:
+                            cache_scanned.remove(to_remove)
+                        except ValueError:
+                            print("Couldnt actually remove item from the cache")
+
+                    d.cache_save(cache_scanned,file_cacheScanned)
+
+                    d.message_close()
+                    if action == '+':
+                        if aliased == True:
+                            message = "New item (" + command + " aliased as '" + out + "') added to cache."
+                        else:
+                            message = "New item (" + out + ") added to cache."
+                    else:
+                        message = "Existing item (" + out + ") removed from cache."
+
+                    d.menu(message)
+                    sys.exit()
+
+            # Check for open-with/filter results modifier
+            if out.find(':') != -1:
+                tmp = out.split(':')
+                if len(tmp) != 2:
+                    print('Input command not understood')
+                    sys.exit()
+                else:
+                    cmds = list(map(lambda x: x.strip(), tmp))
+
+                run_withshell = False
+                shell_hold = False
+                if cmds[0][-1] == ';':
+                    if cmds[0][-2] == ';':
+                        shell_hold = True
+                        print('Will hold')
+                    else:
+                        print('Wont hold')
+                    cmds[0] = cmds[0].replace(';','')
+                    run_withshell = True
+
+                if cmds[0] == '':
+                    items = list(filter(lambda x: x.find(cmds[1]) != -1, cache.split('\n')))
+                    item = d.menu(items)
+                    handle_command(d, item)
+                elif cmds[0] in d.scan_binaries():
+                    print('Item[0] (' + cmds[0] + ') found in binaries')
+                    # Get paths from cache
+                    items = list(filter(lambda x: x.find('/') != -1, cache.split('\n')))
+                    # If extension passed, filter by this
+                    if cmds[1] != '':
+                        items = list(filter(lambda x: x.find(cmds[1]) != -1, items))
+                    filename = d.menu(items)
+                    filename = os.path.expanduser(filename)
+                    command = cmds[0] + " '" + filename + "'"
+                    if run_withshell:
+                        d.open_terminal(command, shell_hold)
+                    else:
+                        d.execute(command)
+                elif cmds[0].find('/') != -1:
+                    # Path came first, assume user wants of open it with a bin
+                    if cmds[1] != '':
+                        command = cmds[1] + " '" + os.path.expanduser(cmds[0]) + "'"
+                    else:
+                        binary = d.menu(d.scan_binaries())
+                        command = binary + " '" + os.path.expanduser(cmds[0]) + "'"
+                    d.execute(command)
+                else:
+                    d.menu(["Cant find " + cmds[0] + ", is it installed?"])
+                    print('Input command not understood')
+
+                sys.exit()
+
+            if out == "rebuild cache":
+                result = d.cache_regenerate()
+                if result == 0:
+                    d.menu(['Cache could not be saved'])
+                elif result == 2:
+                    d.menu(['Cache rebuilt','Performance issues were detected - some paths contained invalid characters'])
+                else:
+                    d.menu(['Success!'])
+
+            else:
+                handle_command(d, out)
+
+if __name__ == "__main__":
+    run()
