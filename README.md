@@ -1,33 +1,33 @@
 # dmenu-extended
 
-An extension to dmenu allowing super fast access to your files, folders, and programs. Install the dmenu_extendedSettings plugin to further extend the menu - adding the ability to download new plugins and manage settings.
+An extension to the original [dmenu](http://tools.suckless.org/dmenu/) allowing super fast access to your files, folders, and programs. dmenu-extended has support for plugins and customisation.
+
+## See it in action
 
 <p align="center">
   <img src="https://raw.github.com/markjones112358/dmenu-extended/master/demo.gif" alt="Dmenu-extended demo"/>
 </p>
 
+## Dependencies
+dmenu-extended requires that you have **dmenu, preferably 4.5 or later,** installed.
+This can either be installed through your package manager or by downloading the [source](http://tools.suckless.org/dmenu/) and compiling it yourself.
 
-# Installation
+## Installation
+Clone this repository or download the source and extract.
+You can run dmenu-extended without installation by running `python dmenu_extended.py` from within the dmenu-extended folder.
 
-Make sure you have ``curl`` installed first (``sudo apt-get install curl``).
+For convenience it is recommended you follow one of the following options.
 
-Download and extract the archive (or clone using git). Open a terminal and navigate to the source folder (probably `cd ~/Downloads/dmenu-extended-master`) and run the  following command:
+### Global installation (available to all users)
+Run `sudo python setup.py install` from within the dmenu-extended directory to install dmenu-extended module and link the executable script to your system path
 
-    sudo sh setup.sh
-    
-
-## Installing dmenuExtended_settings (recommended)
-
-Installing this extra extension enables rebuilding the cache, easy access to configuration files, and the ability to easily download more plugins from the github hosted repository index.
-
-To install this extension, copy and execute the following commands in a terminal
-
-    cd ~/.config/dmenu-extended/plugins && \
-    wget https://gist.github.com/markjones112358/7700097/raw/dmenuExtended_settings.py && \
-    dmenu_extended_build && \
-    echo "" && \
-    echo "Settings plugin installed"
-    ;
+### Local installation
+If you don't have administration access to your system you can choose one of the following options
+#### Virtualenv
+Run the python installer `python setup.py install`
+#### User path
+Move both `dmenu_extended.py` and `dmenu_extended_run` into a folder in your system path.
+You can add a folder to your path by executing `export PATH=$PATH:/path/you/wish/to/add` in the terminal.
 
 # Usage
 
@@ -102,6 +102,6 @@ Similarly, entering `alsamixer;#View and control system audio controls (alsamixe
 
 *Tip:* Appending the command name in brackets will allow the user to find the command by entering its name.
 
-
-## Rebuilding the cache (without dmenuExtended_settings)
-Entering 'rebuild cache' into dmenu-extended or executing `dmenu_extended_build` rebuild the cache.
+## Acknowledgements
+* **Alad** from the [CrunchBang forums](http://crunchbang.org/forums/viewtopic.php?id=36484) for advise on packaging.
+* **Head_on_a_Stick** also from the [CrunchBang forums](http://crunchbang.org/forums/viewtopic.php?id=36484) for advise on packaging.
