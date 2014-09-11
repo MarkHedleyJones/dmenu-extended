@@ -289,7 +289,9 @@ class dmenu(object):
         if type(items) == list:
             items = "\n".join(items)
 
-        if type(items) != str:
+        if sys.version_info >= (3,0):
+            items = items.encode('utf-8')
+        elif type(items) != str:
             items = items.encode('utf-8')
 
         out = p.communicate(items)[0]
