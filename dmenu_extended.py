@@ -112,11 +112,13 @@ def setup_user_files():
     except OSError:
         print('prefs directory exists - skipped')
 
-    # If relevant binaries exist, swap them out for the safer defaults
+    # If relevant binaries exist, swap them out for the more appropriate items
     if os.path.exists('/usr/bin/gnome-open'):
         default_prefs['fileopener'] = 'gnome-open'
         default_prefs['webbrowser'] = 'gnome-open'
         default_prefs['filebrowser'] = 'gnome-open'
+    if os.path.exists('/usr/bin/gnome-terminal'):
+        default_prefs['terminal'] = 'gnome-terminal'
     if os.path.exists('/usr/bin/urxvt'):
         default_prefs['terminal'] = 'urxvt'
 
@@ -347,7 +349,15 @@ class dmenu(object):
     def open_file(self, path):
         self.load_preferences()
         print('Opening file with command: ' + self.prefs['fileopener'] + " '" + path + "'")
-        os.system(self.prefs['fileopener'] + " '" + path + "'")
+        exit_code = os.system(self.prefs['fileopener'] + " '" + path + "'")
+        if exit_code is not 0:
+            message = False
+            if exit_code == 256 and self.prefs['fileopener'] == 'gnome-open':
+                message = "No application is associated with this filetype (gnome-open)"
+            elif exit_code == 4 and self.prefs['fileopener'] == 'xdg-open':
+                message = "No application is associated with this filetype (xdg-open)"
+            if message:
+                self.menu([message, "Press enter to close"])
 
 
     def execute(self, command, fork=None):
@@ -795,7 +805,8 @@ class extension(dmenu):
 
     def update_plugins(self):
         self.message_open('Checking for plugin updates...')
-        plugins_here = map(lambda x: x['filename'].split('.')[0], self.get_plugins())
+        plugins_here = list(map(lambda x: x['filename'].split('.')[0], self.get_plugins()))
+        plugins_here.remove('dmenuExtended_settings')
         plugins_there = self.download_json(self.plugins_index_url)
         updated = []
         for here in plugins_here:
