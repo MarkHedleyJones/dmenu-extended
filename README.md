@@ -1,6 +1,6 @@
 # dmenu-extended
 
-An extension to the original [dmenu](http://tools.suckless.org/dmenu/) allowing super fast access to your files, folders, and programs. dmenu-extended has support for plugins and customisation.
+An extension to the original [dmenu](http://tools.suckless.org/dmenu/) allowing super fast access to your files, folders, and programs. dmenu-extended has support for plugins, command aliasing, file filtering, and customisation.
 
 ## See it in action
 
@@ -9,25 +9,37 @@ An extension to the original [dmenu](http://tools.suckless.org/dmenu/) allowing 
 </p>
 
 ## Dependencies
-dmenu-extended requires that you have **dmenu, preferably 4.5 or later,** installed.
-This can either be installed through your package manager or by downloading the [source](http://tools.suckless.org/dmenu/) and compiling it yourself.
+**dmenu, preferably 4.5 or later,**
 
 ## Installation
-Clone this repository or download the source and extract.
-You can run dmenu-extended without installation by running `python dmenu_extended.py` from within the dmenu-extended folder.
+Clone this repository or download the zip and extract.
 
-For convenience it is recommended you follow one of the following options.
+You can try dmenu-extended without installation by running `python dmenu_extended.py` from within the dmenu-extended folder.
 
-### Global installation (available to all users)
-Run `sudo python setup.py install` from within the dmenu-extended directory to install dmenu-extended module and link the executable script to your system path
+### Global install
+Execute `sudo python setup.py install` from within the dmenu-extended directory.
 
 ### Local installation
-If you don't have administration access to your system you can choose one of the following options
 #### Virtualenv
-Run the python installer `python setup.py install`
-#### User path
-Move both `dmenu_extended.py` and `dmenu_extended_run` into a folder in your system path.
-You can add a folder to your path by executing `export PATH=$PATH:/path/you/wish/to/add` in the terminal.
+Execute `python setup.py install` from within the dmenu-extended directory
+#### Manual
+Move both `dmenu_extended.py` and `dmenu_extended_run` into a folder that is in your system path.
+
+*For example*:
+
+Create a folder called bin in your home directory (if you don't already have one)
+
+    mkdir ~/bin
+    
+Add this folder to your systems `$PATH` variable
+
+    export PATH=$PATH:$HOME/bin
+    
+Copy the required dmenu-extended files into your local bin folder
+
+    cp ~/Downloads/dmenu-extended-master/dmenu_extended* ~/bin
+    
+To keep your ~/bin folder on the path after restart, add `export PATH=$PATH:$HOME/bin` to the end of `~/.bash_profile`
 
 # Usage
 
@@ -97,10 +109,8 @@ This is the same using a single semi-colon except once your program has complete
 
 ### **#** (hash) - Command alias
 Allows the addition of a more descriptive label for a stored command.
-For instance, entering `htop;#View system processes (htop)` will add htop to the menu but it will be visible as '# View system processes (htop)'.
-Similarly, entering `alsamixer;#View and control system audio controls (alsamixer)` will do the same for alsamixer.
-
-*Tip:* Appending the command name in brackets will allow the user to find the command by entering its name.
+For instance, entering `htop;#View running processes` will add htop to the menu but it will be visible as '# View system processes (htop)'.
+Similarly, entering `alsamixer;#Control system audio devices` will do the same for alsamixer.
 
 ## Acknowledgements
 * **Alad** from the [CrunchBang forums](http://crunchbang.org/forums/viewtopic.php?id=36484) for advise on packaging.
