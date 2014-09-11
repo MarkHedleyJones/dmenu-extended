@@ -351,13 +351,23 @@ class dmenu(object):
         print('Opening file with command: ' + self.prefs['fileopener'] + " '" + path + "'")
         exit_code = os.system(self.prefs['fileopener'] + " '" + path + "'")
         if exit_code is not 0:
-            message = False
+            open_failure = False
+            offer = None
             if exit_code == 256 and self.prefs['fileopener'] == 'gnome-open':
-                message = "No application is associated with this filetype (gnome-open)"
+                open_failure = True
+                offer = 'xdg-open'
             elif exit_code == 4 and self.prefs['fileopener'] == 'xdg-open':
-                message = "No application is associated with this filetype (xdg-open)"
-            if message:
-                self.menu([message, "Press enter to close"])
+                open_failure = True
+            if open_failure:
+                mimetype = str(self.command_output('xdg-mime query filetype ' + path)[0])
+                message = ["Error: " + self.prefs['fileopener'] + " reports no application is associated with this filetype (MIME type: " + mimetype + ")"]
+                if offer is not None:
+                    option = "Try opening with " + offer + "?"
+                message.append(option)
+
+                if self.menu(message) == option:
+                    self.prefs['fileopener'] = offer
+                    self.open_file(path)
 
 
     def execute(self, command, fork=None):
