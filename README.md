@@ -111,7 +111,7 @@ This is the same using a single semi-colon except once your program has complete
 ### **#** (hash) - Command alias
 Allows the addition of a more descriptive label for a stored command.
 For instance, entering `htop;#View running processes` will add htop to the menu but it will be visible as '# View system processes (htop)'.
-Similarly, entering `alsamixer;#Control system audio devices` will do the same for alsamixer.
+Similarly, entering `http://youtube.com#Youtube` will create an alias for launching youtube in the default browser.
 
 ## Acknowledgements
 * **Alad** from the [CrunchBang forums](http://crunchbang.org/forums/viewtopic.php?id=36484) for advise on packaging.
