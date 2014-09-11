@@ -1077,8 +1077,10 @@ def run():
                     d.menu(message)
                     sys.exit()
 
-            # Check for open-with/filter results modifier
-            if out.find(':') != -1:
+            # Detect if the command is a web address and pass to handle_command
+            if out[:7] == 'http://' or out[:8] == 'https://':
+                handle_command(d, out)
+            elif out.find(':') != -1:
                 tmp = out.split(':')
                 if len(tmp) != 2:
                     print('Input command not understood')
