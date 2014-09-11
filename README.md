@@ -9,7 +9,8 @@ An extension to the original [dmenu](http://tools.suckless.org/dmenu/) allowing 
 </p>
 
 ## Dependencies
-**dmenu, preferably 4.5 or later,**
+* **Python**, compatible with versions 2 and 3.
+* **dmenu**, preferably version 4.5 or later.
 
 ## Installation
 Clone this repository or download the zip and extract.
