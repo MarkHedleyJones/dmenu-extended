@@ -910,28 +910,7 @@ def handle_command(d, out):
             else:
                 d.open_file(out)
     else:
-        print('It is not clear what do to with this item')
-        print('dmenu-extended will now search /bin, /usr/bin and /usr/local/bin')
-        if (os.path.exists('/bin/' + str(out)) or
-            os.path.exists('/usr/bin/' + str(out)) or
-            os.path.exists('/usr/local/bin/' + str(out))):
-            print('Item was found')
-            print('Will execute the item')
-            d.execute(out)
-        else:
-            print('The item was not found in either')
-            print('dmenu-extended will not execute the item for security reasons')
-            message = ["The command was not understood (press enter to close)"]
-
-            if out in d.cache_load():
-                print('The item exists in the cache, cache may need rebuilding')
-                message.append(d.prefs['indicator_submenu'] + " Rebuild cache")
-
-            response = d.select(message, numeric=True)
-            if response == 1:
-                d.cache_regenerate()
-
-            sys.exit()
+        d.execute(out)
 
 
 def run():
