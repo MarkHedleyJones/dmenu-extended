@@ -663,6 +663,13 @@ class dmenu(object):
         plugins = self.plugins_available()
         other = self.sort_shortest(include_items + binaries + foldernames + filenames)
 
+        if 'exclude_items' in self.prefs:
+            for item in self.prefs['exclude_items']:
+                try:
+                    other.remove(item)
+                except ValueError:
+                    pass
+
         self.cache_save(other, file_cacheScanned)
 
         out = plugins
@@ -703,19 +710,19 @@ class extension(dmenu):
 
         response = []
 
-        if cacheSizeChange > 0:
+        if cacheSizeChange != 0:
             if cacheSizeChange == 1:
-                status = 'One new item was added'
+                status = 'one new item was added.'
             elif cacheSizeChange == -1:
-                status = 'One item was removed'
+                status = 'one item was removed.'
             elif cacheSizeChange > 0:
-                status = str(cacheSizeChange) + ' items were added'
+                status = str(cacheSizeChange) + ' items were added.'
             elif cacheSizeChange < 0:
-                status = str(abs(cacheSizeChange)) + ' items were removed'
+                status = str(abs(cacheSizeChange)) + ' items were removed.'
             else:
                 status = 'No new items were added'
 
-            response.append('Cache updated successfully - ' + status)
+            response.append('Cache updated successfully; ' + status)
 
             if result == 2:
                 response.append('NOTICE: Performance issues were encountered while caching data')
