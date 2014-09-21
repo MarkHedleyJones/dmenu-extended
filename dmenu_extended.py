@@ -24,63 +24,66 @@ file_shCmd = '/tmp/dmenuEextended_shellCommand.sh'
 
 default_prefs = {
     "valid_extensions": [
-        "py",                   # Python script
-        "svg",                  # Vector graphics
-        "pdf",                  # Portable document format
-        "txt",                  # Plain text
-        "png",                  # Image file
-        "jpg",                  # Image file
-        "gif",                  # Image file
-        "php",                  # PHP source-code
-        "tex",                  # LaTeX document
-        "odf",                  # Open document format
-        "ods",                  # Open document spreadsheet
-        "avi",                  # Video file
-        "mpg",                  # Video file
-        "mp3",                  # Music file
-        "lyx",                  # Lyx document
-        "bib",                  # LaTeX bibliograpy
-        "iso",                  # CD image
-        "ps",                   # Postscript document
-        "zip",                  # Compressed archive
-        "xcf",                  # Gimp image format
-        "doc",                  # Microsoft document format
-        "docx"                  # Microsoft document format
-        "xls",                  # Microsoft spreadsheet format
-        "xlsx",                 # Microsoft spreadsheet format
-        "md",                   # Markup document
-        "sublime-project"       # Project file for sublime
+        "py",                           # Python script
+        "svg",                          # Vector graphics
+        "pdf",                          # Portable document format
+        "txt",                          # Plain text
+        "png",                          # Image file
+        "jpg",                          # Image file
+        "gif",                          # Image file
+        "php",                          # PHP source-code
+        "tex",                          # LaTeX document
+        "odf",                          # Open document format
+        "ods",                          # Open document spreadsheet
+        "avi",                          # Video file
+        "mpg",                          # Video file
+        "mp3",                          # Music file
+        "lyx",                          # Lyx document
+        "bib",                          # LaTeX bibliograpy
+        "iso",                          # CD image
+        "ps",                           # Postscript document
+        "zip",                          # Compressed archive
+        "xcf",                          # Gimp image format
+        "doc",                          # Microsoft document format
+        "docx"                          # Microsoft document format
+        "xls",                          # Microsoft spreadsheet format
+        "xlsx",                         # Microsoft spreadsheet format
+        "md",                           # Markup document
+        "sublime-project"               # Project file for sublime
     ],
-    "watch_folders": ["~/"],    # Base folders through which to search
-    "follow_symlinks": False,   # Follow links to other locations
-    "ignore_folders": [],      # Folders to exclude from the search
-    "include_items": [],        # Extra items to display - manually added
-    "exclude_items": [],        # Items to hide - manually hidden
-    "filter_binaries": True,    # Only include binaries that have a .desktop file
-    "menu": 'dmenu',            # Executable for the menu
+    "watch_folders": ["~/"],            # Base folders through which to search
+    "follow_symlinks": False,           # Follow links to other locations
+    "ignore_folders": [],               # Folders to exclude from the search
+    "scan_hidden_folders": False,       # Enter hidden folders while scanning for items
+    "include_hidden_files": False,      # Include hidden files in the cache
+    "include_hidden_folders": False,    # Include hidden folders in the cache
+    "include_items": [],                # Extra items to display - manually added
+    "exclude_items": [],                # Items to hide - manually hidden
+    "filter_binaries": True,            # Only include binaries that have a .desktop file
+    "menu": 'dmenu',                    # Executable for the menu
     "menu_arguments": [
-        "-b",                   # Place at bottom of screen
-        "-i",                   # Case insensitive searching
-        "-nf",                  # Element foreground colour
+        "-b",                           # Place at bottom of screen
+        "-i",                           # Case insensitive searching
+        "-nf",                          # Element foreground colour
         "#888888",
-        "-nb",                  # Element background colour
+        "-nb",                          # Element background colour
         "#1D1F21",
-        "-sf",                  # Selected element foreground colour
+        "-sf",                          # Selected element foreground colour
         "#ffffff",
-        "-sb",                  # Selected element background colour
+        "-sb",                          # Selected element background colour
         "#1D1F21",
-        "-fn",                  # Font and size
+        "-fn",                          # Font and size
         "-*-terminus-medium-*-*-*-14-*-*-*-*-*-*-*",
-        "-l",                   # Number of lines to display
+        "-l",                           # Number of lines to display
         "20"
     ],
-    "fileopener": "xdg-open",   # Program to handle opening files
-    "filebrowser": "xdg-open",  # Program to handle opening paths
-    "webbrowser": "xdg-open",   # Program to hangle opening urls
-    "terminal": "xterm",        # Terminal
-    "indicator_submenu": "->", # Symbol to indicate a submenu item
-    "indicator_edit": "*",     # Symbol to indicate an item will launch an editor
-    "indicator_alias": "#"     # Symbol to indecate an aliased command
+    "fileopener": "xdg-open",           # Program to handle opening files
+    "filebrowser": "xdg-open",          # Program to handle opening paths
+    "webbrowser": "xdg-open",           # Program to hangle opening urls
+    "terminal": "xterm",                # Terminal
+    "indicator_submenu": "->",          # Symbol to indicate a submenu item
+    "indicator_edit": "*",              # Symbol to indicate an item will launch an editor
+    "indicator_alias": "#"              # Symbol to indecate an aliased command
 }
 
 
@@ -527,7 +530,12 @@ class dmenu(object):
         valid_extensions = []
         if 'valid_extensions' in self.prefs:
             for extension in self.prefs['valid_extensions']:
-                if extension[0] != '.':
+                if extension == '*':
+                    valid_extensions = True
+                    break
+                elif extension == '':
+                    valid_extensions.append('')
+                elif extension[0] != '.':
                     extension = '.' + extension
                 valid_extensions.append(extension.lower())
 
@@ -609,13 +617,13 @@ class dmenu(object):
             for root, dirs , files in os.walk(watchdir, followlinks=follow_symlinks):
                 dirs[:] = [d for d in dirs if os.path.join(root,d) not in ignore_folders]
 
-                if root.find('/.')  == -1:
+                if self.prefs['scan_hidden_folders'] or root.find('/.')  == -1:
                     for name in files:
-                        if not name.startswith('.'):
-                                if os.path.splitext(name)[1].lower() in valid_extensions:
-                                    filenames.append(os.path.join(root,name))
+                        if self.prefs['include_hidden_files'] or name.startswith('.') == False:
+                            if valid_extensions == True or os.path.splitext(name)[1].lower() in valid_extensions:
+                                filenames.append(os.path.join(root,name))
                     for name in dirs:
-                        if not name.startswith('.'):
+                        if self.prefs['include_hidden_folders'] or name.startswith('.') == False:
                             foldernames.append(os.path.join(root,name))
 
         print('Done!')
@@ -1027,7 +1035,7 @@ def run():
                             if to_remove is not None:
                                 print("Item found and is")
                                 print(to_remove)
-                                d.prefs['include_items'].remove(to_remove) 
+                                d.prefs['include_items'].remove(to_remove)
                             else:
                                 print("Couldn't remove the item (item could not be located)")
                         else:
