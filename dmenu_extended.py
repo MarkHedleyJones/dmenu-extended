@@ -202,6 +202,15 @@ class dmenu(object):
         return self.plugins_loaded
 
 
+    def system_path(self):
+        """
+        Array containing system paths
+        """
+        path = str(subprocess.check_output("echo $PATH", shell=True))
+        path = path.replace('\\n','').replace('b\'','').replace('\'','')
+        return path.split(':')
+
+
     def load_json(self, path):
         """ Loads and retuns the parsed contents of a specified json file
 
@@ -487,13 +496,14 @@ class dmenu(object):
 
     def scan_binaries(self, filter_binaries=False):
         out = []
-        for binary in self.command_output("ls /usr/bin"):
-            if filter_binaries:
-                if os.path.exists('/usr/share/applications/' + binary + '.desktop'):
-                    if binary[:3] != 'gpk':
-                        out.append(binary)
-            else:
-                out.append(binary)
+        for path in self.system_path():
+            for binary in self.command_output("ls {}".format(path)):
+                if filter_binaries:
+                    if os.path.exists('/usr/share/applications/' + binary + '.desktop'):
+                        if binary[:3] != 'gpk':
+                            out.append(binary)
+                else:
+                    out.append(binary)
 
         return out
 
