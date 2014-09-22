@@ -13,9 +13,9 @@ An extension to the original [dmenu](http://tools.suckless.org/dmenu/) allowing 
 * **dmenu**, preferably version 4.5 or later.
 
 ## Installation
-Clone this repository or download the zip and extract.
+Clone this repository *or* download the zip and extract its contents.
 
-You can try dmenu-extended without installation by running `python dmenu_extended.py` from within the dmenu-extended folder.
+You can try dmenu-extended without installation by running `python dmenu_extended.py` from within the extracted folder.
 
 ### Global install
 Execute `sudo python setup.py install` from within the dmenu-extended directory.
@@ -63,29 +63,61 @@ If you use a tiling window manager, you may already have a key-combination bound
 
 ## General Configuration
 
-Menu configuration is contained in a JSON formatted file found at *~/.config/dmenu-extended/config/dmenuExtended_preferences.json* that controls the appearance and functionality of the menu.
+Menu configuration is contained in a JSON formatted file found at *~/.config/dmenu-extended/config/dmenuExtended_preferences.json* that controls the appearance and functionality of the menu. This file is also accessible from the `-> Menu configuration` submenu as `* Edit menu preferences`
+
+Functions of the items are as follows.
+
+* `"valid_extensions"` list of file extensions of files to include in the cache
+* `"watch_folders"` list of base paths to recursively search through for items to include
+* `"follow_symlinks"` boolean option controlling whether to follow a link while scanning
+* `"ignore_folders"` list of folders to be excluded from the cache
+* `"scan_hidden_folders"` boolean value controlling whether to enter hidden folders when scanning
+* `"include_hidden_files"` boolean value controlling whether to include hidden files in the cache
+* `"include_hidden_folders"` boolean value controlling whether to include hidden folders in the cache
+* `"include_items"` list of extra items to include in the cache
+* `"exclude_items"` list of items to be excluded from the cache
+* `"filter_binaries"` boolean value controlling whether to include binaries that have no corresponding .desktop file
+* `"menu"` executable to open the menu (dmenu)
+* `"menu_arguments"` list of parameters to launch the menu with
+* `"fileopener"` application to handle opening files
+* `"filebrowser"` application to handle opening folders
+* `"webbrowser"` application to handle opening urls (web browser)
+* `"terminal"` terminal emulator application
+* `"indicator_submenu"` symbol to indicate a submenu item in the cache
+* `"indicator_edit"` symbol to indicate an item will launch an editor in the cache
+* `"indicator_alias"` symbol to indicate an aliased command in the cache
+ 
+Adding the item `""` to `"valid_extensions"` will cause files with no extension to be included in the cache.
+Adding the item `"*"` to  `"valid_extensions"` will cause **all** files to be included in the cache.
 
 ## Advanced usage
 Dmenu-extended understands the following modifier characters:
 
-1. **+** (plus) - Add the following command
-2. **-** (minus) - Remove the following command
+1. **+** (plus) - Manually add an entry to the cache
+2. **-** (minus) - Remove a manually added entry from the cache
 3. **:** (colon) - Open with
 4. **;** (semi-colon) - Execute in terminal
-5. **;;** (double semi-colon) - Execute in terminal and hold on exit
-6. **#** (hash) - Command alias
 
 These modifiers are entered into the menu; examples follow.
 
-### **+** (plus) - Add an item to the store
+### **+** (plus) - Manually add an entry to the cache
 If there is something you wish to run that isn't in the menu then you can add it by prepending with a +.
 
-* `+gksudo shutdown now` will add 'gksudo shutdown now' to the index.
-* `+libreoffice` will add libreoffice to the index.
+* `+htop;` adds htop to the cache.
+* `+libreoffice` adds libreoffice to the cache.
+* `+http://youtube.com` adds a link to Youtube to the cache.
 
 Once added these commands are stored in the preferences file (see general configuration) and will persist upon a rebuild of the cache. These items can also be manually edited within this file.
 
-### **-** (minus) - Remove an item from the store
+#### Built in support for aliases
+
+In addidion to adding items manually, dmenu_extended allows the addition of a more descriptive label for a stored command.
+For instance:
+* `+htop;#View running processes` displays as `# View system processes (htop)`
+* `+libreoffice --writer#Writer` displays as `# Writer (libreoffice --writer)`
+* `+http://youtube.com#Youtube` displays as `#Youtube (http://www.youtube.com)`
+
+### **-** (minus) - Remove a manually added entry from the cache
 This applies to items that have previously saved to the store. If the item is not found in the store you will be given the chance to add it.
 
 ### **:** (colon) - Open with
@@ -105,13 +137,8 @@ For example,
 * `htop;` - Launches htop in a terminal window. Without the semi-colon nothing would happen.
 * `alsamixer;` - Launches the ALSA sound volume manager in a terminal. Without the semicolon nothing would happen.
 
-### **;;** (double semi-colon) - Execute in terminal and hold on exit
-This is the same using a single semi-colon except once your program has completed the terminal window remains open until you presses enter. This is useful for running programs like `inxi` that exit on completion. You'll want to use this if you see your program flash up and disappear before you get a chance to see the output.
-
-### **#** (hash) - Command alias
-Allows the addition of a more descriptive label for a stored command.
-For instance, entering `htop;#View running processes` will add htop to the menu but it will be visible as '# View system processes (htop)'.
-Similarly, entering `http://youtube.com#Youtube` will create an alias for launching youtube in the default browser.
+#### Holding the terminal open on exit
+By using two semicolons (`;;`) at the end of a command the terminal window will remain open once the executed command has completed. This is useful for running programs like `inxi` that exit on completion. You'll want to use this if you see your program flash up and disappear before you get a chance to see the output.
 
 ## Acknowledgements
 * **Alad** from the [CrunchBang forums](http://crunchbang.org/forums/viewtopic.php?id=36484) for advise on packaging.
