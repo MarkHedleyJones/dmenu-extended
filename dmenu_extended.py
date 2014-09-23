@@ -208,7 +208,8 @@ class dmenu(object):
         """
         path = str(subprocess.check_output("echo $PATH", shell=True))
         path = path.replace('\\n','').replace('b\'','').replace('\'','')
-        return path.split(':')
+        path = list(set(path.split(':'))) # Split and remove duplicates
+        return path
 
 
     def load_json(self, path):
@@ -497,13 +498,16 @@ class dmenu(object):
     def scan_binaries(self, filter_binaries=False):
         out = []
         for path in self.system_path():
-            for binary in self.command_output("ls {}".format(path)):
-                if filter_binaries:
-                    if os.path.exists('/usr/share/applications/' + binary + '.desktop'):
-                        if binary[:3] != 'gpk':
-                            out.append(binary)
-                else:
-                    out.append(binary)
+            if os.path.exists(path):
+                for binary in os.listdir(path):
+                    if filter_binaries:
+                        if os.path.exists('/usr/share/applications/' + binary + '.desktop'):
+                            if binary[:3] != 'gpk':
+                                out.append(binary)
+                    else:
+                        out.append(binary)
+            else:
+                print(str(path) + ' is in the system path but does not exist')
 
         return out
 
