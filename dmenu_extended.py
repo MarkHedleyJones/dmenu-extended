@@ -559,7 +559,7 @@ class dmenu(object):
             print(valid_extensions[:5])
             print(str(len(valid_extensions)) + ' loaded in total')
             print('')
-        print('Scanning user binaries...')
+            print('Scanning user binaries...')
         filter_binaries = True
         try:
             if self.prefs['filter_binaries'] == False:
@@ -568,31 +568,30 @@ class dmenu(object):
             pass
 
         binaries = self.scan_binaries(filter_binaries)
-        print('Done!')
 
         if debug:
+            print('Done!')
             print('Valid binaries:')
             print('First 5 items: ')
             print(binaries[:5])
             print(str(len(binaries)) + ' loaded in total')
             print('')
 
-        print('Loading the list of indexed folders...')
+            print('Loading the list of indexed folders...')
 
         watch_folders = []
         if 'watch_folders' in self.prefs:
             watch_folders = self.prefs['watch_folders']
         watch_folders = map(lambda x: x.replace('~', os.path.expanduser('~')), watch_folders)
-        print('Done!')
 
         if debug:
+            print('Done!')
             print('Watch folders:')
             print('First 5 items: ')
             print(watch_folders[:5])
             print(str(len(watch_folders)) + ' loaded in total')
             print('')
-
-        print('Loading the list of folders to be excluded from the index...')
+            print('Loading the list of folders to be excluded from the index...')
 
         ignore_folders = []
 
@@ -600,9 +599,8 @@ class dmenu(object):
             for exclude_folder in self.prefs['ignore_folders']:
                 ignore_folders.append(exclude_folder.replace('~', os.path.expanduser('~')))
 
-        print('Done!')
-
         if debug:
+            print('Done!')
             print('Excluded folders:')
             print('First 5 items: ')
             print(ignore_folders[:5])
@@ -625,7 +623,7 @@ class dmenu(object):
             else:
                 print('Indexing will follow linked folders')
 
-        print('Scanning files and folders, this may take a while...')
+            print('Scanning files and folders, this may take a while...')
 
         for watchdir in watch_folders:
             for root, dirs , files in os.walk(watchdir, followlinks=follow_symlinks):
@@ -640,23 +638,21 @@ class dmenu(object):
                         if self.prefs['include_hidden_folders'] or name.startswith('.') == False:
                             foldernames.append(os.path.join(root,name))
 
-        print('Done!')
         foldernames = list(filter(lambda x: x not in ignore_folders, foldernames))
 
         if debug:
+            print('Done!')
             print('Folders found:')
             print('First 5 items: ')
             print(foldernames[:5])
             print(str(len(foldernames)) + ' found in total')
             print('')
-
             print('Files found:')
             print('First 5 items: ')
             print(filenames[:5])
             print(str(len(filenames)) + ' found in total')
             print('')
-
-        print('Loading manually added items from preferences file...')
+            print('Loading manually added items from preferences file...')
 
         if 'include_items' in self.prefs:
             include_items = []
@@ -671,16 +667,15 @@ class dmenu(object):
                     include_items.append(item)
         else:
             include_items = []
-        print('Done!')
 
         if debug:
+            print('Done!')
             print('Stored items:')
             print('First 5 items: ')
             print(include_items[:5])
             print(str(len(include_items)) + ' items loaded in total')
             print('')
-
-        print('Ordering and combining results...')
+            print('Ordering and combining results...')
 
         plugins = self.plugins_available()
         other = self.sort_shortest(include_items + binaries + foldernames + filenames)
@@ -697,9 +692,11 @@ class dmenu(object):
         out = plugins
         out += other
 
-        print('Done!')
-        print('Cache building has finished.')
-        print('')
+        if debug:
+            print('Done!')
+            print('Cache building has finished.')
+            print('')
+
         return out
 
 
