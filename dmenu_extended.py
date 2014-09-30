@@ -1048,7 +1048,7 @@ def run(debug=False):
 
                     found_in_store = False
                     for store_item in d.prefs['include_items']:
-                        if self.debug:
+                        if d.debug:
                             print("is " + str(store_item) + " = " + str(item) + " ?")
                         if type(store_item) == list and out == store_item[0]:
                             found_in_store = True
@@ -1080,12 +1080,12 @@ def run(debug=False):
                                 if include_item[0] == out:
                                     to_remove = include_item
                             if to_remove is not None:
-                                if self.debug:
+                                if d.debug:
                                     print("Item found and is")
                                     print(to_remove)
                                 d.prefs['include_items'].remove(to_remove)
                             else:
-                                if self.debug:
+                                if d.debug:
                                     print("Couldn't remove the item (item could not be located)")
                         else:
                             d.prefs['include_items'].remove(item)
@@ -1108,7 +1108,7 @@ def run(debug=False):
                         cache_scanned = cache_scanned.split("\n")
 
                     if action == '+':
-                        if self.debug:
+                        if d.debug:
                             print("Adding item to store: " + out)
                         d.message_open("Adding item to store: " + out)
                         if aliased:
@@ -1119,7 +1119,7 @@ def run(debug=False):
                     else:
                         if aliased:
                             to_remove = d.prefs['indicator_alias'] + ' ' + out
-                            if self.debug:
+                            if d.debug:
                                 print("Removing item from store: " + to_remove)
                         else:
                             to_remove = out
@@ -1127,7 +1127,7 @@ def run(debug=False):
                         try:
                             cache_scanned.remove(to_remove)
                         except ValueError:
-                            if self.debug:
+                            if d.debug:
                                 print("Couldnt actually remove item from the cache")
                             else:
                                 pass
@@ -1152,7 +1152,7 @@ def run(debug=False):
             elif out.find(':') != -1:
                 tmp = out.split(':')
                 if len(tmp) != 2:
-                    if self.debug:
+                    if d.debug:
                         print('Input command not understood')
                     sys.exit()
                 else:
@@ -1163,10 +1163,10 @@ def run(debug=False):
                 if cmds[0][-1] == ';':
                     if cmds[0][-2] == ';':
                         shell_hold = True
-                        if self.debug:
+                        if d.debug:
                             print('Will hold')
                     else:
-                        if self.debug:
+                        if d.debug:
                             print('Wont hold')
                     cmds[0] = cmds[0].replace(';','')
                     run_withshell = True
@@ -1176,7 +1176,7 @@ def run(debug=False):
                     item = d.menu(items)
                     handle_command(d, item)
                 elif cmds[0] in d.scan_binaries():
-                    if self.debug:
+                    if d.debug:
                         print('Item[0] (' + cmds[0] + ') found in binaries')
                     # Get paths from cache
                     items = list(filter(lambda x: x.find('/') != -1, cache.split('\n')))
@@ -1200,7 +1200,7 @@ def run(debug=False):
                     d.execute(command)
                 else:
                     d.menu(["Cant find " + cmds[0] + ", is it installed?"])
-                    if self.debug:
+                    if d.debug:
                         print('Input command not understood')
 
                 sys.exit()
