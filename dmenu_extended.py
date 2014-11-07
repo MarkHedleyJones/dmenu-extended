@@ -619,10 +619,6 @@ class dmenu(object):
         if self.debug:
             print('Done!')
             print('Watch folders:')
-            print('First 5 items: ')
-            print(watch_folders[:5])
-            print(str(len(watch_folders)) + ' loaded in total')
-            print('')
             print('Loading the list of folders to be excluded from the index...')
 
         ignore_folders = []
@@ -668,7 +664,7 @@ class dmenu(object):
                                 filenames.append(os.path.join(root,name))
                     for name in dirs:
                         if self.prefs['include_hidden_folders'] or name.startswith('.') == False:
-                            foldernames.append(os.path.join(root,name))
+                            foldernames.append(os.path.join(root,name) + '/')
 
         foldernames = list(filter(lambda x: x not in ignore_folders, foldernames))
 
@@ -942,6 +938,7 @@ class extension(dmenu):
             elif selectedIndex == 2:
                 self.remove_plugin()
             elif selectedIndex == 3:
+                print(file_prefs)
                 self.open_file(file_prefs)
                 self.plugins_available() # Refresh the plugin cache
             elif selectedIndex == 4:
