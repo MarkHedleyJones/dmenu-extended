@@ -17,7 +17,7 @@ path_cache = path_base + '/cache'
 path_prefs = path_base + '/config'
 path_plugins = path_base + '/plugins'
 
-file_prefs = path_prefs + '/dmenuExtended_preferences.json'
+file_prefs = path_prefs + '/dmenuExtended_preferences.txt'
 file_cacheScanned = path_cache + '/dmenuExtended_main.txt'
 file_cachePlugins = path_cache + '/dmenuExtended_plugins.txt'
 file_shCmd = '/tmp/dmenuEextended_shellCommand.sh'
@@ -938,7 +938,6 @@ class extension(dmenu):
             elif selectedIndex == 2:
                 self.remove_plugin()
             elif selectedIndex == 3:
-                print(file_prefs)
                 self.open_file(file_prefs)
                 self.plugins_available() # Refresh the plugin cache
             elif selectedIndex == 4:
