@@ -116,11 +116,11 @@ def setup_user_files():
         print('prefs directory exists - skipped')
 
     # If relevant binaries exist, swap them out for the more appropriate items
-    
+
     # It has been decided against setting gnome-open or gvfs-open as a default
     # file handler to prevent intermittent failure to open a text editor
     # required to edit the configuration file.
-    
+
     # if os.path.exists('/usr/bin/gnome-open'):
     #     default_prefs['fileopener'] = 'gnome-open'
     #     default_prefs['webbrowser'] = 'gnome-open'
@@ -382,7 +382,7 @@ class dmenu(object):
         self.load_preferences()
         if self.debug:
             print('Opening file with command: ' + self.prefs['fileopener'] + " '" + path + "'")
-        exit_code = os.system(self.prefs['fileopener'] + ' ' + path )
+        exit_code = os.system(self.prefs['fileopener'] + ' "' + path + '"' )
         if exit_code is not 0:
             open_failure = False
             offer = None
