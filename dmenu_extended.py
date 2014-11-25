@@ -159,13 +159,13 @@ import plugins
 def load_plugins(debug=False):
     if debug:
         print('Loading plugins')
-    plugins_loaded = [{"filename": "dmenuExtended_settings.py",
+    plugins_loaded = [{"filename": "plugin_settings.py",
                        "plugin": extension()}]
     if debug:
         plugins_loaded[0]['plugin'].debug = True
 
     for plugin in plugins.__all__:
-        if plugin not in ['__init__', 'dmenuExtended_settings.py']:
+        if plugin not in ['__init__', 'plugin_settings.py']:
             try:
                 __import__('plugins.' + plugin)
                 exec('plugins_loaded.append({"filename": "' + plugin + '.py", "plugin": plugins.' + plugin + '.extension()})')
@@ -242,7 +242,7 @@ class dmenu(object):
                     if self.debug:
                         print("Error parsing prefs from json file " + path)
                     self.prefs = default_prefs
-                    option = self.prefs['indicator_edit'] +" Edit file manually"
+                    option = "Edit file manually"
                     response = self.menu("There is an error opening " + path + "\n" + option)
                     if response == option:
                         self.open_file(path)
@@ -720,6 +720,7 @@ class dmenu(object):
                 except ValueError:
                     pass
 
+        other += ['rebuild cache']
         self.cache_save(other, file_cacheScanned)
 
         out = plugins
@@ -735,13 +736,13 @@ class dmenu(object):
 
 class extension(dmenu):
 
-    title = 'Menu configuration'
+    title = 'Settings'
     is_submenu = True
 
     def __init__(self):
         self.load_preferences()
 
-    plugins_index_url = 'https://gist.github.com/markjones112358/7699540/raw/dmenu-extended-plugins.txt'
+    plugins_index_url = 'https://raw.githubusercontent.com/markjones112358/dmenu-extended-plugins/master/plugins_index.json'
 
     def rebuild_cache(self):
         if self.debug:
@@ -810,7 +811,7 @@ class extension(dmenu):
 
         items = []
 
-        substitute = ('dmenuExtended_', '')
+        substitute = ('plugin_', '')
 
         installed_plugins = self.get_plugins()
         installed_pluginFilenames = []
@@ -856,7 +857,8 @@ class extension(dmenu):
     def installed_plugins(self):
         plugins = []
         for plugin in self.get_plugins():
-            plugins.append(plugin["plugin"].title.replace(':','') + ' (' + plugin["filename"] + ')')
+            if plugin["plugin"].title != "Settings":
+                plugins.append(plugin["plugin"].title.replace(':','') + ' (' + plugin["filename"] + ')')
         return plugins
 
 
@@ -884,7 +886,7 @@ class extension(dmenu):
     def update_plugins(self):
         self.message_open('Checking for plugin updates...')
         plugins_here = list(map(lambda x: x['filename'].split('.')[0], self.get_plugins()))
-        plugins_here.remove('dmenuExtended_settings')
+        plugins_here.remove('plugin_settings')
         plugins_there = self.download_json(self.plugins_index_url)
         updated = []
         for here in plugins_here:
@@ -930,7 +932,7 @@ class extension(dmenu):
         items = ['Rebuild cache',
                  self.prefs['indicator_submenu'] + ' Download new plugins',
                  self.prefs['indicator_submenu'] + ' Remove existing plugins',
-                 self.prefs['indicator_edit'] + ' Edit menu preferences',
+                 'Edit menu preferences',
                  'Update installed plugins']
 
         selectedIndex = self.select(items, "Action:", numeric=True)
