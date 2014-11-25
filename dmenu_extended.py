@@ -857,7 +857,7 @@ class extension(dmenu):
     def installed_plugins(self):
         plugins = []
         for plugin in self.get_plugins():
-            if plugin["plugin"].title != "Settings":
+            if plugin["plugin"].title is not "Settings":
                 plugins.append(plugin["plugin"].title.replace(':','') + ' (' + plugin["filename"] + ')')
         return plugins
 
@@ -875,6 +875,8 @@ class extension(dmenu):
                     print("Plugins available:")
                     for plugin in self.plugins_available():
                         print(plugin)
+                else:
+                    self.plugins_available()
             else:
                 if self.debug:
                     print('Error - Plugin not found')
