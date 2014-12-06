@@ -1207,10 +1207,9 @@ def run(debug=False):
                     d.menu(["Cant find " + cmds[0] + ", is it installed?"])
                     if d.debug:
                         print('Input command not understood')
-
                 sys.exit()
 
-            if out == "rebuild cache":
+            elif out == "rebuild cache":
                 result = d.cache_regenerate()
                 if result == 0:
                     d.menu(['Cache could not be saved'])
