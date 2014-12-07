@@ -19,6 +19,11 @@ path_plugins = path_base + '/plugins'
 
 file_prefs = path_prefs + '/dmenuExtended_preferences.txt'
 file_cacheScanned = path_cache + '/dmenuExtended_main.txt'
+file_cacheBinaries = path_cache + '/dmenuExtended_binaries.txt'
+file_cacheFiles = path_cache + '/dmenuExtended_files.txt'
+file_cacheFolders = path_cache + '/dmenuExtended_folders.txt'
+file_cacheAliases = path_cache + '/dmenuExtended_aliases.txt'
+file_cacheAliases_lookup = = path_cache + '/dmenuExtended_aliases_lookup.json'
 file_cachePlugins = path_cache + '/dmenuExtended_plugins.txt'
 file_shCmd = '/tmp/dmenuEextended_shellCommand.sh'
 
@@ -59,7 +64,11 @@ default_prefs = {
     "include_hidden_folders": False,    # Include hidden folders in the cache
     "include_items": [],                # Extra items to display - manually added
     "exclude_items": [],                # Items to hide - manually hidden
-    "filter_binaries": True,            # Only include binaries that have a .desktop file
+    "include_binaries": True,
+    "filter_binaries": False,            # Only include binaries that have an associated .desktop file
+    "include_applications": True,       # Add items from /usr/share/applications
+    "alias_applications": True,        # Alias applications with their common names
+    "alias_format": "{name} ({command})",
     "menu": 'dmenu',                    # Executable for the menu
     "menu_arguments": [
         "-b",                           # Place at bottom of screen
@@ -146,7 +155,7 @@ def setup_user_files():
 
 
 if (os.path.exists(path_plugins + '/__init__.py') and
-    os.path.exists(file_cacheScanned) and
+    os.path.exists(file_cacheBinaries) and
     os.path.exists(file_prefs)):
     sys.path.append(path_base)
 else:
@@ -423,12 +432,7 @@ class dmenu(object):
         return cache
 
 
-    def cache_save(self, items, location=False):
-        if location == False:
-            path = file_cacheScanned
-        else:
-            path = location
-
+    def cache_save(self, items, path):
         try:
             with open(path, 'w') as f:
                 if type(items) == list:
@@ -468,12 +472,7 @@ class dmenu(object):
                 return 0
 
 
-    def cache_open(self, location=False):
-        if location == False:
-            path = file_cacheScanned
-        else:
-            path = location
-
+    def cache_open(self, path):
         try:
             if self.debug:
                 print('Opening cache at ' + path)
@@ -484,29 +483,21 @@ class dmenu(object):
 
 
     def cache_load(self, exitOnFail=False):
+        items = [file_cacheBinaries,
+                 file_cacheFiles,
+                 file_cacheFolders,
+                 file_cacheAliases,
+                 file_cachePlugins]
 
-        if self.debug:
-            print("Loading the plugins cache")
-
+                 
         cache_plugins = self.cache_open(file_cachePlugins)
-        if self.debug:
-            print("Done!")
-            print("Loading the scanned cache")
         cache_scanned = self.cache_open(file_cacheScanned)
-        if self.debug:
-            print("Done!")
 
         if cache_plugins == False or cache_scanned == False:
             if exitOnFail:
-                if self.debug:
-                    print('The cache could not be opened, exiting')
                 sys.exit()
             else:
-                if self.debug:
-                    print('The cache was not loaded, attempting to regenerate...')
                 if self.cache_regenerate() == False:
-                    if self.debug:
-                        print('Cache regeneration failed')
                     self.menu(['Error caching data'])
                     sys.exit()
                 else:
@@ -531,22 +522,62 @@ class dmenu(object):
             return out
 
 
-    def scan_binaries(self, filter_binaries=False):
+    def scan_binaries(self):
         out = []
         for path in self.system_path():
-            if os.path.exists(path):
-                for binary in os.listdir(path):
-                    if filter_binaries:
-                        if os.path.exists('/usr/share/applications/' + binary + '.desktop'):
-                            if binary[:3] != 'gpk':
-                                out.append(binary)
-                    else:
-                        out.append(binary)
-            else:
-                if self.debug:
-                    print(str(path) + ' is in the system path but does not exist')
-
+            for binary in os.listdir(path):
+                if binary[:3] is not 'gpk':
+                    out.append(binary)
         return out
+
+    
+    def format_alias(self, name, command):
+        return self.prefs['indicator_alias'] + ' ' + self.prefs['alias_format'].format(name=name, command=command)
+
+    def scan_applications(self):
+        paths = self.system_path()
+        applications = []
+        for filename in os.listdir('/usr/share/applications'):
+            pathname = '/usr/share/applications/'+filename
+            if os.path.isfile(pathname) and filename[:3] is not 'pgk':
+                with open(pathname,'r') as f:
+                    name = None
+                    command = None
+                    terminal = None
+                    for line in f.readlines():
+                        if line[0:5] == 'Exec=':
+                            command_tmp = line[5:-1].split()
+                            command = ''
+                            space = ''
+                            for piece in command_tmp:
+                                if piece.find('%') == -1:
+                                    command += space + piece
+                                    space = ' '
+                                else:
+                                    break
+                        elif line[0:5] == 'Name=':
+                            name = line[5:-1]
+                        elif line[0:9] == 'Terminal=':
+                            if line[9:-1].lower() == 'true':
+                                terminal = True
+                            else:
+                                terminal = False
+                        if name is not None and command is not None:
+                            if terminal is None:
+                                terminal = False
+                            for path in paths:
+                                if command[0:len(path)] == path:
+                                    if command[len(path)+1:].find('/') == -1:
+                                        command = command[len(path)+1:]
+
+                            applications.append({
+                                                'name': name,
+                                                'command': command,
+                                                'terminal': terminal,
+                                                'descriptor': filename.replace('.desktop','')
+                                                })
+                            break
+        return applications
 
 
     def plugins_available(self):
@@ -575,6 +606,15 @@ class dmenu(object):
 
         return out
 
+    def try_remove(needle, haystack):
+        """
+        Gracefully try to remove an item from an array. It not found, fire no
+        errors. This is a convenience function to reduce code size.
+        """
+        try:
+            haystack.remove(item)
+        except ValueError:
+            pass
 
     def cache_build(self):
         self.load_preferences()
@@ -590,31 +630,69 @@ class dmenu(object):
                 elif extension[0] != '.':
                     extension = '.' + extension
                 valid_extensions.append(extension.lower())
+           
+        applications = []
 
-        if self.debug:
-            print('Valid extensions:')
-            print('First 5 items: ')
-            print(valid_extensions[:5])
-            print(str(len(valid_extensions)) + ' loaded in total')
-            print('')
-            print('Scanning user binaries...')
-        filter_binaries = True
-        try:
-            if self.prefs['filter_binaries'] == False:
-                filter_binaries = False
-        except:
-            pass
+        # Holds what binaries have been found
+        binaries = []
 
-        binaries = self.scan_binaries(filter_binaries)
+        # Holds the directly searchable "# Htop (htop;)" lines
+        aliased_items = []
 
-        if self.debug:
-            print('Done!')
-            print('Valid binaries:')
-            print('First 5 items: ')
-            print(binaries[:5])
-            print(str(len(binaries)) + ' loaded in total')
-            print('')
-            print('Loading the list of indexed folders...')
+        # Holds the [command, name] pairs for future lookup
+        aliases = []
+
+        # If we're going to include the applications or we want them for
+        # filtering purposes, scan the .desktop files and get the applications
+        if self.prefs['include_applications'] or self.prefs['filter_binaries']:
+            applications = self.scan_applications()
+
+        # Do we want to add binaries into the cache?
+        if self.prefs['include_binaries'] is True:
+            if self.prefs['filter_binaries'] is True:
+                binaries_raw = self.scan_binaries()
+                filterlist = [x['command'] for x in applications] + [x['descriptor'] for x in applications]
+                for item in filterlist:
+                    if item in binaries_raw:
+                        binaries.append(item)
+            else:
+                binaries = self.scan_binaries()
+
+        binaries = list(set(binaries))
+
+        # Do we want to add applications from .desktop files into the cache?
+        if self.prefs['include_applications']:
+            if self.prefs['alias_applications']:
+                if os.path.exists(file_cacheAliases):
+                    os.remove(file_cacheAliases)
+                
+                for app in applications:
+                    command = app['command']
+                    if app['terminal']:
+                        command += ';'
+                    if app['name'].lower() != app['command'].lower():
+                        title = self.format_alias(app['name'], command)
+                        self.try_remove(app['command'], binaries)
+                        aliased_items.append(title)
+                        aliases.append([title, command])
+                    else:
+                        binaries.append(command)
+                    if app['terminal']:
+                        # Remove any non-terminal invoking versions from cache
+                        self.try_remove(app['command'], binaries)
+            else:
+                for app in applications:
+                    command = app['command']
+                    # Add the "run in terminal" indicator to the command
+                    if app['terminal']:
+                        command += ';'
+                    binaries.append(command)
+                    # Remove any non-terminal invoking versions from cache
+                    if app['terminal']:
+                        self.try_remove(app['command'], binaries)
+
+        binaries = list(set(binaries))
+
 
         watch_folders = []
         if 'watch_folders' in self.prefs:
@@ -673,26 +751,16 @@ class dmenu(object):
 
         foldernames = list(filter(lambda x: x not in ignore_folders, foldernames))
 
-        if self.debug:
-            print('Done!')
-            print('Folders found:')
-            print('First 5 items: ')
-            print(foldernames[:5])
-            print(str(len(foldernames)) + ' found in total')
-            print('')
-            print('Files found:')
-            print('First 5 items: ')
-            print(filenames[:5])
-            print(str(len(filenames)) + ' found in total')
-            print('')
-            print('Loading manually added items from preferences file...')
+        include_items = []
 
         if 'include_items' in self.prefs:
             include_items = []
             for item in self.prefs['include_items']:
                 if type(item) == list:
                     if len(item) > 1:
-                        include_items.append(self.prefs['indicator_alias'] + ' ' + item[0])
+                        title = self.format_alias(item[0], item[1])
+                        aliased_items.append(title)
+                        aliases.append([title, item[1]])
                     else:
                         if self.debug:
                             print("There are aliased items in the configuration with no command.")
@@ -701,16 +769,18 @@ class dmenu(object):
         else:
             include_items = []
 
-        if self.debug:
-            print('Done!')
-            print('Stored items:')
-            print('First 5 items: ')
-            print(include_items[:5])
-            print(str(len(include_items)) + ' items loaded in total')
-            print('')
-            print('Ordering and combining results...')
+        # Remove any manually added include items differing by a colon
+        # e.g. ["htop", "htop;"] becomes just ["htop;"]
+        for item in include_items:
+            if item[-1] == ';' and item[0:-1] in binaries:
+                binaries.remove(item[0:-1])
+
 
         plugins = self.plugins_available()
+
+        # Save the alias lookup file
+        self.save_json(file_cacheAliases, aliases)
+
         other = self.sort_shortest(include_items + binaries + foldernames + filenames)
 
         if 'exclude_items' in self.prefs:
@@ -954,7 +1024,10 @@ class extension(dmenu):
 
 
 def handle_command(d, out):
+    print(out)
+    print('a')
     if out[-1] == ';':
+        print('b')
         terminal_hold = False
         if out[-2] == ';':
             terminal_hold = True
@@ -968,11 +1041,14 @@ def handle_command(d, out):
                                 hold=terminal_hold)
 
     elif out[:7] == 'http://' or out[:8] == 'https://':
+        print('c')
         d.open_url(out)
 
     elif out.find('/') != -1:
+        print('d')
         if out.find(' ') != -1:
             parts = out.split(' ')
+            print(parts)
             if parts[0] in d.scan_binaries():
                 d.execute(out)
             else:
@@ -986,6 +1062,7 @@ def handle_command(d, out):
             else:
                 d.open_file(out)
     else:
+        print('e')
         d.execute(out)
 
 
@@ -1016,16 +1093,21 @@ def run(debug=False):
         else:
             # Check for command alias
             alias = d.prefs['indicator_alias']
-            if out[0:len(alias)] == alias:
-                command_key = out[len(alias):].lstrip()
+            if out[0:len(d.prefs['indicator_alias'])] == d.prefs['indicator_alias']:
+                command_key = out[len(d.prefs['indicator_alias']):].lstrip()
                 for item in [x for x in d.prefs['include_items'] if type(x) == list]:
                     if item[0] == command_key:
                         out = item[1]
+                if d.prefs['alias_applications']:
+                    aliases = d.load_json(file_cacheAliases)
+                    needle = d.prefs['indicator_alias'] + ' ' + command_key
+                    for item in aliases:
+                        if item[0] == needle:
+                            out = item[1]
             else:
                 # Check for store modifications
                 # Dont allow command aliases that add new commands
                 if out[0] in "+-":
-
                     action = out[0]
                     out = out[1:]
                     aliased = False
