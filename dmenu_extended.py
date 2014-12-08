@@ -221,8 +221,7 @@ class dmenu(object):
         """
         Array containing system paths
         """
-        path = str(subprocess.check_output("echo $PATH", shell=True))
-        path = path.replace('\n','').replace('\\n','').replace('b\'','').replace('\'','')
+        path = os.environ.get('PATH')
         path = list(set(path.split(':'))) # Split and remove duplicates
         return path
 
