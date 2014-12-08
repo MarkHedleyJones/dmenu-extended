@@ -5,6 +5,8 @@ import os
 import subprocess
 import signal
 import json
+import codecs
+import locale
 
 # Python 3 urllib import with Python 2 fallback
 try:
@@ -553,7 +555,8 @@ class dmenu(object):
             for filename in os.listdir(app_path):
                 pathname = os.path.join(app_path,filename)
                 if os.path.isfile(pathname):
-                    with open(pathname,'r') as f:
+                    # Open the application file using the system's preferred encoding (probably utf-8)
+                    with codecs.open(pathname,'r',encoding=locale.getpreferredencoding()) as f:
                         name = None
                         command = None
                         terminal = None
