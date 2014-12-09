@@ -251,6 +251,9 @@ class dmenu(object):
         data_other = os.environ.get('XDG_DATADIRS','/usr/local/share:/usr/share').split(":")
         paths.extend([os.path.join(direc,'applications') for direc in data_other])
 
+        # Filter paths that don't exist
+        paths = filter(os.path.isdir, paths)
+
         return paths
 
     def load_json(self, path):
