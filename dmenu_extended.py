@@ -264,7 +264,7 @@ class dmenu(object):
         """
 
         if os.path.exists(path):
-            with open(path) as f:
+            with codecs.open(path,'r',encoding=locale.getpreferredencoding()) as f:
                 try:
                     return json.load(f)
                 except:
@@ -502,14 +502,12 @@ class dmenu(object):
         try:
             if self.debug:
                 print('Opening cache at ' + path)
-            with open(path, 'r') as f:
+            with codecs.open(path,'r',encoding=locale.getpreferredencoding()) as f:
                 return f.read()
         except:
             return False
 
-
     def cache_load(self, exitOnFail=False):
-                 
         cache_plugins = self.cache_open(file_cache_plugins)
         cache_scanned = self.cache_open(file_cache)
 
