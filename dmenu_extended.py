@@ -5,6 +5,8 @@ import os
 import subprocess
 import signal
 import json
+import codecs
+import locale
 
 # Python 3 urllib import with Python 2 fallback
 try:
@@ -230,11 +232,29 @@ class dmenu(object):
         """
         Array containing system paths
         """
-        path = str(subprocess.check_output("echo $PATH", shell=True))
-        path = path.replace('\n','').replace('\\n','').replace('b\'','').replace('\'','')
+        path = os.environ.get('PATH')
         path = list(set(path.split(':'))) # Split and remove duplicates
         return path
 
+    def application_paths(self):
+        """ Array containing the paths to application flies
+
+        Based on PyXDG (https://github.com/takluyver/pyxdg)
+        """
+
+        # Get the home applications directory (usually ~/.local/share/applications)
+        home_folder = os.path.expanduser('~')
+        data_home = os.environ.get('XDG_DATA_HOME',os.path.join(home_folder,'.local','share'))
+        paths = [os.path.join(data_home,'applications')]
+
+        # Get other directories
+        data_other = os.environ.get('XDG_DATADIRS','/usr/local/share:/usr/share').split(":")
+        paths.extend([os.path.join(direc,'applications') for direc in data_other])
+
+        # Filter paths that don't exist
+        paths = filter(os.path.isdir, paths)
+
+        return paths
 
     def load_json(self, path):
         """ Loads and retuns the parsed contents of a specified json file
@@ -534,46 +554,48 @@ class dmenu(object):
     def scan_applications(self):
         paths = self.system_path()
         applications = []
-        for filename in os.listdir('/usr/share/applications'):
-            pathname = '/usr/share/applications/'+filename
-            if os.path.isfile(pathname):
-                with open(pathname,'r') as f:
-                    name = None
-                    command = None
-                    terminal = None
-                    for line in f.readlines():
-                        if line[0:5] == 'Exec=':
-                            command_tmp = line[5:-1].split()
-                            command = ''
-                            space = ''
-                            for piece in command_tmp:
-                                if piece.find('%') == -1:
-                                    command += space + piece
-                                    space = ' '
+        for app_path in self.application_paths():
+            for filename in os.listdir(app_path):
+                pathname = os.path.join(app_path,filename)
+                if os.path.isfile(pathname):
+                    # Open the application file using the system's preferred encoding (probably utf-8)
+                    with codecs.open(pathname,'r',encoding=locale.getpreferredencoding()) as f:
+                        name = None
+                        command = None
+                        terminal = None
+                        for line in f.readlines():
+                            if line[0:5] == 'Exec=':
+                                command_tmp = line[5:-1].split()
+                                command = ''
+                                space = ''
+                                for piece in command_tmp:
+                                    if piece.find('%') == -1:
+                                        command += space + piece
+                                        space = ' '
+                                    else:
+                                        break
+                            elif line[0:5] == 'Name=':
+                                name = line[5:-1]
+                            elif line[0:9] == 'Terminal=':
+                                if line[9:-1].lower() == 'true':
+                                    terminal = True
                                 else:
-                                    break
-                        elif line[0:5] == 'Name=':
-                            name = line[5:-1]
-                        elif line[0:9] == 'Terminal=':
-                            if line[9:-1].lower() == 'true':
-                                terminal = True
-                            else:
-                                terminal = False
-                        if name is not None and command is not None:
-                            if terminal is None:
-                                terminal = False
-                            for path in paths:
-                                if command[0:len(path)] == path:
-                                    if command[len(path)+1:].find('/') == -1:
-                                        command = command[len(path)+1:]
+                                    terminal = False
+                            if name is not None and command is not None:
+                                if terminal is None:
+                                    terminal = False
+                                for path in paths:
+                                    if command[0:len(path)] == path:
+                                        if command[len(path)+1:].find('/') == -1:
+                                            command = command[len(path)+1:]
 
-                            applications.append({
-                                                'name': name,
-                                                'command': command,
-                                                'terminal': terminal,
-                                                'descriptor': filename.replace('.desktop','')
-                                                })
-                            break
+                                applications.append({
+                                                    'name': name,
+                                                    'command': command,
+                                                    'terminal': terminal,
+                                                    'descriptor': filename.replace('.desktop','')
+                                                    })
+                                break
         return applications
 
     def plugins_available(self):
