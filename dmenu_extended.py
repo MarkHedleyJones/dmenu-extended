@@ -1029,6 +1029,17 @@ class extension(dmenu):
             elif selectedIndex == 4:
                 self.update_plugins()
 
+def is_binary(d, path):
+    if os.path.isfile(path) == False:
+        return False
+        print('isnt a file')
+    if os.access(path, os.X_OK) == False:
+        return False
+        print('isnt executable')
+    for extension in d.prefs['valid_extensions']:
+        if path[-len(extension)-1:] == '.' + extension:
+            return False
+    return True
 
 def handle_command(d, out):
     if out[-1] == ';':
@@ -1043,13 +1054,12 @@ def handle_command(d, out):
             else:
                 d.open_terminal(command.replace(';',''),
                                 hold=terminal_hold)
-
-    elif out[:7] == 'http://' or out[:8] == 'https://':
-        d.open_url(out)
-
     elif out.find('/') != -1:
-        # Check if this is a file, with execute permissions, if so, run it.
-        if os.path.isfile(out) and os.access(out, os.X_OK):
+        # Check if this is a url and launch as such
+        if out[:7] == 'http://' or out[:8] == 'https://':
+            d.open_url(out)
+        # Check if this is a binary file, with execute permissions, if so, run it.
+        elif is_binary(d, out):
             d.execute(out)
         elif out.find(' ') != -1:
             parts = out.split(' ')
