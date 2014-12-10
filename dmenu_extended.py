@@ -576,6 +576,15 @@ class dmenu(object):
                                 break
         return applications
 
+    def retrieve_aliased_command(self, alias):
+        """
+        Return the command intended to be executed by the given alias.
+        """
+        aliases = self.load_json(file_cache_aliasesLookup)
+        for item in aliases:
+            if item[0] == alias:
+                return item[1]
+
     def plugins_available(self):
         self.load_preferences()
         if self.debug:
