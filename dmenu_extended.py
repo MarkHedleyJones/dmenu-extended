@@ -1032,10 +1032,8 @@ class extension(dmenu):
 def is_binary(d, path):
     if os.path.isfile(path) == False:
         return False
-        print('isnt a file')
     if os.access(path, os.X_OK) == False:
         return False
-        print('isnt executable')
     for extension in d.prefs['valid_extensions']:
         if path[-len(extension)-1:] == '.' + extension:
             return False
@@ -1085,8 +1083,6 @@ def run(debug=False):
         d.debug = True
     cache = d.cache_load()
     out = d.menu(cache,'Open:').strip()
-
-
     if len(out) > 0:
         # Check if the action relates to a plugin
         plugins = load_plugins(debug)
@@ -1159,7 +1155,6 @@ def run(debug=False):
                         if answer != option:
                             sys.exit()
                         action = '+'
-
 
                     if action == '+':
                         d.prefs['include_items'].append(item)
