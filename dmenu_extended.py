@@ -14,6 +14,9 @@ try:
 except:
     import urllib2
 
+# Find out the system's favouite encoding
+system_encoding = locale.getpreferredencoding()
+
 path_base = os.path.expanduser('~') + '/.config/dmenu-extended'
 path_cache = path_base + '/cache'
 path_prefs = path_base + '/config'
@@ -232,8 +235,20 @@ class dmenu(object):
         """
         Array containing system paths
         """
+
+        # Get the PATH environmental variable
         path = os.environ.get('PATH')
-        path = list(set(path.split(':'))) # Split and remove duplicates
+
+        # If we're in Python <3 (less-than-three), we want this to be a unicode string
+        # In python 3, all strings are unicode already, trying to decode gives AttributeError
+        try:
+            path = path.decode(sys.getfilesystemencoding())
+        except AttributeError: 
+            pass
+
+        # Split and remove duplicates
+        path = list(set(path.split(':'))) 
+
         return path
 
     def application_paths(self):
@@ -264,7 +279,7 @@ class dmenu(object):
         """
 
         if os.path.exists(path):
-            with codecs.open(path,'r',encoding=locale.getpreferredencoding()) as f:
+            with codecs.open(path,'r',encoding=system_encoding) as f:
                 try:
                     return json.load(f)
                 except:
@@ -285,7 +300,7 @@ class dmenu(object):
     def save_json(self, path, items):
         """ Saves a dictionary to a specified path using the json format"""
 
-        with open(path, 'w') as f:
+        with codecs.open(path, 'w', encoding=system_encoding) as f:
             json.dump(items, f, sort_keys=True, indent=4)
 
 
@@ -315,7 +330,7 @@ class dmenu(object):
     def connect_to(self, url):
         request = urllib2.Request(url)
         response = urllib2.urlopen(request)
-        return response.read().decode('utf-8')
+        return response.read().decode(system_encoding)
 
 
     def download_text(self, url):
@@ -333,7 +348,7 @@ class dmenu(object):
                                         preexec_fn=os.setsid)
         msg = str(message)
         msg = "Please wait: " + msg
-        msg = msg.encode('utf-8')
+        msg = msg.encode(system_encoding)
         self.message.stdin.write(msg)
         self.message.stdin.close()
 
@@ -356,12 +371,7 @@ class dmenu(object):
         if type(items) == list:
             items = "\n".join(items)
 
-        if sys.version_info >= (3,0):
-            items = items.encode('utf-8')
-        elif type(items) != str:
-            items = items.encode('utf-8')
-
-        out = p.communicate(items)[0]
+        out = p.communicate(items.encode(system_encoding))[0]
 
         if out.strip() == '':
             sys.exit()
@@ -459,50 +469,20 @@ class dmenu(object):
 
 
     def cache_save(self, items, path):
-        try:
-            with open(path, 'w') as f:
-                if type(items) == list:
-                    for item in items:
-                        f.write(item+"\n")
-                else:
-                    f.write(items)
-            return 1
-        except UnicodeEncodeError:
-            import string
-            tmp = []
-            foundError = False
-            if self.debug:
-                print('Non-printable characters detected in cache: ')
-            for item in items:
-                clean = True
-                for char in item:
-                    if char not in string.printable:
-                        clean = False
-                        foundError = True
-                        if self.debug:
-                            print('Culprit: ' + item)
-                if clean:
-                    tmp.append(item)
-            if foundError:
-                if self.debug:
-                    print('')
-                    print('Caching performance will be affected while these items remain')
-                    print('Offending items have been excluded from cache')
-                with open(path, 'wb') as f:
-                    for item in tmp:
-                        f.write(item+'\n')
-                return 2
+        with codecs.open(path, 'w',encoding=system_encoding) as f:
+            if type(items) == list:
+                for item in items:
+                    f.write(item+"\n")
             else:
-                if self.debug:
-                    print('Unknown error saving data cache')
-                return 0
+                f.write(items)
+        return 1
 
 
     def cache_open(self, path):
         try:
             if self.debug:
                 print('Opening cache at ' + path)
-            with codecs.open(path,'r',encoding=locale.getpreferredencoding()) as f:
+            with codecs.open(path,'r',encoding=system_encoding) as f:
                 return f.read()
         except:
             return False
@@ -528,10 +508,7 @@ class dmenu(object):
             command = command.split(" ")
         tmp = subprocess.check_output(command)
 
-        try:
-            out = tmp.decode()
-        except UnicodeDecodeError:
-            out = tmp.decode('utf-8')
+        out = tmp.decode(system_encoding)
 
         if split:
             return out.split("\n")
@@ -557,7 +534,7 @@ class dmenu(object):
                 pathname = os.path.join(app_path,filename)
                 if os.path.isfile(pathname):
                     # Open the application file using the system's preferred encoding (probably utf-8)
-                    with codecs.open(pathname,'r',encoding=locale.getpreferredencoding()) as f:
+                    with codecs.open(pathname,'r',encoding=system_encoding) as f:
                         name = None
                         command = None
                         terminal = None
