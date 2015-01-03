@@ -581,9 +581,13 @@ class dmenu(object):
         Return the command intended to be executed by the given alias.
         """
         aliases = self.load_json(file_cache_aliasesLookup)
+        if self.debug:
+            print("Converting '" + str(alias) + "' into its aliased command")
         for item in aliases:
             if item[0] == alias:
                 return item[1]
+        if self.debug:
+            print("No suitable candidate was found")
 
     def plugins_available(self):
         self.load_preferences()
@@ -1040,6 +1044,10 @@ def is_binary(d, path):
     return True
 
 def handle_command(d, out):
+    if out.find('~') != -1:
+        out = os.path.expanduser(out)
+        if d.debug:
+            print("Tilda found, expanding to " + str(out))
     if out[-1] == ';':
         terminal_hold = False
         if out[-2] == ';':
@@ -1053,25 +1061,43 @@ def handle_command(d, out):
                 d.open_terminal(command.replace(';',''),
                                 hold=terminal_hold)
     elif out.find('/') != -1:
+        if d.debug:
+            print("Item has forward slashes, interpret as a path or url")
         # Check if this is a url and launch as such
         if out[:7] == 'http://' or out[:8] == 'https://':
+            if d.debug:
+                print("Starts with http..., execute as a url")
             d.open_url(out)
         # Check if this is a binary file, with execute permissions, if so, run it.
         elif is_binary(d, out):
+            if d.debug:
+                print("Item found in binaries, execute its binary")
             d.execute(out)
         elif out.find(' ') != -1:
+            if d.debug:
+                print("Item contained spaces so is likely a binary acting on x")
             parts = out.split(' ')
             if parts[0] in d.scan_binaries():
+                if d.debug:
+                    print("Found the binary, executing the command")
                 d.execute(out)
             else:
+                if d.debug:
+                    print("Binary not found, must be a path or file")
                 if os.path.isdir(out):
                     d.open_directory(out)
                 else:
                     d.open_file(out)
         else:
+            if d.debug:
+                print("Item assumed not to be a URL or binary")
             if os.path.isdir(out):
+                if d.debug:
+                    print("Checked item and found it to be a directory, opening as such")
                 d.open_directory(out)
             else:
+                if d.debug:
+                    print("Checked item and found it to be a file, opening as such")
                 d.open_file(out)
     else:
         d.execute(out)
@@ -1084,6 +1110,8 @@ def run(debug=False):
     cache = d.cache_load()
     out = d.menu(cache,'Open:').strip()
     if len(out) > 0:
+        if debug:
+            print("Menu closed with user input: " + out)
         # Check if the action relates to a plugin
         plugins = load_plugins(debug)
         plugin_hook = False
@@ -1099,10 +1127,17 @@ def run(debug=False):
         # Check for plugin call
         if plugin_hook != False:
             plugin_hook.run(out[len(pluginTitle):])
+            if d.debug:
+                print("This command refers to a plugin")
         else:
+            if d.debug:
+                print("This command is not related to a plugin")
             # Check to see if the command begins with the alias indicator
             if out[0:len(d.prefs['indicator_alias'])] == d.prefs['indicator_alias']:
                 out = d.retrieve_aliased_command(out)
+                if d.debug:
+                    print("An aliased command was called")
+                    print("The command was swapped out for: " + str(out))
             else:
                 # Check for store modifications
                 # Dont allow command aliases that add new commands
@@ -1158,6 +1193,15 @@ def run(debug=False):
 
                     if action == '+':
                         d.prefs['include_items'].append(item)
+                        # Add the item to the alias lookup file
+                        if aliased:
+                            aliases = d.load_json(file_cache_aliasesLookup)
+                            if item not in aliases:
+                                aliases.append([
+                                    d.prefs['indicator_alias'] + ' ' + item[0],
+                                    item[1]
+                                ])
+                                d.save_json(file_cache_aliasesLookup, aliases)
                     elif action == '-':
                         if aliased:
                             to_remove = None
