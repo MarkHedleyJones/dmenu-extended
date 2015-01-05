@@ -472,7 +472,7 @@ class dmenu(object):
 
 
     def cache_save(self, items, path):
-        with codecs.open(path, 'w',encoding=system_encoding) as f:
+        with codecs.open(path, 'w',encoding=system_encoding,errors='replace') as f:
             if type(items) == list:
                 for item in items:
                     f.write(item+"\n")
