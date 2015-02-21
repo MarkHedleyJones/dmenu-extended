@@ -250,6 +250,12 @@ class dmenu(object):
         # Split and remove duplicates
         path = list(set(path.split(':')))
 
+        # Some paths contain an extra separator, remove the empty path
+        try:
+            path.remove('')
+        except IndexError:
+            pass
+
         return path
 
     def application_paths(self):
