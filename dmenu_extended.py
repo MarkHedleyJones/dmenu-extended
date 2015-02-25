@@ -253,7 +253,7 @@ class dmenu(object):
         # Some paths contain an extra separator, remove the empty path
         try:
             path.remove('')
-        except IndexError:
+        except ValueError:
             pass
 
         return path
