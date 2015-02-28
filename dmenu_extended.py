@@ -30,7 +30,7 @@ file_cache_folders = path_cache + '/dmenuExtended_folders.txt'
 file_cache_aliases = path_cache + '/dmenuExtended_aliases.txt'
 file_cache_aliasesLookup = path_cache + '/dmenuExtended_aliases_lookup.json'
 file_cache_plugins = path_cache + '/dmenuExtended_plugins.txt'
-file_shCmd = '/tmp/dmenuEextended_shellCommand.sh'
+# file_shCmd = '~/.dmenuEextended_shellCommand.sh'
 
 default_prefs = {
     "valid_extensions": [
@@ -59,6 +59,7 @@ default_prefs = {
         "xls",                          # Microsoft spreadsheet format
         "xlsx",                         # Microsoft spreadsheet format
         "md",                           # Markup document
+        "html",                         # HTML document
         "sublime-project"               # Project file for sublime
     ],
     "watch_folders": ["~/"],            # Base folders through which to search
@@ -74,6 +75,7 @@ default_prefs = {
     "include_applications": True,       # Add items from /usr/share/applications
     "alias_applications": False,        # Alias applications with their common names
     "aliased_applications_format": "{name} ({command})",
+    "path_shellCommand": "~/.dmenuEextended_shellCommand.sh",
     "menu": 'dmenu',                    # Executable for the menu
     "menu_arguments": [
         "-b",                           # Place at bottom of screen
@@ -416,7 +418,8 @@ class dmenu(object):
 
     def open_terminal(self, command, hold=False, direct=False):
         self.load_preferences()
-        with open(file_shCmd, 'w') as f:
+        sh_command_file = os.path.expanduser(self.prefs['path_shellCommand']);
+        with open(sh_command_file, 'w') as f:
             f.write("#! /bin/bash\n")
             f.write(command + ";\n")
 
@@ -424,8 +427,8 @@ class dmenu(object):
                 f.write('echo "\n\nPress enter to exit";')
                 f.write('read var;')
 
-        os.chmod(file_shCmd, 0o744)
-        os.system(self.prefs['terminal'] + ' -e ' + file_shCmd)
+        os.chmod(os.path.expanduser(sh_command_file), 0o744)
+        os.system(self.prefs['terminal'] + ' -e ' + sh_command_file)
 
 
     def open_file(self, path):
