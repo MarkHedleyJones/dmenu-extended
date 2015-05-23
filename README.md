@@ -90,6 +90,21 @@ Functions of the items are as follows.
 Adding the item `""` to `"valid_extensions"` will cause files with no extension to be included in the cache.
 Adding the item `"*"` to  `"valid_extensions"` will cause **all** files to be included in the cache.
 
+## Rebuild the cache from terminal
+It is possible to rebuild the cache from the terminal by running:
+
+    python -c "import dmenu_extended
+    dmenu_extended.dmenu().cache_build()"
+  
+Alternatively, create a python script containing the following lines:
+
+    #! /bin/python
+    import dmenu_extended
+    dmenu_extended.dmenu().cache_build()
+
+You could run this script directly to rebuild your cache or call it from [cron](http://en.wikipedia.org/wiki/Cron), or create a [systemd](http://en.wikipedia.org/wiki/Systemd) node to rebuild it periodically in the background.
+
+
 ## Advanced usage
 Dmenu-extended understands the following modifier characters:
 
