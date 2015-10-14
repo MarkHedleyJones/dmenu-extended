@@ -548,7 +548,7 @@ class dmenu(object):
                 pathname = os.path.join(app_path,filename)
                 if os.path.isfile(pathname):
                     # Open the application file using the system's preferred encoding (probably utf-8)
-                    with codecs.open(pathname,'r',encoding=system_encoding) as f:
+                    with codecs.open(pathname,'r',encoding=system_encoding, errors='ignore') as f:
                         name = None
                         command = None
                         terminal = None
