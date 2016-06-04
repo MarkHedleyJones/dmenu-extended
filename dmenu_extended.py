@@ -74,6 +74,7 @@ default_prefs = {
     "filter_binaries": False,           # Only include binaries that have an associated .desktop file
     "include_applications": True,       # Add items from /usr/share/applications
     "alias_applications": False,        # Alias applications with their common names
+    "alias_file": "",                   # Pointer to an aliases file (if any)
     "aliased_applications_format": "{name} ({command})",
     "path_shellCommand": "~/.dmenuEextended_shellCommand.sh",
     "menu": 'dmenu',                    # Executable for the menu
@@ -636,6 +637,17 @@ class dmenu(object):
         except ValueError:
             pass
 
+    def parse_alias_file(self, path):
+        out = []
+        with open(path.replace('~', os.path.expanduser('~')), 'r') as f:
+            print('Opening file')
+            for line in f.readlines():
+                if line[:6].lower() == 'alias ':
+                    parts = line[6:].replace('\n','').replace('\'','').replace('"','').split('=')
+                    out.append([parts[0], parts[1]])
+        return out
+                    
+
     def cache_build(self):
         self.load_preferences()
 
@@ -776,8 +788,10 @@ class dmenu(object):
             for item in self.prefs['include_items']:
                 if type(item) == list:
                     if len(item) > 1:
-                        title = self.prefs['indicator_alias']
-                        title += ' ' + item[0]
+                        title = item[0]
+                        if self.prefs['indicator_alias'] != '':
+                            title = self.prefs['indicator_alias']
+                            title += ' ' + item[0]
                         aliased_items.append(title)
                         aliases.append([title, item[1]])
                     else:
@@ -793,6 +807,19 @@ class dmenu(object):
         for item in include_items:
             if item[-1] == ';' and item[0:-1] in binaries:
                 binaries.remove(item[0:-1])
+
+        # Look for alias file and include
+        if 'alias_file' in self.prefs:
+            if self.prefs['alias_file'] != "":
+                items = self.parse_alias_file(self.prefs['alias_file'])
+                for item in items:
+                    title = item[0]
+                    if self.prefs['indicator_alias'] != '':
+                        title = self.prefs['indicator_alias']
+                        title += ' ' + item[0]
+                    aliased_items.append(title)
+                    aliases.append([title, item[1]])
+
 
         plugins = self.plugins_available()
 
@@ -1143,12 +1170,9 @@ def run(debug=False):
         else:
             if d.debug:
                 print("This command is not related to a plugin")
-            # Check to see if the command begins with the alias indicator
-            if out[0:len(d.prefs['indicator_alias'])] == d.prefs['indicator_alias']:
+            # Check to see if the command is an alias for something
+            if d.retrieve_aliased_command(out) is not None:
                 out = d.retrieve_aliased_command(out)
-                if d.debug:
-                    print("An aliased command was called")
-                    print("The command was swapped out for: " + str(out))
             else:
                 # Check for store modifications
                 # Dont allow command aliases that add new commands
@@ -1157,9 +1181,9 @@ def run(debug=False):
                     out = out[1:]
                     aliased = False
                     # Check for aliased command
-                    if out.find(d.prefs['indicator_alias']) != -1 and action == '+':
+                    if out.find('#') != -1 and action == '+':
                         aliased = True
-                        tmp = out.split(d.prefs['indicator_alias'])
+                        tmp = out.split('#')
                         # out = [tmp[1].lstrip(), tmp[0].rstrip()]
 
                         command = tmp[0].rstrip()
@@ -1208,10 +1232,16 @@ def run(debug=False):
                         if aliased:
                             aliases = d.load_json(file_cache_aliasesLookup)
                             if item not in aliases:
-                                aliases.append([
-                                    d.prefs['indicator_alias'] + ' ' + item[0],
-                                    item[1]
-                                ])
+                                if d.prefs['indicator_alias'] != '':
+                                    aliases.append([
+                                        d.prefs['indicator_alias'] + ' ' + item[0],
+                                        item[1]
+                                    ])
+                                else:
+                                    aliases.append([
+                                        item[0],
+                                        item[1]
+                                    ])
                                 d.save_json(file_cache_aliasesLookup, aliases)
                     elif action == '-':
                         if aliased:
