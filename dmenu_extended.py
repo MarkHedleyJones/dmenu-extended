@@ -74,7 +74,7 @@ default_prefs = {
     "filter_binaries": False,           # Only include binaries that have an associated .desktop file
     "include_applications": True,       # Add items from /usr/share/applications
     "alias_applications": False,        # Alias applications with their common names
-    "alias_file": "",                   # Pointer to an aliases file (if any)
+    "path_aliasFile": "",               # Pointer to an aliases file (if any)
     "aliased_applications_format": "{name} ({command})",
     "path_shellCommand": "~/.dmenuEextended_shellCommand.sh",
     "menu": 'dmenu',                    # Executable for the menu
@@ -1282,13 +1282,19 @@ def run(debug=False):
                             print("Adding item to store: " + out)
                         d.message_open("Adding item to store: " + out)
                         if aliased:
-                            cache_scanned = [d.prefs['indicator_alias'] + ' ' + out] + cache_scanned
+                            if d.prefs['indicator_alias'] != '':
+                                cache_scanned = [d.prefs['indicator_alias'] + ' ' + out] + cache_scanned
+                            else:
+                                cache_scanned = [out] + cache_scanned
                         else:
                             cache_scanned = [out] + cache_scanned
                         cache_scanned.sort(key=len)
                     else:
                         if aliased:
-                            to_remove = d.prefs['indicator_alias'] + ' ' + out
+                            if d.prefs['indicator_alias'] != '':
+                                to_remove = d.prefs['indicator_alias'] + ' ' + out
+                            else:
+                                to_remove = out
                             if d.debug:
                                 print("Removing item from store: " + to_remove)
                         else:
