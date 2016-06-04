@@ -164,6 +164,12 @@ By using two semicolons (`;;`) at the end of a command the terminal window will 
 ### Loading an alias file
 If you have an aliases file (for example ~/.bash_aliases or ~/.zsh_aliases) that you would like loaded into dmenu-extended, set it's path in the `"path_aliasFile"` field in of the preferences. Aliased items found in that file will show up in the menu once the cache has been rebuilt.
 
+### Controlling aliased command formatting
+By default, all aliased commands are displayed prefixed with a '#' and are followed by the command name in brackets (for example `# ff (firefox)`). If you would prefer to have the aliased command appear without these additions (e.g. `ff`) make the following alterations to your preferences file and rebuild the cache.
+
+* `"indicator_alias": "#"` -> `"indicator_alias": ""`
+* `"alias_display_format": "{name} ({command})"` -> `"alias_display_format": "{name}"`
+
 ## Acknowledgements
 * **Alad** from the [CrunchBang forums](http://crunchbang.org/forums/viewtopic.php?id=36484) for advice on packaging.
 * **Head_on_a_Stick** also from the [CrunchBang forums](http://crunchbang.org/forums/viewtopic.php?id=36484) for advice on packaging.
