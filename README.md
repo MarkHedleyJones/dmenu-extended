@@ -76,7 +76,13 @@ Functions of the items are as follows.
 * `"include_hidden_folders"` boolean value controlling whether to include hidden folders in the cache
 * `"include_items"` list of extra items to include in the cache
 * `"exclude_items"` list of items to be excluded from the cache
+* `"include_binaries"` add items found in the system path
 * `"filter_binaries"` boolean value controlling whether to include binaries that have no corresponding .desktop file
+* `"include_applications"` add items found under /usr/share/applications
+* `"alias_applications"` alias applications with their intended names
+* `"path_aliasFile"` path to a file containing aliases (e.g. ~/.bash_aliases)
+* `"aliased_applications_format"` how to format aliased commands (e.g. "{name} ({command})")
+* `"path_shellCommand"` path to use for creating terminal helper script (e.g. "~/.dmenuEextended_shellCommand.sh")
 * `"menu"` executable to open the menu (dmenu)
 * `"menu_arguments"` list of parameters to launch the menu with
 * `"fileopener"` application to handle opening files
@@ -130,7 +136,7 @@ In addidion to adding items manually, dmenu_extended allows the addition of a mo
 For instance:
 * `+htop;#View running processes` displays as `# View system processes (htop)`
 * `+libreoffice --writer#Writer` displays as `# Writer (libreoffice --writer)`
-* `+http://youtube.com#Youtube` displays as `#Youtube (http://www.youtube.com)`
+* `+http://youtube.com#Youtube` displays as `# Youtube (http://www.youtube.com)`
 
 ### **-** (minus) - Remove a manually added entry from the cache
 This applies to items that have previously saved to the store. If the item is not found in the store you will be given the chance to add it.
