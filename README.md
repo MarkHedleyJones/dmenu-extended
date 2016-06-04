@@ -112,7 +112,7 @@ You could run this script directly to rebuild your cache or call it from [cron](
 
 
 ## Advanced usage
-Dmenu-extended understands the following modifier characters:
+Dmenu-extended understands the following modifier characters when entering a special command:
 
 1. **+** (plus) - Manually add an entry to the cache
 2. **-** (minus) - Remove a manually added entry from the cache
@@ -130,7 +130,7 @@ If there is something you wish to run that isn't in the menu then you can add it
 
 Once added these commands are stored in the preferences file (see general configuration) and will persist upon a rebuild of the cache. These items can also be manually edited within this file.
 
-#### Built in support for aliases
+#### Built-in support for aliases
 
 In addidion to adding items manually, dmenu_extended allows the addition of a more descriptive label for a stored command.
 For instance:
@@ -160,6 +160,9 @@ For example,
 
 #### Holding the terminal open on exit
 By using two semicolons (`;;`) at the end of a command the terminal window will remain open once the executed command has completed. This is useful for running programs like `inxi` that exit on completion. You'll want to use this if you see your program flash up and disappear before you get a chance to see the output.
+
+### Loading an alias file
+If you have an aliases file (for example ~/.bash_aliases or ~/.zsh_aliases) that you would like loaded into dmenu-extended, set it's path in the `"path_aliasFile"` field in of the preferences. Aliased items found in that file will show up in the menu once the cache has been rebuilt.
 
 ## Acknowledgements
 * **Alad** from the [CrunchBang forums](http://crunchbang.org/forums/viewtopic.php?id=36484) for advise on packaging.
