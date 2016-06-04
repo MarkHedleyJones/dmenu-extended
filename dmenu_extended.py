@@ -75,7 +75,7 @@ default_prefs = {
     "include_applications": True,       # Add items from /usr/share/applications
     "alias_applications": False,        # Alias applications with their common names
     "path_aliasFile": "",               # Pointer to an aliases file (if any)
-    "aliased_applications_format": "{name} ({command})",
+    "alias_display_format": "{name} ({command})",
     "path_shellCommand": "~/.dmenuEextended_shellCommand.sh",
     "menu": 'dmenu',                    # Executable for the menu
     "menu_arguments": [
@@ -322,12 +322,23 @@ class dmenu(object):
                 self.open_file(file_prefs)
                 sys.exit()
             else:
+
+                # # Check for old display format and update if necessary
+                # if 'aliased_applications_format' in self.prefs.keys():
+                #     if 'alias_display_format' not in self.prefs.keys():
+                #         self.prefs['alias_display_format'] = self.prefs['aliased_applications_format']
+                #     self.prefs.pop('aliased_applications_format')
+
                 # If there are things in the default that aren't in the
                 # user config, resave the user configuration
                 resave = False
                 for key, value in default_prefs.items():
                     if key not in self.prefs:
-                        self.prefs[key] = value
+                        if key == 'alias_display_format' and 'aliased_applications_format' in self.prefs.keys():
+                            self.prefs['alias_display_format'] = self.prefs['aliased_applications_format']
+                            self.prefs.pop('aliased_applications_format')
+                        else:
+                            self.prefs[key] = value
                         resave = True
                 if resave:
                     self.save_preferences()
@@ -539,7 +550,16 @@ class dmenu(object):
         return out
 
     def format_alias(self, name, command):
-        return self.prefs['indicator_alias'] + ' ' + self.prefs['aliased_applications_format'].format(name=name, command=command)
+        if name is not None:
+            if self.prefs['indicator_alias'] != '':
+                return self.prefs['indicator_alias'] + ' ' + self.prefs['alias_display_format'].format(name=name, command=command)
+            else:
+                return self.prefs['alias_display_format'].format(name=name, command=command)
+        else:
+            if self.prefs['indicator_alias'] != '':
+                return self.prefs['indicator_alias'] + ' ' + command
+            else:
+                return command
 
     def scan_applications(self):
         paths = self.system_path()
@@ -597,6 +617,8 @@ class dmenu(object):
             print("Converting '" + str(alias) + "' into its aliased command")
         for item in aliases:
             if item[0] == alias:
+                if self.debug:
+                    print("Converted " + alias + " to: " + item[1])
                 return item[1]
         if self.debug:
             print("No suitable candidate was found")
@@ -788,10 +810,7 @@ class dmenu(object):
             for item in self.prefs['include_items']:
                 if type(item) == list:
                     if len(item) > 1:
-                        title = item[0]
-                        if self.prefs['indicator_alias'] != '':
-                            title = self.prefs['indicator_alias']
-                            title += ' ' + item[0]
+                        title = self.format_alias(item[0], item[1])
                         aliased_items.append(title)
                         aliases.append([title, item[1]])
                     else:
@@ -813,10 +832,7 @@ class dmenu(object):
             if self.prefs['path_aliasFile'] != "":
                 items = self.parse_alias_file(self.prefs['path_aliasFile'])
                 for item in items:
-                    title = item[0]
-                    if self.prefs['indicator_alias'] != '':
-                        title = self.prefs['indicator_alias']
-                        title += ' ' + item[0]
+                    title = self.format_alias(item[0], item[1])
                     aliased_items.append(title)
                     aliases.append([title, item[1]])
 
@@ -1181,21 +1197,29 @@ def run(debug=False):
                     out = out[1:]
                     aliased = False
                     # Check for aliased command
-                    if out.find('#') != -1 and action == '+':
+                    if action == '+':
                         aliased = True
                         tmp = out.split('#')
-                        # out = [tmp[1].lstrip(), tmp[0].rstrip()]
+
+                        if d.debug:
+                            print("tmp = " + str(tmp))
 
                         command = tmp[0].rstrip()
-                        if command is not '':
-                            out = tmp[1].lstrip() + ' (' + command.replace(';', '') + ')'
+                        if len(tmp) > 1:
+                            out = d.format_alias(tmp[1].lstrip(), command.replace(';',''))
                         else:
-                            out = tmp[1].lstrip()
+                            if d.debug:
+                                print("This command is not aliased")
+                            aliased = False
+                            out = d.format_alias(None, command.replace(';',''))
 
-                        if len(out) == 0:
+                        if aliased == 0:
                             item = command
                         else:
                             item = [out, command]
+
+                        if d.debug:
+                            print("Item = " + str(item))
                     elif out[:len(d.prefs['indicator_alias'])] == d.prefs['indicator_alias']:
                         item = out[len(d.prefs['indicator_alias']):].lstrip()
                         aliased = True
@@ -1232,17 +1256,12 @@ def run(debug=False):
                         if aliased:
                             aliases = d.load_json(file_cache_aliasesLookup)
                             if item not in aliases:
-                                if d.prefs['indicator_alias'] != '':
-                                    aliases.append([
-                                        d.prefs['indicator_alias'] + ' ' + item[0],
-                                        item[1]
-                                    ])
-                                else:
-                                    aliases.append([
-                                        item[0],
-                                        item[1]
-                                    ])
+                                aliases.append([
+                                    out,
+                                    item[1]
+                                ])
                                 d.save_json(file_cache_aliasesLookup, aliases)
+
                     elif action == '-':
                         if aliased:
                             to_remove = None
@@ -1258,6 +1277,8 @@ def run(debug=False):
                                 if d.debug:
                                     print("Couldn't remove the item (item could not be located)")
                         else:
+                            if d.debug:
+                                print("Will try to remove: '" + str(item) + "' from the included items")
                             d.prefs['include_items'].remove(item)
                     else:
                         d.message_close()
@@ -1281,25 +1302,13 @@ def run(debug=False):
                         if d.debug:
                             print("Adding item to store: " + out)
                         d.message_open("Adding item to store: " + out)
-                        if aliased:
-                            if d.prefs['indicator_alias'] != '':
-                                cache_scanned = [d.prefs['indicator_alias'] + ' ' + out] + cache_scanned
-                            else:
-                                cache_scanned = [out] + cache_scanned
-                        else:
-                            cache_scanned = [out] + cache_scanned
+                        cache_scanned = [out] + cache_scanned
                         cache_scanned.sort(key=len)
                     else:
-                        if aliased:
-                            if d.prefs['indicator_alias'] != '':
-                                to_remove = d.prefs['indicator_alias'] + ' ' + out
-                            else:
-                                to_remove = out
-                            if d.debug:
-                                print("Removing item from store: " + to_remove)
-                        else:
-                            to_remove = out
+                        to_remove = out
                         d.message_open("Removing item from store: " + to_remove)
+                        if d.debug:
+                            print("Looking to remove '" + str(to_remove) + "' from the cache")
                         try:
                             cache_scanned.remove(to_remove)
                         except ValueError:
