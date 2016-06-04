@@ -165,5 +165,5 @@ By using two semicolons (`;;`) at the end of a command the terminal window will 
 If you have an aliases file (for example ~/.bash_aliases or ~/.zsh_aliases) that you would like loaded into dmenu-extended, set it's path in the `"path_aliasFile"` field in of the preferences. Aliased items found in that file will show up in the menu once the cache has been rebuilt.
 
 ## Acknowledgements
-* **Alad** from the [CrunchBang forums](http://crunchbang.org/forums/viewtopic.php?id=36484) for advise on packaging.
-* **Head_on_a_Stick** also from the [CrunchBang forums](http://crunchbang.org/forums/viewtopic.php?id=36484) for advise on packaging.
+* **Alad** from the [CrunchBang forums](http://crunchbang.org/forums/viewtopic.php?id=36484) for advice on packaging.
+* **Head_on_a_Stick** also from the [CrunchBang forums](http://crunchbang.org/forums/viewtopic.php?id=36484) for advice on packaging.
