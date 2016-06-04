@@ -809,9 +809,9 @@ class dmenu(object):
                 binaries.remove(item[0:-1])
 
         # Look for alias file and include
-        if 'alias_file' in self.prefs:
-            if self.prefs['alias_file'] != "":
-                items = self.parse_alias_file(self.prefs['alias_file'])
+        if 'path_aliasFile' in self.prefs:
+            if self.prefs['path_aliasFile'] != "":
+                items = self.parse_alias_file(self.prefs['path_aliasFile'])
                 for item in items:
                     title = item[0]
                     if self.prefs['indicator_alias'] != '':
