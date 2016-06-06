@@ -616,7 +616,7 @@ class dmenu(object):
         if self.debug:
             print("Converting '" + str(alias) + "' into its aliased command")
         for item in aliases:
-            if item[0] == alias:
+            if self.format_alias(item[0], item[1]) == alias:
                 if self.debug:
                     print("Converted " + alias + " to: " + item[1])
                 return item[1]
@@ -810,9 +810,8 @@ class dmenu(object):
             for item in self.prefs['include_items']:
                 if type(item) == list:
                     if len(item) > 1:
-                        title = self.format_alias(item[0], item[1])
-                        aliased_items.append(title)
-                        aliases.append([title, item[1]])
+                        aliased_items.append(self.format_alias(item[0], item[1]))
+                        aliases.append([item[0], item[1]])
                     else:
                         if self.debug:
                             print("There are aliased items in the configuration with no command.")
@@ -1195,99 +1194,155 @@ def run(debug=False):
                 if out[0] in "+-":
                     action = out[0]
                     out = out[1:]
-                    aliased = False
-                    # Check for aliased command
-                    if action == '+':
-                        aliased = True
-                        tmp = out.split('#')
 
-                        if d.debug:
-                            print("tmp = " + str(tmp))
+                    # tmp is used to split the input into a command and alias (if any)
+                    tmp = out.split('#')
 
-                        command = tmp[0].rstrip()
-                        if len(tmp) > 1:
-                            out = d.format_alias(tmp[1].lstrip(), command.replace(';',''))
-                        else:
-                            if d.debug:
-                                print("This command is not aliased")
-                            aliased = False
-                            out = d.format_alias(None, command.replace(';',''))
-
-                        if aliased == 0:
-                            item = command
-                        else:
-                            item = [out, command]
-
-                        if d.debug:
-                            print("Item = " + str(item))
-                    elif out[:len(d.prefs['indicator_alias'])] == d.prefs['indicator_alias']:
-                        item = out[len(d.prefs['indicator_alias']):].lstrip()
-                        aliased = True
+                    command = tmp[0]
+                    if len(tmp) > 1:
+                        alias = ' '.join(tmp[1:]).lstrip().rstrip()
                     else:
-                        item = out
+                        alias = None
 
+                    if d.debug:
+                        print("out = '" + str(out) + "'")
+                        print("tmp = '" + str(tmp) + "'")
+                        print("action = '" + str(action) + "'")
+                        print("command = '" + str(command) + "'")
+                        print("alias '= " + str(alias) + "'")
+
+
+
+                    # aliased = False
+                    # # Check for aliased command
+                    # if action == '+':
+                    #     aliased = True
+                    #     tmp = out.split('#')
+
+                    #     if d.debug:
+                    #         print("tmp = " + str(tmp))
+
+                    #     command = tmp[0].rstrip()
+                    #     if len(tmp) > 1:
+                    #         out = d.format_alias(tmp[1].lstrip(), command.replace(';',''))
+                    #     else:
+                    #         if d.debug:
+                    #             print("This command is not aliased")
+                    #         aliased = False
+                    #         out = d.format_alias(None, command.replace(';',''))
+
+                    #     if aliased == 0:
+                    #         item = command
+                    #     else:
+                    #         item = [out, command]
+
+                    #     if d.debug:
+                    #         print("Item = " + str(item))
+                    # elif out[:len(d.prefs['indicator_alias'])] == d.prefs['indicator_alias']:
+                    #     item = out[len(d.prefs['indicator_alias']):].lstrip()
+                    #     aliased = True
+                    # else:
+                    #     item = out
+
+                    # Check to see if the item is in the include_items list
                     found_in_store = False
-                    for store_item in d.prefs['include_items']:
-                        if d.debug:
-                            print("is " + str(store_item) + " = " + str(item) + " ?")
-                        if type(store_item) == list and out == store_item[0]:
-                            found_in_store = True
-                            break;
-                        elif item == store_item:
-                            found_in_store = True
-                            break;
+                    if d.debug:
+                        print("Command = '" + str(command) + "', alias = '" + str(alias) + "'")
+                        print("Starting to match given command with store elements")
 
-                    if action == '+' and found_in_store:
+                    for item in d.prefs['include_items']:
+                        if action == '+' and type(item) == list:
+                            if d.debug:
+                                print("Is (+) " + str(item[0]) + " == " + str(alias) + "?")
+                            if alias == item[0]:
+                                if d.debug:
+                                    print("Yes")
+                                found_in_store = True
+                                break
+                            elif d.debug:
+                                print("No")
+
+                        # If removing a command - an alias would be detected as a command
+                        
+                        if action == '-' and type(item) == list:
+                            if d.debug:
+                                print("Is (-) " + str(d.format_alias(item[0], item[1])) + " == " + str(command) + "?")
+                            if command == d.format_alias(item[0], item[1]):
+                                found_in_store = True
+                                alias = command
+                                if d.prefs['indicator_alias'] != '':
+                                    alias = alias[len(d.prefs['indicator_alias'])+1:]
+                                command = item[1]
+                                if d.debug:
+                                    print("Yes")
+                                    print("Command is now: " + str(command))
+                                    print("Alias is now: " + str(alias))
+                                break
+                            elif d.debug:
+                                print("No")
+
+                            if d.debug:
+                                print("Is (-) " + str(d.format_alias(item[0], item[1])) + " == " + str(out) + "?")
+                            if out == d.format_alias(item[0], item[1]):
+                                found_in_store = True
+                                alias = item[0]
+                                if d.prefs['indicator_alias'] != '':
+                                    alias = alias[len(d.prefs['indicator_alias'])+1:]
+                                command = item[1]
+                                if d.debug:
+                                    print("Yes")
+                                    print("Command is now: " + str(command))
+                                    print("Alias is now: " + str(alias))
+                                break
+                            elif d.debug:
+                                print("No") 
+
+                            if d.debug:
+                                print("Is (-) " + str(item[0]) + " == " + str(command) + "?")
+                            if command == item[0]:
+                                found_in_store = True
+                                alias = item[0]
+                                if d.prefs['indicator_alias'] != '':
+                                    alias = alias[len(d.prefs['indicator_alias'])+1:]
+                                command = item[1]
+                                if d.debug:
+                                    print("Yes")
+                                    print("Command is now: " + str(command))
+                                    print("Alias is now: " + str(alias))
+                                break
+                            elif d.debug:
+                                print("No") 
+
+                        if type(item) != list:
+                            if d.debug:
+                                print("Is " + str(item) + " == " + str(command) + "?")
+                            if command == item:
+                                if d.debug:
+                                    print("Yes")
+                                found_in_store = True
+                                break
+                            elif d.debug:
+                                print("No")
+
+                    if action == '+' and found_in_store == True:
                         option = d.prefs['indicator_submenu'] + " Remove from store"
-                        answer = d.menu("Item '" + str(item) + "' already in store\n"+option)
+                        if alias is None:
+                            answer = d.menu("Command '" + str(command) + "' already in store\n"+option)
+                        else:
+                            answer = d.menu("Alias '" + str(alias) + "' already in store\n"+option)
                         if answer != option:
                             sys.exit()
                         action = '-'
                     elif action == '-' and found_in_store == False:
                         option = d.prefs['indicator_submenu'] + " Add to store"
-                        answer = d.menu("Item '" + (item) + "' was not found in store\n"+option)
+                        if alias is None:
+                            answer = d.menu("Command '" + str(command) + "' was not found in store\n"+option)
+                        else:
+                            answer = d.menu("Alias '" + str(alias) + "' was not found in store\n"+option)
                         if answer != option:
                             sys.exit()
-                        action = '+'
+                        action = '+'                    
 
-                    if action == '+':
-                        d.prefs['include_items'].append(item)
-                        # Add the item to the alias lookup file
-                        if aliased:
-                            aliases = d.load_json(file_cache_aliasesLookup)
-                            if item not in aliases:
-                                aliases.append([
-                                    out,
-                                    item[1]
-                                ])
-                                d.save_json(file_cache_aliasesLookup, aliases)
-
-                    elif action == '-':
-                        if aliased:
-                            to_remove = None
-                            for include_item in d.prefs['include_items']:
-                                if include_item[0] == out:
-                                    to_remove = include_item
-                            if to_remove is not None:
-                                if d.debug:
-                                    print("Item found and is")
-                                    print(to_remove)
-                                d.prefs['include_items'].remove(to_remove)
-                            else:
-                                if d.debug:
-                                    print("Couldn't remove the item (item could not be located)")
-                        else:
-                            if d.debug:
-                                print("Will try to remove: '" + str(item) + "' from the included items")
-                            d.prefs['include_items'].remove(item)
-                    else:
-                        d.message_close()
-                        d.menu("An error occured while servicing your request.\nYou may need to delete your configuration file.")
-                        sys.exit()
-
-                    d.save_preferences()
-
-                    # Recreate the cache
 
                     cache_scanned = d.cache_open(file_cache)[:-1]
 
@@ -1298,35 +1353,86 @@ def run(debug=False):
                     else:
                         cache_scanned = cache_scanned.split("\n")
 
+
+
                     if action == '+':
-                        if d.debug:
-                            print("Adding item to store: " + out)
-                        d.message_open("Adding item to store: " + out)
-                        cache_scanned = [out] + cache_scanned
-                        cache_scanned.sort(key=len)
-                    else:
-                        to_remove = out
-                        d.message_open("Removing item from store: " + to_remove)
-                        if d.debug:
-                            print("Looking to remove '" + str(to_remove) + "' from the cache")
-                        try:
-                            cache_scanned.remove(to_remove)
-                        except ValueError:
+
+                        if alias is None:
                             if d.debug:
-                                print("Couldnt actually remove item from the cache")
-                            else:
-                                pass
-
-                    d.cache_save(cache_scanned, file_cache)
-
-                    d.message_close()
-                    if action == '+':
-                        if aliased == True:
-                            message = "New item (" + command + " aliased as '" + out + "') added to cache."
+                                print("Adding '" + str(command) + "' to store")
+                            d.prefs['include_items'].append(command)
+                            d.message_open("Adding item to store: " + str(command))
+                            cache_scanned = [command] + cache_scanned
                         else:
-                            message = "New item (" + out + ") added to cache."
+                            if d.debug:
+                                print("Adding aliased command '" + str([alias, command]) + "' to store")
+                            d.prefs['include_items'].append([alias, command])
+
+                            # And add the item to the alias lookup file
+                            aliases = d.load_json(file_cache_aliasesLookup)
+                            if [alias, command] not in aliases:
+                                aliases.append([alias, command])
+                                d.save_json(file_cache_aliasesLookup, aliases)
+
+                            d.message_open("Adding aliased item item to store: " + str(d.format_alias(alias, command)))
+                            cache_scanned = [d.format_alias(alias, command)] + cache_scanned
+
+                        cache_scanned.sort(key=len)
+                    elif action == '-':
+                        if alias is None:
+                            if d.debug:
+                                print("Will try to remove command: '" + str(command) + "' from the included items")
+                            d.prefs['include_items'].remove(command)
+                            d.message_open("Removing item from store: " + str(command))
+                            try:
+                                cache_scanned.remove(command)
+                            except ValueError:
+                                if d.debug:
+                                    print("Couldnt remove item from the cache")
+                                else:
+                                    pass
+                        else:
+                            to_remove = None
+                            for item in d.prefs['include_items']:
+                                if item[0] == alias:
+                                    to_remove = item
+                            if to_remove is not None:
+                                if d.debug:
+                                    print("Item found and is")
+                                    print(to_remove)
+                                d.prefs['include_items'].remove(to_remove)
+                            else:
+                                if d.debug:
+                                    print("Couldn't remove the item (item could not be located)")
+
+                            d.message_open("Removing aliased item from store: " + str(d.format_alias(alias, command)))
+                            try:
+                                cache_scanned.remove(d.format_alias(alias, command))
+                            except ValueError:
+                                if d.debug:
+                                    print("Couldnt remove item from the cache")
+                                else:
+                                    pass
                     else:
-                        message = "Existing item (" + out + ") removed from cache."
+                        d.message_close()
+                        d.menu("An error occured while servicing your request.\nYou may need to delete your configuration file.")
+                        sys.exit()
+
+                    d.save_preferences()
+                    d.cache_save(cache_scanned, file_cache)                        
+                    d.message_close()
+
+                    # Give the user some feedback
+                    if action == '+':
+                        if alias is None:
+                            message = "New item (" + command + ") added to cache."
+                        else:
+                            message = "New item (" + command + " aliased as '" + alias + "') added to cache."
+                    else:
+                        if alias is None:
+                            message = "Existing item (" + command + ") removed from cache."
+                        else:
+                            message = "Existing alias (" + alias + ") removed from cache."
 
                     d.menu(message)
                     sys.exit()
