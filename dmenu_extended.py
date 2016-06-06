@@ -71,11 +71,11 @@ default_prefs = {
     "include_items": [],                # Extra items to display - manually added
     "exclude_items": [],                # Items to hide - manually hidden
     "include_binaries": True,
-    "filter_binaries": False,           # Only include binaries that have an associated .desktop file
+    "filter_binaries": True,           # Only include binaries that have an associated .desktop file
     "include_applications": True,       # Add items from /usr/share/applications
     "alias_applications": False,        # Alias applications with their common names
     "path_aliasFile": "",               # Pointer to an aliases file (if any)
-    "alias_display_format": "{name} ({command})",
+    "alias_display_format": "{name}",
     "path_shellCommand": "~/.dmenuEextended_shellCommand.sh",
     "menu": 'dmenu',                    # Executable for the menu
     "menu_arguments": [
@@ -90,7 +90,7 @@ default_prefs = {
         "-sb",                          # Selected element background colour
         "#1D1F21",
         "-fn",                          # Font and size
-        "-*-terminus-medium-*-*-*-14-*-*-*-*-*-*-*",
+        "terminus",
         "-l",                           # Number of lines to display
         "20"
     ],
@@ -100,7 +100,7 @@ default_prefs = {
     "terminal": "xterm",                # Terminal
     "indicator_submenu": "->",          # Symbol to indicate a submenu item
     "indicator_edit": "*",              # Symbol to indicate an item will launch an editor
-    "indicator_alias": "#"              # Symbol to indecate an aliased command
+    "indicator_alias": ""              # Symbol to indecate an aliased command
 }
 
 
@@ -146,6 +146,11 @@ def setup_user_files():
         default_prefs['terminal'] = 'gnome-terminal'
     if os.path.exists('/usr/bin/urxvt'):
         default_prefs['terminal'] = 'urxvt'
+
+    if os.path.exists(os.path.expanduser('~') + '/.bash_aliases'):
+        default_prefs['path_aliasFile'] = os.path.expanduser('~') + '/.bash_aliases'
+    elif os.path.exists(os.path.expanduser('~') + '/.zsh_aliases'):
+        default_prefs['path_aliasFile'] = os.path.expanduser('~') + '/.zsh_aliases'
 
     # Dump the prefs file
     if os.path.exists(file_prefs) == False:
