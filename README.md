@@ -11,6 +11,11 @@ An extension to the original [dmenu](http://tools.suckless.org/dmenu/) allowing 
 ## Dependencies
 * **Python**, compatible with versions 2 and 3.
 * **dmenu**, preferably version 4.5 or later.
+* **terminus font**, a clear and clean bitmap font (optional).
+
+### Quick dependency install:
+* Ubuntu - `sudo apt-get install suckless-tools xfonts-terminus`
+
 
 ## Installation
 Clone this repository *or* download the zip and extract its contents.
@@ -81,7 +86,7 @@ Functions of the items are as follows.
 * `"include_applications"` add items found under /usr/share/applications
 * `"alias_applications"` alias applications with their intended names
 * `"path_aliasFile"` path to a file containing aliases (e.g. ~/.bash_aliases)
-* `"alias_display_format"` how to format aliased commands (e.g. "{name} ({command})")
+* `"alias_display_format"` how to format aliased commands (e.g. `"{name} ({command})"`)
 * `"path_shellCommand"` path to use for creating terminal helper script (e.g. "~/.dmenuEextended_shellCommand.sh")
 * `"menu"` executable to open the menu (dmenu)
 * `"menu_arguments"` list of parameters to launch the menu with
@@ -165,10 +170,10 @@ By using two semicolons (`;;`) at the end of a command the terminal window will 
 If you have an aliases file (for example ~/.bash_aliases or ~/.zsh_aliases) that you would like loaded into dmenu-extended, set it's path in the `"path_aliasFile"` field in of the preferences. Aliased items found in that file will show up in the menu once the cache has been rebuilt.
 
 ### Controlling aliased command formatting
-By default, all aliased commands are displayed prefixed with a '#' and are followed by the command name in brackets (for example `# ff (firefox)`). If you would prefer to have the aliased command appear without these additions (e.g. `ff`) make the following alterations to your preferences file and rebuild the cache.
+By default, all aliased commands are displayed prefixed without a prefix and no indication of the command being launched is given (for example `ff`). If you would prefer to have the aliased command appear with a prefix and some indication of what the command will launch (e.g. `# ff (firefox)`) - make the following alterations to your preferences file and rebuild the cache.
 
-* `"indicator_alias": "#"` -> `"indicator_alias": ""`
-* `"alias_display_format": "{name} ({command})"` -> `"alias_display_format": "{name}"`
+* `"indicator_alias": ""` -> `"indicator_alias": "#"`
+* `"alias_display_format": "{name}"` -> `"alias_display_format": "{name} ({command})"`
 
 ## Acknowledgements
 * **Alad** from the [CrunchBang forums](http://crunchbang.org/forums/viewtopic.php?id=36484) for advice on packaging.
