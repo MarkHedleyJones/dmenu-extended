@@ -498,13 +498,43 @@ class dmenu(object):
 
 
     def cache_save(self, items, path):
-        with codecs.open(path, 'w',encoding=system_encoding) as f:
-            if type(items) == list:
-                for item in items:
-                    f.write(item+"\n")
+        try:
+            with codecs.open(path, 'w',encoding=system_encoding) as f:
+                if type(items) == list:
+                    for item in items:
+                        f.write(item+"\n")
+                else:
+                    f.write(items)
+            return 1
+        except UnicodeEncodeError:
+            import string
+            tmp = []
+            foundError = False
+            if self.debug:
+                print('Non-printable characters detected in cache: ')
+            for item in items:
+                clean = True
+                for char in item:
+                    if char not in string.printable:
+                        clean = False
+                        foundError = True
+                        if self.debug:
+                            print('Culprit: ' + item)
+                if clean:
+                    tmp.append(item)
+            if foundError:
+                if self.debug:
+                    print('')
+                    print('Caching performance will be affected while these items remain')
+                    print('Offending items have been excluded from cache')
+                with codecs.open(path, 'wb', encoding=system_encoding) as f:
+                    for item in tmp:
+                        f.write(item+"\n")
+                return 2
             else:
-                f.write(items)
-        return 1
+                if self.debug:
+                    print('Unknown error saving data cache')
+                return 0
 
 
     def cache_open(self, path):
