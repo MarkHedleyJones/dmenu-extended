@@ -1243,11 +1243,12 @@ def run(*args):
                 pluginTitle = plugin['plugin'].title.strip()
 
             if out[:len(pluginTitle)] == pluginTitle:
-                plugin_hook = plugin["plugin"]
+                plugin_hook = (plugin["plugin"], pluginTitle)
 
         # Check for plugin call
         if plugin_hook != False:
-            plugin_hook.run(out[len(pluginTitle):])
+            plugin_hook[0].load_preferences()
+            plugin_hook[0].run(out[len(plugin_hook[1]):].strip())
             if d.debug:
                 print("This command refers to a plugin_in")
         else:
