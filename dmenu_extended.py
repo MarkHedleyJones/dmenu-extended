@@ -32,6 +32,8 @@ file_cache_aliasesLookup = path_cache + '/dmenuExtended_aliases_lookup.json'
 file_cache_plugins = path_cache + '/dmenuExtended_plugins.txt'
 # file_shCmd = '~/.dmenuEextended_shellCommand.sh'
 
+d = None # Global dmenu object
+
 default_prefs = {
     "valid_extensions": [
         "py",                           # Python script
@@ -181,8 +183,12 @@ import plugins
 def load_plugins(debug=False):
     if debug:
         print('Loading plugins')
+
     plugins_loaded = [{"filename": "plugin_settings.py",
                        "plugin": extension()}]
+
+    # Pass the plug-in's version of dmenu the list of launch arguments
+    plugins_loaded[0]['plugin'].launch_args = d.launch_args
     if debug:
         plugins_loaded[0]['plugin'].debug = True
 
@@ -191,6 +197,8 @@ def load_plugins(debug=False):
             try:
                 __import__('plugins.' + plugin)
                 exec('plugins_loaded.append({"filename": "' + plugin + '.py", "plugin": plugins.' + plugin + '.extension()})')
+                # Pass the plug-in's version of dmenu the list of launch arguments
+                plugins_loaded[-1]['plugin'].launch_args = d.launch_args
                 if debug:
                     plugins_loaded[-1]['plugin'].debug = True
                     print('Loaded plugin ' + plugin)
@@ -210,6 +218,7 @@ class dmenu(object):
     prefs = False
     debug = False
     preCommand = False
+    launch_args = [] # Holds a list of menu items to automatically select
 
 
     def get_plugins(self, force=False):
@@ -385,28 +394,44 @@ class dmenu(object):
 
     def menu(self, items, prompt=False):
         self.load_preferences()
-        if prompt == False:
-            p = subprocess.Popen([self.prefs['menu']] + self.prefs['menu_arguments'],
-                                 stdin=subprocess.PIPE,
-                                 stdout=subprocess.PIPE)
+        # Check the passed commands from launch for a shortcut
+        if len(self.launch_args) > 0:
+            out = self.launch_args[0]
+            self.launch_args = self.launch_args[1:]
+            if self.debug:
+                print('Menu bypassed with launch argument: ' + out)
+            return out
         else:
-            p = subprocess.Popen([self.prefs['menu']] + self.prefs['menu_arguments'] + ['-p', prompt],
-                                 stdin=subprocess.PIPE,
-                                 stdout=subprocess.PIPE)
+            if prompt == False:
+                p = subprocess.Popen([self.prefs['menu']] + self.prefs['menu_arguments'],
+                                     stdin=subprocess.PIPE,
+                                     stdout=subprocess.PIPE)
+            else:
+                p = subprocess.Popen([self.prefs['menu']] + self.prefs['menu_arguments'] + ['-p', prompt],
+                                     stdin=subprocess.PIPE,
+                                     stdout=subprocess.PIPE)
 
-        if type(items) == list:
-            items = "\n".join(items)
+            if type(items) == list:
+                items = "\n".join(items)
 
-        out = p.communicate(items.encode(system_encoding))[0]
+            out = p.communicate(items.encode(system_encoding))[0]
 
-        if out.strip() == '':
-            sys.exit()
-        else:
-            return out.decode().strip('\n')
+            if out.strip() == '':
+                sys.exit()
+            else:
+                return out.decode().strip('\n')
 
 
     def select(self, items, prompt=False, numeric=False):
-        result = self.menu(items, prompt)
+        # Check the passed commands from launch for a shortcut
+        if len(self.launch_args) > 0:
+            result = self.launch_args[0]
+            self.launch_args = self.launch_args[1:]
+            if self.debug:
+                print('Menu bypassed with launch argument: ' + result)
+        else:
+            result = self.menu(items, prompt)
+
         for index, item in enumerate(items):
             if result.find(item) != -1:
                 if numeric:
@@ -697,7 +722,8 @@ class dmenu(object):
     def parse_alias_file(self, path):
         out = []
         with open(path.replace('~', os.path.expanduser('~')), 'r') as f:
-            print('Opening file')
+            if self.debug:
+                print('Opening alias file')
             for line in f.readlines():
                 if line[:6].lower() == 'alias ':
                     parts = line[6:].replace('\n','').replace('\'','').replace('"','').split('=')
@@ -902,7 +928,6 @@ class dmenu(object):
 
         return out
 
-
 class extension(dmenu):
 
     title = 'Settings'
@@ -948,12 +973,9 @@ class extension(dmenu):
                 status = str(abs(cacheSizeChange)) + ' items were removed.'
             else:
                 status = 'No new items were added'
-
             response.append('Cache updated successfully; ' + status)
-
             if result == 2:
                 response.append('NOTICE: Performance issues were encountered while caching data')
-
         else:
             response.append('Cache rebuilt; its size did not change.')
 
@@ -1191,17 +1213,28 @@ def handle_command(d, out):
         d.execute(out)
 
 
-def run(debug=False):
+def run(*args):
+    global d
+
+    launch_args = list(args[1:])
+
     d = dmenu()
-    if debug:
+    d.launch_args = launch_args
+
+    if '--debug' in d.launch_args:
         d.debug = True
+        d.launch_args.remove('--debug')
+        print('Debugging enabled')
+        print('Launch arguments: ' + str(launch_args))
+
     cache = d.cache_load()
     out = d.menu(cache,'Open:').strip()
+
     if len(out) > 0:
-        if debug:
-            print("Menu closed with user input: " + out)
+        if d.debug:
+            print("First menu closed with user input: " + out)
         # Check if the action relates to a plugin
-        plugins = load_plugins(debug)
+        plugins = load_plugins(d.debug)
         plugin_hook = False
         for plugin in plugins:
             if hasattr(plugin['plugin'], 'is_submenu') and plugin['plugin'].is_submenu == True:
@@ -1216,7 +1249,7 @@ def run(debug=False):
         if plugin_hook != False:
             plugin_hook.run(out[len(pluginTitle):])
             if d.debug:
-                print("This command refers to a plugin")
+                print("This command refers to a plugin_in")
         else:
             if d.debug:
                 print("This command is not related to a plugin")
@@ -1543,8 +1576,4 @@ def run(debug=False):
                 handle_command(d, out)
 
 if __name__ == "__main__":
-    debug = False
-    if '--debug' in sys.argv:
-        print('Debugging enabled')
-        debug = True
-    run(debug)
+    run(*sys.argv)

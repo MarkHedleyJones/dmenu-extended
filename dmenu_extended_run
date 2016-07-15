@@ -3,9 +3,5 @@
 import dmenu_extended
 import sys
 
-if __name__ == '__main__':
-    debug = False
-    if '--debug' in sys.argv:
-        print('Debugging enabled')
-        debug = True
-    dmenu_extended.run(debug)
+if __name__ == "__main__":
+    dmenu_extended.run(*sys.argv)
