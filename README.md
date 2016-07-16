@@ -66,6 +66,14 @@ The most productive way to use dmenu-extended is to bind the command `dmenu_exte
 ### Tiling window managers
 If you use a tiling window manager, you may already have a key-combination bound to launch dmenu (i.e. Ctrl+P). Edit your window managers configuration file to launch `dmenu_extended_run` instead.
 
+### Advanced keybinds
+`dmenu_extended_run` supports automated menu item selection via argument passing. If, for example, you frequently use the 'Internet Search' plugin with a particular search provider, you may want a binding that takes you directly to that provider.
+To do this you might bind the following command to an alternate key combination:
+
+  `dmenu_extended_run "-> Internet search: " "Wikipedia"`
+
+The arguments must be written exactly as they would appear in the menu. Any number of arguments can be passed and each will be executed in the order they are passed. Each item represents one item selection from a menu. Remember to quote each item so they are passed to the menu correctly.
+
 ## General Configuration
 
 Menu configuration is contained in a JSON formatted file found at *~/.config/dmenu-extended/config/dmenuExtended_preferences.json* that controls the appearance and functionality of the menu. This file is also accessible from the `-> Menu configuration` submenu as `* Edit menu preferences`
