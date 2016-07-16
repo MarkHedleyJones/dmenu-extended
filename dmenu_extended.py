@@ -76,11 +76,11 @@ default_prefs = {
     "include_items": [],                # Extra items to display - manually added
     "exclude_items": [],                # Items to hide - manually hidden
     "include_binaries": True,
-    "filter_binaries": True,           # Only include binaries that have an associated .desktop file
+    "filter_binaries": True,            # Only include binaries that have an associated .desktop file
     "include_applications": True,       # Add items from /usr/share/applications
     "alias_applications": False,        # Alias applications with their common names
     "path_aliasFile": "",               # Pointer to an aliases file (if any)
-    "frequently_used": 0,
+    "frequently_used": 0,               # Number of most frequently used commands to show in the menu
     "alias_display_format": "{name}",
     "path_shellCommand": "~/.dmenuEextended_shellCommand.sh",
     "menu": 'dmenu',                    # Executable for the menu
