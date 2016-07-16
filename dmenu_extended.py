@@ -1250,7 +1250,7 @@ def run(*args):
             plugin_hook[0].load_preferences()
             plugin_hook[0].run(out[len(plugin_hook[1]):].strip())
             if d.debug:
-                print("This command refers to a plugin_in")
+                print("This command refers to a plugin")
         else:
             if d.debug:
                 print("This command is not related to a plugin")
