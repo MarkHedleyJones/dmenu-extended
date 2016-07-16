@@ -7,6 +7,7 @@ import signal
 import json
 import codecs
 import locale
+import operator
 
 # Python 3 urllib import with Python 2 fallback
 try:
@@ -30,6 +31,8 @@ file_cache_folders = path_cache + '/dmenuExtended_folders.txt'
 file_cache_aliases = path_cache + '/dmenuExtended_aliases.txt'
 file_cache_aliasesLookup = path_cache + '/dmenuExtended_aliases_lookup.json'
 file_cache_plugins = path_cache + '/dmenuExtended_plugins.txt'
+file_cache_frequentlyUsed_frequency = path_cache + '/dmenuExtended_frequentlyUsed_frequency.json'
+file_cache_frequentlyUsed_ordered = path_cache + '/dmenuExtended_frequentlyUsed_ordered.json'
 # file_shCmd = '~/.dmenuEextended_shellCommand.sh'
 
 d = None # Global dmenu object
@@ -77,6 +80,7 @@ default_prefs = {
     "include_applications": True,       # Add items from /usr/share/applications
     "alias_applications": False,        # Alias applications with their common names
     "path_aliasFile": "",               # Pointer to an aliases file (if any)
+    "frequently_used": 0,
     "alias_display_format": "{name}",
     "path_shellCommand": "~/.dmenuEextended_shellCommand.sh",
     "menu": 'dmenu',                    # Executable for the menu
@@ -210,6 +214,53 @@ def load_plugins(debug=False):
                 if debug:
                     print('!! Plugin was deleted to prevent interruption to dmenuExtended')
     return plugins_loaded
+
+
+def frequent_commands_store(command):
+    """ Records the user's execution of a command. This involves first adding the command
+    to a dictionary, or incrementing the frequency count if it already exists.
+    That dictionary is then used to create the frequently used cache by sorting based
+    on value (frequency), then writing the sorted commands to the frequency file.
+    """
+    if os.path.exists(file_cache_frequentlyUsed_frequency) is False:
+        if d.debug:
+            print("Frequently used items does not exist, starting new...")
+        cmds = {}
+    else:
+        if d.debug:
+            print("Frequently used items cache exists, retrieving...")
+        cmds = d.load_json(file_cache_frequentlyUsed_frequency)
+
+    if d.debug:
+        print("Adding entered command to the cache...")
+    if command in cmds.keys():
+        cmds[command] += 1
+    else:
+        cmds[command] = 1
+
+    if d.debug:
+        print("Sorting and saving the cache...")
+
+    d.save_json(file_cache_frequentlyUsed_frequency, cmds)
+    cmds = sorted(cmds.items(), key=operator.itemgetter(1), reverse=True)
+
+    # Write the full list of commands to storage, only the required number is read
+    with open(file_cache_frequentlyUsed_ordered, 'w') as f:
+        for cmd in cmds:
+            f.write(cmd[0]+'\n')
+
+
+def frequent_commands_retrieve(number):
+    """ Retrieves the list of frequently used commands, sorted by their frequency """
+    if os.path.exists(file_cache_frequentlyUsed_ordered) is False:
+        if d.debug:
+            print("Frequently used items cache does not exist, will return nothing")
+        return ""
+    else:
+        if d.debug:
+            print("Frequently used items cache exists, retrieving and clipping to " + str(number) + " items")
+        with open(file_cache_frequentlyUsed_ordered, 'r') as f:
+            return "".join(f.readlines()[:number])
 
 
 class dmenu(object):
@@ -572,6 +623,7 @@ class dmenu(object):
             return False
 
     def cache_load(self, exitOnFail=False):
+        cache_frequent = frequent_commands_retrieve(self.prefs['frequently_used'])
         cache_plugins = self.cache_open(file_cache_plugins)
         cache_scanned = self.cache_open(file_cache)
 
@@ -585,7 +637,7 @@ class dmenu(object):
                 else:
                     return self.cache_load(exitOnFail=True)
 
-        return cache_plugins + cache_scanned
+        return cache_plugins + cache_frequent + cache_scanned
 
     def command_output(self, command, split=True):
         if type(command) != list:
@@ -1227,6 +1279,7 @@ def run(*args):
         print('Debugging enabled')
         print('Launch arguments: ' + str(launch_args))
 
+    d.load_preferences()
     cache = d.cache_load()
     out = d.menu(cache,'Open:').strip()
 
@@ -1256,6 +1309,11 @@ def run(*args):
                 print("This command is not related to a plugin")
             # Check to see if the command is an alias for something
             if d.retrieve_aliased_command(out) is not None:
+
+                # If the user wants frequently used items, store this execution (before de-aliasing)
+                if d.prefs['frequently_used'] > 0:
+                    frequent_commands_store(out)
+
                 out = d.retrieve_aliased_command(out)
             else:
                 # Check for store modifications
@@ -1506,6 +1564,11 @@ def run(*args):
                     d.menu(message)
                     sys.exit()
 
+                else:
+                    # If the user wants frequently used items, store this execution
+                    if d.prefs['frequently_used'] > 0:
+                        frequent_commands_store(out)
+
             # Detect if the command is a web address and pass to handle_command
             if out[:7] == 'http://' or out[:8] == 'https://':
                 handle_command(d, out)
@@ -1546,6 +1609,7 @@ def run(*args):
                     filename = d.menu(items)
                     filename = os.path.expanduser(filename)
                     command = cmds[0] + " '" + filename + "'"
+
                     if run_withshell:
                         d.open_terminal(command, shell_hold)
                     else:
@@ -1557,6 +1621,7 @@ def run(*args):
                     else:
                         binary = d.menu(d.scan_binaries())
                         command = binary + " '" + os.path.expanduser(cmds[0]) + "'"
+
                     d.execute(command)
                 else:
                     d.menu(["Cant find " + cmds[0] + ", is it installed?"])
@@ -1575,6 +1640,7 @@ def run(*args):
 
             else:
                 handle_command(d, out)
+
 
 if __name__ == "__main__":
     run(*sys.argv)
