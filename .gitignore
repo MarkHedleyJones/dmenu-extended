@@ -3,3 +3,5 @@ cache.txt
 settings.txt
 build/*
 *.swp
+*.sublime-workspace
+*.sublime-project
