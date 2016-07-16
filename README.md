@@ -94,6 +94,7 @@ Functions of the items are as follows.
 * `"include_applications"` add items found under /usr/share/applications
 * `"alias_applications"` alias applications with their intended names
 * `"path_aliasFile"` path to a file containing aliases (e.g. ~/.bash_aliases)
+* `"frequently_used"` the number of your most frequently used commands to show at the top of the menu
 * `"alias_display_format"` how to format aliased commands (e.g. `"{name} ({command})"`)
 * `"path_shellCommand"` path to use for creating terminal helper script (e.g. "~/.dmenuEextended_shellCommand.sh")
 * `"menu"` executable to open the menu (dmenu)
