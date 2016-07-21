@@ -1,5 +1,5 @@
 [Unit]
-Description=Run update-dmenu-extended-db.service every 5 minutes
+Description=Run update-dmenu-extended-db.service every 20 minutes
 
 [Timer]
 OnCalendar=*:0/20
