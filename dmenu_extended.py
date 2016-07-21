@@ -106,7 +106,8 @@ default_prefs = {
     "terminal": "xterm",                # Terminal
     "indicator_submenu": "->",          # Symbol to indicate a submenu item
     "indicator_edit": "*",              # Symbol to indicate an item will launch an editor
-    "indicator_alias": ""              # Symbol to indecate an aliased command
+    "indicator_alias": "",              # Symbol to indecate an aliased command
+    "prompt": "Open:"                   # Prompt
 }
 
 def initialize_d(launch_args):
@@ -1287,7 +1288,8 @@ def run(*args):
 
     d.load_preferences()
     cache = d.cache_load()
-    out = d.menu(cache,'Open:').strip()
+    prompt = d.prefs['prompt']
+    out = d.menu(cache,prompt).strip()
 
     if len(out) > 0:
         if d.debug:
