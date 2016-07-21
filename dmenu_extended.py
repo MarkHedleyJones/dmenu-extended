@@ -109,6 +109,17 @@ default_prefs = {
     "indicator_alias": ""              # Symbol to indecate an aliased command
 }
 
+def initialize_d(launch_args):
+    global d
+    if d is None:
+        d = dmenu()
+        d.launch_args = launch_args
+
+        if '--debug' in d.launch_args:
+            d.debug = True
+            d.launch_args.remove('--debug')
+            print('Debugging enabled')
+            print('Launch arguments: ' + str(launch_args))
 
 def setup_user_files():
     """ Returns nothing
@@ -185,6 +196,10 @@ import plugins
 
 
 def load_plugins(debug=False):
+    global d
+
+    initialize_d([])
+
     if debug:
         print('Loading plugins')
 
@@ -781,7 +796,7 @@ class dmenu(object):
                     parts = line[6:].replace('\n','').replace('\'','').replace('"','').split('=')
                     out.append([parts[0], parts[1]])
         return out
-                    
+
 
     def cache_build(self):
         self.load_preferences()
@@ -1266,18 +1281,9 @@ def handle_command(d, out):
 
 
 def run(*args):
-    global d
-
     launch_args = list(args[1:])
 
-    d = dmenu()
-    d.launch_args = launch_args
-
-    if '--debug' in d.launch_args:
-        d.debug = True
-        d.launch_args.remove('--debug')
-        print('Debugging enabled')
-        print('Launch arguments: ' + str(launch_args))
+    initialize_d(launch_args)
 
     d.load_preferences()
     cache = d.cache_load()
@@ -1390,7 +1396,7 @@ def run(*args):
                                 print("No")
 
                         # If removing a command - an alias would be detected as a command
-                        
+
                         if action == '-' and type(item) == list:
                             if d.debug:
                                 print("Is (-) " + str(d.format_alias(item[0], item[1])) + " == " + str(command) + "?")
@@ -1422,7 +1428,7 @@ def run(*args):
                                     print("Alias is now: " + str(alias))
                                 break
                             elif d.debug:
-                                print("No") 
+                                print("No")
 
                             if d.debug:
                                 print("Is (-) " + str(item[0]) + " == " + str(command) + "?")
@@ -1438,7 +1444,7 @@ def run(*args):
                                     print("Alias is now: " + str(alias))
                                 break
                             elif d.debug:
-                                print("No") 
+                                print("No")
 
                         if type(item) != list:
                             if d.debug:
@@ -1468,7 +1474,7 @@ def run(*args):
                             answer = d.menu("Alias '" + str(alias) + "' was not found in store\n"+option)
                         if answer != option:
                             sys.exit()
-                        action = '+'                    
+                        action = '+'
 
 
                     cache_scanned = d.cache_open(file_cache)[:-1]
@@ -1546,7 +1552,7 @@ def run(*args):
                         sys.exit()
 
                     d.save_preferences()
-                    d.cache_save(cache_scanned, file_cache)                        
+                    d.cache_save(cache_scanned, file_cache)
                     d.message_close()
 
                     # Give the user some feedback
