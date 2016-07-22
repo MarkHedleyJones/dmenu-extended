@@ -35,7 +35,7 @@ file_cache_frequentlyUsed_frequency = path_cache + '/dmenuExtended_frequentlyUse
 file_cache_frequentlyUsed_ordered = path_cache + '/dmenuExtended_frequentlyUsed_ordered.json'
 # file_shCmd = '~/.dmenuEextended_shellCommand.sh'
 
-d = None # Global dmenu object
+d = None # Global dmenu object - initialised near bottom of script
 
 default_prefs = {
     "valid_extensions": [
@@ -1266,19 +1266,16 @@ def handle_command(d, out):
 
 
 def run(*args):
-    global d
 
     launch_args = list(args[1:])
 
-    d = dmenu()
-    d.launch_args = launch_args
-
-    if '--debug' in d.launch_args:
+    if '--debug' in launch_args:
         d.debug = True
-        d.launch_args.remove('--debug')
+        launch_args.remove('--debug')
         print('Debugging enabled')
         print('Launch arguments: ' + str(launch_args))
 
+    d.launch_args = launch_args
     d.load_preferences()
     cache = d.cache_load()
     out = d.menu(cache,'Open:').strip()
@@ -1641,6 +1638,7 @@ def run(*args):
             else:
                 handle_command(d, out)
 
+d = dmenu()
 
 if __name__ == "__main__":
     run(*sys.argv)
