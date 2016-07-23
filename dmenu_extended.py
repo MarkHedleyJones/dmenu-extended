@@ -197,8 +197,6 @@ import plugins
 
 
 def load_plugins(debug=False):
-    global d
-
     initialize_d([])
 
     if debug:
