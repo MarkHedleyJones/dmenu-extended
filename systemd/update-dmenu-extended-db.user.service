@@ -4,4 +4,4 @@ Description=Updates the database file used by dmenu_extended_run
 [Service]
 Type=oneshot
 User=%i
-ExecStart=/home/%i/.local/bin/dmenu_extended_cache_build
+ExecStart=/bin/sh -c "~/.local/bin/dmenu_extended_cache_build"

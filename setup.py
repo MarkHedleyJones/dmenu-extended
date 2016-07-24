@@ -20,6 +20,7 @@ setup(name='dmenu_extended',
       scripts=['dmenu_extended_run', 'dmenu_extended_cache_build'],
       data_files=[('share/dmenu-extended/', ['systemd-install.sh']),
                   ('share/dmenu-extended/systemd',
-                      ['systemd/update-dmenu-extended-db.service',
+                      ['systemd/update-dmenu-extended-db.system.service',
+                       'systemd/update-dmenu-extended-db.user.service',
                        'systemd/update-dmenu-extended-db.timer'])]
       )
