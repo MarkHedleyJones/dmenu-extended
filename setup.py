@@ -1,4 +1,5 @@
 import os
+import sys
 from distutils.core import setup
 
 # __version__ = None
@@ -18,9 +19,8 @@ setup(name='dmenu_extended',
       py_modules=['dmenu_extended'],
       # packages=['dmenu_extended', 'dmenu_extended/config', 'dmenu_extended/plugins'],
       scripts=['dmenu_extended_run', 'dmenu_extended_cache_build'],
-      data_files=[
-          ('/usr/lib/systemd/user', [
-              'systemd/update-dmenu-extended-db.service',
-              'systemd/update-dmenu-extended-db.timer'
-              ])]
+      data_files=[('share/dmenu-extended/', ['systemd-install.sh']),
+                  ('share/dmenu-extended/systemd',
+                      ['systemd/update-dmenu-extended-db.service',
+                       'systemd/update-dmenu-extended-db.timer'])]
       )

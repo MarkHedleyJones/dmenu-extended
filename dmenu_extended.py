@@ -110,18 +110,6 @@ default_prefs = {
     "prompt": "Open:"                   # Prompt
 }
 
-def initialize_d(launch_args):
-    global d
-    if d is None:
-        d = dmenu()
-        d.launch_args = launch_args
-
-        if '--debug' in d.launch_args:
-            d.debug = True
-            d.launch_args.remove('--debug')
-            print('Debugging enabled')
-            print('Launch arguments: ' + str(launch_args))
-
 def setup_user_files():
     """ Returns nothing
 
@@ -197,8 +185,6 @@ import plugins
 
 
 def load_plugins(debug=False):
-    initialize_d([])
-
     if debug:
         print('Loading plugins')
 
@@ -1186,36 +1172,32 @@ class extension(dmenu):
         else:
             self.menu(['The following plugins were updated:'] + updated)
 
-    def enable_automatic_rebuild_cache(self):
-        has_systemd = subprocess.call(['which', 'systemctl'])
-        if has_systemd != 0:
-            self.menu(['Error: systemd not found.'])
-            return
-        subprocess.call(['systemctl', '--user', 'daemon-reload'])
-        subprocess.call(['systemctl', '--user', 'enable', 'update-dmenu-extended-db.timer'])
-        subprocess.call(['systemctl', '--user', 'start', 'update-dmenu-extended-db.timer'])
-        self.menu(['Successfully enabled systemd service.'])
-
-    def disable_automatic_rebuild_cache(self):
-        has_systemd = subprocess.call(['which', 'systemctl'])
-        if has_systemd != 0:
-            self.menu(['Error: systemd not found.'])
-            return
-        subprocess.call(['systemctl', '--user', 'daemon-reload'])
-        subprocess.call(['systemctl', '--user', 'stop', 'update-dmenu-extended-db.timer'])
-        subprocess.call(['systemctl', '--user', 'disable', 'update-dmenu-extended-db.timer'])
-        self.menu(['Successfully disabled systemd service.'])
-
-    # Returns 0 if no systemd, 1 if running, 2 if not running
+    # Returns 0 if no systemd or script not installed, 1 if running, 2 if not running
     def get_automatic_rebuild_cache_status(self):
         has_systemd = subprocess.call(['which', 'systemctl'])
         if has_systemd != 0:
+            return 0
+        subprocess.call(['systemctl', '--user', 'daemon-reload'])
+        has_service = subprocess.check_output(['systemctl', '--user', 'list-unit-files', \
+                'update-dmenu-extended-db.timer'])
+        if 'update-dmenu-extended-db.timer' not in str(has_service):
             return 0
         is_enabled = subprocess.call(['systemctl', '--user', 'is-enabled', 'update-dmenu-extended-db.timer'])
         if is_enabled == 0:
             return 1
         else:
             return 2
+
+    # These two methods presume that we have systemd and the scripts are installed.
+    def enable_automatic_rebuild_cache(self):
+        subprocess.call(['systemctl', '--user', 'enable', 'update-dmenu-extended-db.timer'])
+        subprocess.call(['systemctl', '--user', 'start', 'update-dmenu-extended-db.timer'])
+        self.menu(['Successfully enabled systemd service.'])
+
+    def disable_automatic_rebuild_cache(self):
+        subprocess.call(['systemctl', '--user', 'stop', 'update-dmenu-extended-db.timer'])
+        subprocess.call(['systemctl', '--user', 'disable', 'update-dmenu-extended-db.timer'])
+        self.menu(['Successfully disabled systemd service.'])
 
     def run(self, inputText):
         automatic_rebuild_status = self.get_automatic_rebuild_cache_status()
