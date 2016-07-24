@@ -2,5 +2,6 @@ include dmenu_extended_run
 include dmenu_extended_cache_build
 include dmenu_extended.py
 include systemd-install.sh
-include systemd/update-dmenu-extended-db.service
+include systemd/update-dmenu-extended-db.system.service
+include systemd/update-dmenu-extended-db.user.service
 include systemd/update-dmenu-extended-db.timer

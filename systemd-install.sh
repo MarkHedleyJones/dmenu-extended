@@ -17,8 +17,10 @@ done
 
 if [ "$PER_USER_INSTALL" == "YES" ] ; then
 	SCRIPT_PATH=$HOME/.local/share/systemd/user
+	SERVICE_UNIT_NAME=update-dmenu-extended-db.user.service
 else
 	SCRIPT_PATH=/usr/lib/systemd/user
+	SERVICE_UNIT_NAME=update-dmenu-extended-db.system.service
 fi
 
 if [ "$UNINSTALL" == "YES" ]; then
@@ -33,4 +35,5 @@ if [ ! -d "$SCRIPT_PATH" ]; then
 fi
 
 echo "Installing systemd service in $SCRIPT_PATH..." 
-cp -v systemd/{update-dmenu-extended-db.service,update-dmenu-extended-db.timer} $SCRIPT_PATH
+cp -v systemd/$SERVICE_UNIT_NAME $SCRIPT_PATH/update-dmenu-extended-db.service
+cp -v systemd/update-dmenu-extended-db.timer $SCRIPT_PATH
