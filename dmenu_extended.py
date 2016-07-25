@@ -106,9 +106,9 @@ default_prefs = {
     "terminal": "xterm",                # Terminal
     "indicator_submenu": "->",          # Symbol to indicate a submenu item
     "indicator_edit": "*",              # Symbol to indicate an item will launch an editor
-    "indicator_alias": ""              # Symbol to indecate an aliased command
+    "indicator_alias": "",              # Symbol to indecate an aliased command
+    "prompt": "Open:"                   # Prompt
 }
-
 
 def setup_user_files():
     """ Returns nothing
@@ -781,7 +781,7 @@ class dmenu(object):
                     parts = line[6:].replace('\n','').replace('\'','').replace('"','').split('=')
                     out.append([parts[0], parts[1]])
         return out
-                    
+
 
     def cache_build(self):
         self.load_preferences()
@@ -1172,13 +1172,49 @@ class extension(dmenu):
         else:
             self.menu(['The following plugins were updated:'] + updated)
 
+    # Returns 0 if no systemd or script not installed, 1 if running, 2 if not running
+    def get_automatic_rebuild_cache_status(self):
+        has_systemd = subprocess.call(['which', 'systemctl'])
+        if has_systemd != 0:
+            return 0
+        subprocess.call(['systemctl', '--user', 'daemon-reload'])
+        has_service = subprocess.check_output(['systemctl', '--user', 'list-unit-files', \
+                'update-dmenu-extended-db.timer'])
+        if 'update-dmenu-extended-db.timer' not in str(has_service):
+            return 0
+        is_enabled = subprocess.call(['systemctl', '--user', 'is-enabled', 'update-dmenu-extended-db.timer'])
+        if is_enabled == 0:
+            return 1
+        else:
+            return 2
+
+    # These two methods presume that we have systemd and the scripts are installed.
+    def enable_automatic_rebuild_cache(self):
+        subprocess.call(['systemctl', '--user', 'enable', 'update-dmenu-extended-db.timer'])
+        subprocess.call(['systemctl', '--user', 'start', 'update-dmenu-extended-db.timer'])
+        self.menu(['Successfully enabled systemd service.'])
+
+    def disable_automatic_rebuild_cache(self):
+        subprocess.call(['systemctl', '--user', 'stop', 'update-dmenu-extended-db.timer'])
+        subprocess.call(['systemctl', '--user', 'disable', 'update-dmenu-extended-db.timer'])
+        self.menu(['Successfully disabled systemd service.'])
 
     def run(self, inputText):
+        automatic_rebuild_status = self.get_automatic_rebuild_cache_status()
+        if automatic_rebuild_status == 0:
+            automatic_rebuild_option = []
+        elif automatic_rebuild_status == 1:
+            automatic_rebuild_option = ['Disable automatic cache rebuilding']
+            automatic_rebuild_action = self.disable_automatic_rebuild_cache
+        else:
+            automatic_rebuild_option = ['Enable automatic cache rebuilding']
+            automatic_rebuild_action = self.enable_automatic_rebuild_cache
+
         items = ['Rebuild cache',
                  self.prefs['indicator_submenu'] + ' Download new plugins',
                  self.prefs['indicator_submenu'] + ' Remove existing plugins',
                  'Edit menu preferences',
-                 'Update installed plugins']
+                 'Update installed plugins'] + automatic_rebuild_option
 
         selectedIndex = self.select(items, "Action:", numeric=True)
 
@@ -1194,6 +1230,8 @@ class extension(dmenu):
                 self.plugins_available() # Refresh the plugin cache
             elif selectedIndex == 4:
                 self.update_plugins()
+            elif selectedIndex == 5:
+                automatic_rebuild_action()
 
 def is_binary(d, path):
     if os.path.isfile(path) == False:
@@ -1266,7 +1304,6 @@ def handle_command(d, out):
 
 
 def run(*args):
-
     launch_args = list(args[1:])
 
     if '--debug' in launch_args:
@@ -1278,7 +1315,8 @@ def run(*args):
     d.launch_args = launch_args
     d.load_preferences()
     cache = d.cache_load()
-    out = d.menu(cache,'Open:').strip()
+    prompt = d.prefs['prompt']
+    out = d.menu(cache,prompt).strip()
 
     if len(out) > 0:
         if d.debug:
@@ -1387,7 +1425,7 @@ def run(*args):
                                 print("No")
 
                         # If removing a command - an alias would be detected as a command
-                        
+
                         if action == '-' and type(item) == list:
                             if d.debug:
                                 print("Is (-) " + str(d.format_alias(item[0], item[1])) + " == " + str(command) + "?")
@@ -1419,7 +1457,7 @@ def run(*args):
                                     print("Alias is now: " + str(alias))
                                 break
                             elif d.debug:
-                                print("No") 
+                                print("No")
 
                             if d.debug:
                                 print("Is (-) " + str(item[0]) + " == " + str(command) + "?")
@@ -1435,7 +1473,7 @@ def run(*args):
                                     print("Alias is now: " + str(alias))
                                 break
                             elif d.debug:
-                                print("No") 
+                                print("No")
 
                         if type(item) != list:
                             if d.debug:
@@ -1465,7 +1503,7 @@ def run(*args):
                             answer = d.menu("Alias '" + str(alias) + "' was not found in store\n"+option)
                         if answer != option:
                             sys.exit()
-                        action = '+'                    
+                        action = '+'
 
 
                     cache_scanned = d.cache_open(file_cache)[:-1]
@@ -1543,7 +1581,7 @@ def run(*args):
                         sys.exit()
 
                     d.save_preferences()
-                    d.cache_save(cache_scanned, file_cache)                        
+                    d.cache_save(cache_scanned, file_cache)
                     d.message_close()
 
                     # Give the user some feedback
