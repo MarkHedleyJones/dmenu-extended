@@ -514,14 +514,17 @@ class dmenu(object):
         sh_command_file = os.path.expanduser(self.prefs['path_shellCommand']);
         with open(sh_command_file, 'w') as f:
             f.write("#! /bin/bash\n")
-            f.write(command + ";\n")
+            f.write(command + "\n")
 
             if hold == True:
                 f.write('echo "\n\nPress enter to exit";')
                 f.write('read var;')
 
         os.chmod(os.path.expanduser(sh_command_file), 0o744)
-        os.system(self.prefs['terminal'] + ' -e ' + sh_command_file)
+        if direct:
+            os.system('sh -e ' + sh_command_file)
+        else:
+            os.system(self.prefs['terminal'] + ' -e ' + sh_command_file)
 
 
     def open_file(self, path):
@@ -1250,16 +1253,21 @@ def handle_command(d, out):
             print("Tilda found, expanding to " + str(out))
     if out[-1] == ';':
         terminal_hold = False
-        if out[-2] == ';':
+        out = out[:-1]
+        if out[-1] == ';':
             terminal_hold = True
-        for command in out.split('&&'):
-            if command.find('/') != -1:
-                d.open_terminal("-cd " + command.replace(';',''),
-                                direct=True,
-                                hold=terminal_hold)
-            else:
-                d.open_terminal(command.replace(';',''),
-                                hold=terminal_hold)
+            out = out[:-1]
+        if d.debug:
+            print("Input will be treated as a terminal command")
+            if terminal_hold:
+                print("Terminal will be held open upon command finishing")
+            print("Command is: " + str(out))
+        if os.path.isdir(out):
+            if d.debug:
+                print("This is a path so will open it in the terminal")
+            d.open_terminal("cd " + out + " && " + d.prefs['terminal'] + " &", direct=True)
+        else:
+            d.open_terminal(out, hold=terminal_hold)
     elif out.find('/') != -1:
         if d.debug:
             print("Item has forward slashes, interpret as a path or url")
@@ -1300,6 +1308,8 @@ def handle_command(d, out):
                     print("Checked item and found it to be a file, opening as such")
                 d.open_file(out)
     else:
+        if d.debug:
+            print("Executing user input as a command")
         d.execute(out)
 
 
