@@ -440,7 +440,7 @@ class dmenu(object):
         os.killpg(self.message.pid, signal.SIGTERM)
 
 
-    def menu(self, items, prompt=False):
+    def menu(self, items, prompt=""):
         self.load_preferences()
         # Check the passed commands from launch for a shortcut
         if len(self.launch_args) > 0:
@@ -470,7 +470,7 @@ class dmenu(object):
                 return out.decode().strip('\n')
 
 
-    def select(self, items, prompt=False, numeric=False):
+    def select(self, items, prompt="", numeric=False):
         # Check the passed commands from launch for a shortcut
         if len(self.launch_args) > 0:
             result = self.launch_args[0]
