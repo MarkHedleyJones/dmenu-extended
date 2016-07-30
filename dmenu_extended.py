@@ -33,7 +33,6 @@ file_cache_aliasesLookup = path_cache + '/dmenuExtended_aliases_lookup.json'
 file_cache_plugins = path_cache + '/dmenuExtended_plugins.txt'
 file_cache_frequentlyUsed_frequency = path_cache + '/dmenuExtended_frequentlyUsed_frequency.json'
 file_cache_frequentlyUsed_ordered = path_cache + '/dmenuExtended_frequentlyUsed_ordered.json'
-# file_shCmd = '~/.dmenuEextended_shellCommand.sh'
 
 d = None # Global dmenu object - initialised near bottom of script
 
@@ -144,10 +143,6 @@ def setup_user_files():
     # file handler to prevent intermittent failure to open a text editor
     # required to edit the configuration file.
 
-    # if os.path.exists('/usr/bin/gnome-open'):
-    #     default_prefs['fileopener'] = 'gnome-open'
-    #     default_prefs['webbrowser'] = 'gnome-open'
-    #     default_prefs['filebrowser'] = 'gnome-open'
     if os.path.exists('/usr/bin/gnome-terminal'):
         default_prefs['terminal'] = 'gnome-terminal'
     if os.path.exists('/usr/bin/urxvt'):
@@ -326,6 +321,7 @@ class dmenu(object):
 
         return path
 
+
     def application_paths(self):
         """ Array containing the paths to application flies
 
@@ -345,6 +341,7 @@ class dmenu(object):
         paths = filter(os.path.isdir, paths)
 
         return paths
+
 
     def load_json(self, path):
         """ Loads and retuns the parsed contents of a specified json file
@@ -503,11 +500,13 @@ class dmenu(object):
             print('Opening url: "' + url + '" with ' + self.prefs['webbrowser'])
         self.execute(self.prefs['webbrowser'] + ' ' + url.replace(' ', '%20'))
 
+
     def open_directory(self, path):
         self.load_preferences()
         if self.debug:
             print('Opening folder: "' + path + '" with ' + self.prefs['filebrowser'])
         self.execute(self.prefs['filebrowser'] + ' "' + path + '"')
+
 
     def open_terminal(self, command, hold=False, direct=False):
         self.load_preferences()
@@ -564,8 +563,8 @@ class dmenu(object):
             extra = ' &'
         if self.preCommand:
             command = self.preCommand + command
-
         return os.system(command + extra)
+
 
     def cache_regenerate(self, message=True):
         if message:
@@ -625,6 +624,7 @@ class dmenu(object):
         except:
             return False
 
+
     def cache_load(self, exitOnFail=False):
         cache_frequent = frequent_commands_retrieve(self.prefs['frequently_used'])
         cache_plugins = self.cache_open(file_cache_plugins)
@@ -642,6 +642,7 @@ class dmenu(object):
 
         return cache_plugins + cache_frequent + cache_scanned
 
+
     def command_output(self, command, split=True):
         if type(command) != list:
             command = command.split(" ")
@@ -654,6 +655,7 @@ class dmenu(object):
         else:
             return out
 
+
     def scan_binaries(self):
         out = []
         for path in self.system_path():
@@ -663,6 +665,7 @@ class dmenu(object):
                 if binary[:3] is not 'gpk':
                     out.append(binary)
         return out
+
 
     def format_alias(self, name, command):
         if name is not None:
@@ -675,6 +678,7 @@ class dmenu(object):
                 return self.prefs['indicator_alias'] + ' ' + command
             else:
                 return command
+
 
     def scan_applications(self):
         paths = self.system_path()
@@ -723,6 +727,7 @@ class dmenu(object):
                                 break
         return applications
 
+
     def retrieve_aliased_command(self, alias):
         """
         Return the command intended to be executed by the given alias.
@@ -737,6 +742,7 @@ class dmenu(object):
                 return item[1]
         if self.debug:
             print("No suitable candidate was found")
+
 
     def plugins_available(self):
         self.load_preferences()
@@ -761,8 +767,8 @@ class dmenu(object):
 
         out = self.sort_shortest(plugin_titles)
         self.cache_save(out, file_cache_plugins)
-
         return out
+
 
     def try_remove(self, needle, haystack):
         """
@@ -773,6 +779,7 @@ class dmenu(object):
             haystack.remove(needle)
         except ValueError:
             pass
+
 
     def parse_alias_file(self, path):
         out = []
@@ -951,7 +958,6 @@ class dmenu(object):
                     aliased_items.append(title)
                     aliases.append([title, item[1]])
 
-
         plugins = self.plugins_available()
 
         # Save the alias lookup file and aliased_items
@@ -982,6 +988,7 @@ class dmenu(object):
             print('')
 
         return out
+
 
 class extension(dmenu):
 
@@ -1016,7 +1023,6 @@ class extension(dmenu):
                 print('Cache size did not change')
 
         response = []
-
         if cacheSizeChange != 0:
             if cacheSizeChange == 1:
                 status = 'one new item was added.'
@@ -1033,7 +1039,6 @@ class extension(dmenu):
                 response.append('NOTICE: Performance issues were encountered while caching data')
         else:
             response.append('Cache rebuilt; its size did not change.')
-
         response.append('The cache contains ' + str(cacheSize) + ' items.')
 
         self.menu(response)
@@ -1175,6 +1180,7 @@ class extension(dmenu):
         else:
             self.menu(['The following plugins were updated:'] + updated)
 
+
     # Returns 0 if no systemd or script not installed, 1 if running, 2 if not running
     def get_automatic_rebuild_cache_status(self):
         has_systemd = subprocess.call(['which', 'systemctl'])
@@ -1191,16 +1197,19 @@ class extension(dmenu):
         else:
             return 2
 
+
     # These two methods presume that we have systemd and the scripts are installed.
     def enable_automatic_rebuild_cache(self):
         subprocess.call(['systemctl', '--user', 'enable', 'update-dmenu-extended-db.timer'])
         subprocess.call(['systemctl', '--user', 'start', 'update-dmenu-extended-db.timer'])
         self.menu(['Successfully enabled systemd service.'])
 
+
     def disable_automatic_rebuild_cache(self):
         subprocess.call(['systemctl', '--user', 'stop', 'update-dmenu-extended-db.timer'])
         subprocess.call(['systemctl', '--user', 'disable', 'update-dmenu-extended-db.timer'])
         self.menu(['Successfully disabled systemd service.'])
+
 
     def run(self, inputText):
         automatic_rebuild_status = self.get_automatic_rebuild_cache_status()
@@ -1236,6 +1245,7 @@ class extension(dmenu):
             elif selectedIndex == 5:
                 automatic_rebuild_action()
 
+
 def is_binary(d, path):
     if os.path.isfile(path) == False:
         return False
@@ -1245,6 +1255,7 @@ def is_binary(d, path):
         if path[-len(extension)-1:] == '.' + extension:
             return False
     return True
+
 
 def handle_command(d, out):
     if out.find('~') != -1:
@@ -1354,11 +1365,9 @@ def run(*args):
                 print("This command is not related to a plugin")
             # Check to see if the command is an alias for something
             if d.retrieve_aliased_command(out) is not None:
-
                 # If the user wants frequently used items, store this execution (before de-aliasing)
                 if d.prefs['frequently_used'] > 0:
                     frequent_commands_store(out)
-
                 out = d.retrieve_aliased_command(out)
             else:
                 # Check for store modifications
@@ -1383,39 +1392,6 @@ def run(*args):
                         print("command = '" + str(command) + "'")
                         print("alias '= " + str(alias) + "'")
 
-
-
-                    # aliased = False
-                    # # Check for aliased command
-                    # if action == '+':
-                    #     aliased = True
-                    #     tmp = out.split('#')
-
-                    #     if d.debug:
-                    #         print("tmp = " + str(tmp))
-
-                    #     command = tmp[0].rstrip()
-                    #     if len(tmp) > 1:
-                    #         out = d.format_alias(tmp[1].lstrip(), command.replace(';',''))
-                    #     else:
-                    #         if d.debug:
-                    #             print("This command is not aliased")
-                    #         aliased = False
-                    #         out = d.format_alias(None, command.replace(';',''))
-
-                    #     if aliased == 0:
-                    #         item = command
-                    #     else:
-                    #         item = [out, command]
-
-                    #     if d.debug:
-                    #         print("Item = " + str(item))
-                    # elif out[:len(d.prefs['indicator_alias'])] == d.prefs['indicator_alias']:
-                    #     item = out[len(d.prefs['indicator_alias']):].lstrip()
-                    #     aliased = True
-                    # else:
-                    #     item = out
-
                     # Check to see if the item is in the include_items list
                     found_in_store = False
                     if d.debug:
@@ -1435,7 +1411,6 @@ def run(*args):
                                 print("No")
 
                         # If removing a command - an alias would be detected as a command
-
                         if action == '-' and type(item) == list:
                             if d.debug:
                                 print("Is (-) " + str(d.format_alias(item[0], item[1])) + " == " + str(command) + "?")
@@ -1515,7 +1490,6 @@ def run(*args):
                             sys.exit()
                         action = '+'
 
-
                     cache_scanned = d.cache_open(file_cache)[:-1]
 
                     if cache_scanned == False:
@@ -1524,8 +1498,6 @@ def run(*args):
                         sys.exit()
                     else:
                         cache_scanned = cache_scanned.split("\n")
-
-
 
                     if action == '+':
 
