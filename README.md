@@ -1,12 +1,19 @@
 # dmenu-extended
 
-An extension to the original [dmenu](http://tools.suckless.org/dmenu/) allowing super fast access to your files, folders, and programs. dmenu-extended has support for plugins, command aliasing, file filtering, and customisation.
+An extension to the original [dmenu](http://tools.suckless.org/dmenu/) allowing super fast access to your files, folders, and programs. dmenu-extended has support for plugins, command aliasing, file filtering, and customisation. You can also use dmenu-extended with [rofi](https://davedavenport.github.io/rofi/)!.
 
 ## See it in action
 
 <p align="center">
   <img src="https://raw.github.com/markjones112358/dmenu-extended/master/demo.gif" alt="Dmenu-extended demo"/>
 </p>
+
+## Feature Summary:
+* Indexes the files and folders you specify
+* Built in support for plugins (internet search, sudo, system package management)
+* Systemd integration for cache automatic rebuilding
+* Ability to swap the menu to Rofi
+* Support for scanning alias files (e.g. .bashrc)
 
 ## Dependencies
 * **Python**, compatible with versions 2 and 3.
@@ -113,17 +120,18 @@ Adding the item `"*"` to  `"valid_extensions"` will cause **all** files to be in
 ## Rebuild the cache from terminal
 It is possible to rebuild the cache from the terminal by running:
 
-    python -c "import dmenu_extended
-    dmenu_extended.dmenu().cache_build()"
-  
-Alternatively, create a python script containing the following lines:
+    dmenu_extended_cache_build
 
-    #! /bin/python
-    import dmenu_extended
-    dmenu_extended.dmenu().cache_build()
+You could run this script directly to rebuild your cache or call it from [cron](http://en.wikipedia.org/wiki/Cron).
+Dmenu has [systemd](http://en.wikipedia.org/wiki/Systemd) integration so you can set it rebulid your cache every 20 mins from the settings menu within dmenu-extended.
 
-You could run this script directly to rebuild your cache or call it from [cron](http://en.wikipedia.org/wiki/Cron), or create a [systemd](http://en.wikipedia.org/wiki/Systemd) node to rebuild it periodically in the background.
+## Running Dmenu-extended with Rofi
+Ensure you have Rofi installed and edit the following two configuration options as so:
 
+    "menu": "rofi",
+    "menu_arguments": [
+      "-dmenu"
+    ],
 
 ## Advanced usage
 Dmenu-extended understands the following modifier characters when entering a special command:
