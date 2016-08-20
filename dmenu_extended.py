@@ -205,9 +205,10 @@ def load_plugins(debug=False):
                 if debug:
                     print('Error loading plugin ' + plugin)
                     print(str(e))
-                os.remove(path_plugins + '/' + plugin + '.py')
-                if debug:
+                else:
                     print('!! Plugin was deleted to prevent interruption to dmenuExtended')
+                    os.remove(path_plugins + '/' + plugin + '.py')
+
     return plugins_loaded
 
 
@@ -450,14 +451,10 @@ class dmenu(object):
                 print('Menu bypassed with launch argument: ' + out)
             return out
         else:
-            if prompt == False:
-                p = subprocess.Popen([self.prefs['menu']] + self.prefs['menu_arguments'],
-                                     stdin=subprocess.PIPE,
-                                     stdout=subprocess.PIPE)
-            else:
-                p = subprocess.Popen([self.prefs['menu']] + self.prefs['menu_arguments'] + ['-p', prompt],
-                                     stdin=subprocess.PIPE,
-                                     stdout=subprocess.PIPE)
+            print([self.prefs['menu']] + self.prefs['menu_arguments'])
+            p = subprocess.Popen([self.prefs['menu']] + self.prefs['menu_arguments'] + ['-p', prompt],
+                                 stdin=subprocess.PIPE,
+                                 stdout=subprocess.PIPE)
 
             if type(items) == list:
                 items = "\n".join(items)
