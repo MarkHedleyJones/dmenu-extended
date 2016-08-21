@@ -99,6 +99,11 @@ default_prefs = {
         "-l",                           # Number of lines to display
         "20"
     ],
+    "password_helper": [
+        "zenity",
+        "--password",
+        "--title={prompt}"
+    ],
     "fileopener": "xdg-open",           # Program to handle opening files
     "filebrowser": "xdg-open",          # Program to handle opening paths
     "webbrowser": "xdg-open",           # Program to hangle opening urls
@@ -441,6 +446,18 @@ class dmenu(object):
         os.killpg(self.message.pid, signal.SIGTERM)
 
 
+    def get_password(self, helper_text=None):
+        prompt = "Password"
+        if helper_text is not None:
+            prompt += " (" + helper_text + ")"
+        prompt += ": "
+        command = self.prefs["password_helper"]
+        for index, item in enumerate(command):
+            if "{prompt}" in item:
+                command[index] = item.format(prompt=prompt)
+        return subprocess.check_output(command)
+
+
     def menu(self, items, prompt=""):
         self.load_preferences()
         # Check the passed commands from launch for a shortcut
@@ -451,13 +468,16 @@ class dmenu(object):
                 print('Menu bypassed with launch argument: ' + out)
             return out
         else:
-            print([self.prefs['menu']] + self.prefs['menu_arguments'])
             p = subprocess.Popen([self.prefs['menu']] + self.prefs['menu_arguments'] + ['-p', prompt],
                                  stdin=subprocess.PIPE,
                                  stdout=subprocess.PIPE)
 
             if type(items) == list:
                 items = "\n".join(items)
+
+            # Prevent rofi from closing with no prompt
+            if self.prefs['menu'] == 'rofi' and items == '':
+                items = " "
 
             out = p.communicate(items.encode(system_encoding))[0]
 
