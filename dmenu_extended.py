@@ -9,6 +9,8 @@ import codecs
 import locale
 import operator
 
+_version_ = 16.081
+
 # Python 3 urllib import with Python 2 fallback
 try:
     import urllib.request as urllib2
@@ -1089,7 +1091,13 @@ class extension(dmenu):
 
         for plugin in plugins:
             if plugin + '.py' not in installed_pluginFilenames:
-                items.append(plugin.replace(substitute[0], substitute[1]) + ' - ' + plugins[plugin]['desc'])
+                if "min_version" in plugins[plugin]:
+                    print(plugins[plugin]["min_version"])
+                    print(_version_)
+                    if plugins[plugin]["min_version"] <= _version_:
+                        items.append(plugin.replace(substitute[0], substitute[1]) + ' - ' + plugins[plugin]['desc'])
+                    else:
+                        items.append('X - ' + plugin.replace(substitute[0], substitute[1]) + ' - Requires dmenu_extended >= v' + str(plugins[plugin]["min_version"]))
 
         self.message_close()
 
