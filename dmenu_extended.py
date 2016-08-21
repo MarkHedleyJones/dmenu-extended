@@ -9,7 +9,7 @@ import codecs
 import locale
 import operator
 
-_version_ = 16.081
+_version_ = 16.082
 
 # Python 3 urllib import with Python 2 fallback
 try:
