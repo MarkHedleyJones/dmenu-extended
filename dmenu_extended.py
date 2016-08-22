@@ -9,7 +9,7 @@ import codecs
 import locale
 import operator
 
-_version_ = 16.082
+_version_ = 16.083
 
 # Python 3 urllib import with Python 2 fallback
 try:
@@ -1092,8 +1092,6 @@ class extension(dmenu):
         for plugin in plugins:
             if plugin + '.py' not in installed_pluginFilenames:
                 if "min_version" in plugins[plugin]:
-                    print(plugins[plugin]["min_version"])
-                    print(_version_)
                     if plugins[plugin]["min_version"] <= _version_:
                         items.append(plugin.replace(substitute[0], substitute[1]) + ' - ' + plugins[plugin]['desc'])
                     else:
