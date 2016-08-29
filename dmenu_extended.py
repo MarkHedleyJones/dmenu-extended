@@ -8,14 +8,31 @@ import json
 import codecs
 import locale
 import operator
+import time
 
-_version_ = 16.083
+# Try and import the faster os.walk implementation - scandir
+scandir_present = False
+try:
+    from os import scandir, walk
+    scandir_present = True
+except ImportError:
+    scandir_present = False
+if scandir_present == False:
+    try:
+        from scandir import scandir, walk
+        scandir_present = True
+    except ImportError:
+        from os import walk
+        scandir_present = False
 
 # Python 3 urllib import with Python 2 fallback
 try:
     import urllib.request as urllib2
 except:
     import urllib2
+
+
+_version_ = 16.084
 
 # Find out the system's favouite encoding
 system_encoding = locale.getpreferredencoding()
@@ -815,6 +832,13 @@ class dmenu(object):
     def cache_build(self):
         self.load_preferences()
 
+        if self.debug:
+            if scandir_present:
+                print("Optimised directory scanning library (scandir) loaded")
+            else:
+                print("Cound not load optimised directory scanning library (scandir)")
+                print("Consider installing scandir: pip install scandir")
+
         valid_extensions = []
         if 'valid_extensions' in self.prefs:
             for extension in self.prefs['valid_extensions']:
@@ -931,7 +955,7 @@ class dmenu(object):
             print('Scanning files and folders, this may take a while...')
 
         for watchdir in watch_folders:
-            for root, dirs , files in os.walk(watchdir, followlinks=follow_symlinks):
+            for root, dirs , files in walk(watchdir, followlinks=follow_symlinks):
                 dirs[:] = [d for d in dirs if os.path.join(root,d) not in ignore_folders]
 
                 if self.prefs['scan_hidden_folders'] or root.find('/.')  == -1:
@@ -1020,6 +1044,7 @@ class extension(dmenu):
     plugins_index_url = 'https://raw.githubusercontent.com/markjones112358/dmenu-extended-plugins/master/plugins_index.json'
 
     def rebuild_cache(self):
+        time_start = time.time()
         if self.debug:
             print('Counting items in original cache')
 
@@ -1058,7 +1083,7 @@ class extension(dmenu):
                 response.append('NOTICE: Performance issues were encountered while caching data')
         else:
             response.append('Cache rebuilt; its size did not change.')
-        response.append('The cache contains ' + str(cacheSize) + ' items.')
+        response.append("The cache contains {count} items and took {time} seconds to build.".format(count=cacheSize, time=round(time.time() - time_start,2)))
 
         self.menu(response)
 
