@@ -955,8 +955,10 @@ class dmenu(object):
             print('Scanning files and folders, this may take a while...')
 
         for watchdir in watch_folders:
-            for root, dirs , files in walk(watchdir, followlinks=follow_symlinks):
+            for root, dirs, files in walk(watchdir, topdown=True, followlinks=follow_symlinks):
                 dirs[:] = [d for d in dirs if os.path.join(root,d) not in ignore_folders]
+                if self.prefs['scan_hidden_folders'] == False:
+                    dirs[:] = [d for d in dirs if d.startswith('.') == False]
 
                 if self.prefs['scan_hidden_folders'] or root.find('/.')  == -1:
                     for name in files:
@@ -964,8 +966,7 @@ class dmenu(object):
                             if valid_extensions == True or os.path.splitext(name)[1].lower() in valid_extensions:
                                 filenames.append(os.path.join(root,name))
                     for name in dirs:
-                        if self.prefs['include_hidden_folders'] or name.startswith('.') == False:
-                            foldernames.append(os.path.join(root,name) + '/')
+                        foldernames.append(os.path.join(root,name) + '/')
 
         foldernames = list(filter(lambda x: x not in ignore_folders, foldernames))
 
