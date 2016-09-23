@@ -715,7 +715,6 @@ class dmenu(object):
             else:
                 return command
 
-
     def scan_applications(self):
         paths = self.system_path()
         applications = []
@@ -746,21 +745,22 @@ class dmenu(object):
                                     terminal = True
                                 else:
                                     terminal = False
-                            if name is not None and command is not None:
-                                if terminal is None:
-                                    terminal = False
-                                for path in paths:
-                                    if command[0:len(path)] == path:
-                                        if command[len(path)+1:].find('/') == -1:
-                                            command = command[len(path)+1:]
 
-                                applications.append({
-                                                    'name': name,
-                                                    'command': command,
-                                                    'terminal': terminal,
-                                                    'descriptor': filename.replace('.desktop','')
-                                                    })
-                                break
+                        if name is not None and command is not None:
+                            if terminal is None:
+                                terminal = False
+                            for path in paths:
+                                if command[0:len(path)] == path:
+                                    if command[len(path)+1:].find('/') == -1:
+                                        command = command[len(path)+1:]
+
+                            applications.append({
+                                                'name': name,
+                                                'command': command,
+                                                'terminal': terminal
+                                                # 'descriptor': filename.replace('.desktop','')
+                                                })
+
         return applications
 
 
@@ -890,26 +890,32 @@ class dmenu(object):
                     command = app['command']
                     if app['terminal']:
                         command += ';'
-                    if app['name'].lower() != app['command'].lower():
-                        title = self.format_alias(app['name'], command)
-                        self.try_remove(app['command'], binaries)
-                        aliased_items.append(title)
-                        aliases.append([title, command])
-                    else:
-                        binaries.append(command)
+                    # if app['name'].lower() != app['command'].lower():
+                    title = self.format_alias(app['name'], command)
+                    self.try_remove(app['command'], binaries)
+                    aliased_items.append(title)
+                    aliases.append([title, command])
+                    # else:
+                        # binaries.append(command)
                     if app['terminal']:
                         # Remove any non-terminal invoking versions from cache
                         self.try_remove(app['command'], binaries)
+                        self.try_remove(app['command'].lower(), binaries)
+                        self.try_remove(command, binaries)
+                        self.try_remove(command.lower(), binaries)
             else:
                 for app in applications:
                     command = app['command']
                     # Add the "run in terminal" indicator to the command
                     if app['terminal']:
                         command += ';'
-                    binaries.append(command)
                     # Remove any non-terminal invoking versions from cache
                     if app['terminal']:
                         self.try_remove(app['command'], binaries)
+                        self.try_remove(app['command'].lower(), binaries)
+                        self.try_remove(command, binaries)
+                        self.try_remove(command.lower(), binaries)
+                    binaries.append(command)
 
         binaries = list(set(binaries))
 
