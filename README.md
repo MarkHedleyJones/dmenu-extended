@@ -43,15 +43,15 @@ Move both `dmenu_extended.py` and `dmenu_extended_run` into a folder that is in 
 Create a folder called bin in your home directory (if you don't already have one)
 
     mkdir ~/bin
-    
+
 Add this folder to your systems `$PATH` variable
 
     export PATH=$PATH:$HOME/bin
-    
+
 Copy the required dmenu-extended files into your local bin folder
 
     cp ~/Downloads/dmenu-extended-master/dmenu_extended* ~/bin
-    
+
 To keep your ~/bin folder on the path after restart, add `export PATH=$PATH:$HOME/bin` to the end of `~/.bash_profile`
 
 # Usage
@@ -113,7 +113,7 @@ Functions of the items are as follows.
 * `"indicator_submenu"` symbol to indicate a submenu item in the cache
 * `"indicator_edit"` symbol to indicate an item will launch an editor in the cache
 * `"indicator_alias"` symbol to indicate an aliased command in the cache
- 
+
 Adding the item `""` to `"valid_extensions"` will cause files with no extension to be included in the cache.
 Adding the item `"*"` to  `"valid_extensions"` will cause **all** files to be included in the cache.
 

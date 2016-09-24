@@ -757,8 +757,8 @@ class dmenu(object):
                             applications.append({
                                                 'name': name,
                                                 'command': command,
-                                                'terminal': terminal
-                                                # 'descriptor': filename.replace('.desktop','')
+                                                'terminal': terminal,
+                                                'descriptor': filename.replace('.desktop','')
                                                 })
 
         return applications
