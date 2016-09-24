@@ -97,7 +97,7 @@ Functions of the items are as follows.
 * `"include_items"` list of extra items to include in the cache
 * `"exclude_items"` list of items to be excluded from the cache
 * `"include_binaries"` add items found in the system path
-* `"filter_binaries"` boolean value controlling whether to include binaries that have no corresponding .desktop file
+* `"filter_binaries"` boolean that causes binaries not associated with destkop applications (those having a .desktop file) to be omitted from the cache (e.g. `cp`, `mv`)
 * `"include_applications"` add items found under /usr/share/applications
 * `"alias_applications"` alias applications with their intended names
 * `"path_aliasFile"` path to a file containing aliases (e.g. ~/.bash_aliases)
