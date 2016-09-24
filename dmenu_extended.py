@@ -93,10 +93,10 @@ default_prefs = {
     "include_hidden_folders": False,    # Include hidden folders in the cache
     "include_items": [],                # Extra items to display - manually added
     "exclude_items": [],                # Items to hide - manually hidden
-    "include_binaries": True,
-    "filter_binaries": True,            # Only include binaries that have an associated .desktop file
+    "include_binaries": False,
+    "filter_binaries": False,            # Only include binaries that have an associated .desktop file
     "include_applications": True,       # Add items from /usr/share/applications
-    "alias_applications": False,        # Alias applications with their common names
+    "alias_applications": True,         # Alias applications with their common names
     "path_aliasFile": "",               # Pointer to an aliases file (if any)
     "frequently_used": 0,               # Number of most frequently used commands to show in the menu
     "alias_display_format": "{name}",
@@ -725,10 +725,11 @@ class dmenu(object):
                     # Open the application file using the system's preferred encoding (probably utf-8)
                     with codecs.open(pathname,'r',encoding=system_encoding, errors='ignore') as f:
                         name = None
+                        name_generic = None
                         command = None
                         terminal = None
                         for line in f.readlines():
-                            if line[0:5] == 'Exec=':
+                            if line[0:5] == 'Exec=' and command is None:
                                 command_tmp = line[5:-1].split()
                                 command = ''
                                 space = ''
@@ -738,9 +739,11 @@ class dmenu(object):
                                         space = ' '
                                     else:
                                         break
-                            elif line[0:5] == 'Name=':
+                            elif line[0:5] == 'Name=' and name is None:
                                 name = line[5:-1]
-                            elif line[0:9] == 'Terminal=':
+                            elif line[0:12] == 'GenericName=' and name_generic is None:
+                                name_generic = line[12:-1]
+                            elif line[0:9] == 'Terminal=' and terminal is None:
                                 if line[9:-1].lower() == 'true':
                                     terminal = True
                                 else:
@@ -749,6 +752,8 @@ class dmenu(object):
                         if name is not None and command is not None:
                             if terminal is None:
                                 terminal = False
+                            if name_generic is None:
+                                name_generic = name
                             for path in paths:
                                 if command[0:len(path)] == path:
                                     if command[len(path)+1:].find('/') == -1:
@@ -756,6 +761,7 @@ class dmenu(object):
 
                             applications.append({
                                                 'name': name,
+                                                'name_generic': name_generic,
                                                 'command': command,
                                                 'terminal': terminal,
                                                 'descriptor': filename.replace('.desktop','')
@@ -890,32 +896,32 @@ class dmenu(object):
                     command = app['command']
                     if app['terminal']:
                         command += ';'
-                    # if app['name'].lower() != app['command'].lower():
                     title = self.format_alias(app['name'], command)
-                    self.try_remove(app['command'], binaries)
-                    aliased_items.append(title)
-                    aliases.append([title, command])
-                    # else:
-                        # binaries.append(command)
-                    if app['terminal']:
-                        # Remove any non-terminal invoking versions from cache
-                        self.try_remove(app['command'], binaries)
-                        self.try_remove(app['command'].lower(), binaries)
-                        self.try_remove(command, binaries)
-                        self.try_remove(command.lower(), binaries)
+                    # Only add this item if an item with the same name has not already been added
+                    if title not in aliased_items:
+                        aliased_items.append(title)
+                        aliases.append([title, command])
+                        if app['terminal']:
+                            # Remove any non-terminal invoking versions from cache
+                            self.try_remove(app['command'], binaries)
+                            self.try_remove(app['command'].lower(), binaries)
+                            self.try_remove(command, binaries)
+                            self.try_remove(command.lower(), binaries)
             else:
                 for app in applications:
                     command = app['command']
                     # Add the "run in terminal" indicator to the command
                     if app['terminal']:
                         command += ';'
-                    # Remove any non-terminal invoking versions from cache
-                    if app['terminal']:
-                        self.try_remove(app['command'], binaries)
-                        self.try_remove(app['command'].lower(), binaries)
-                        self.try_remove(command, binaries)
-                        self.try_remove(command.lower(), binaries)
-                    binaries.append(command)
+                    # Only add this item if an item with the same name has not already been added
+                    if command not in binaries:
+                        # Remove any non-terminal invoking versions from cache
+                        if app['terminal']:
+                            self.try_remove(app['command'], binaries)
+                            self.try_remove(app['command'].lower(), binaries)
+                            self.try_remove(command, binaries)
+                            self.try_remove(command.lower(), binaries)
+                        binaries.append(command)
 
         binaries = list(set(binaries))
 
