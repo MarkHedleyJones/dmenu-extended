@@ -1400,6 +1400,7 @@ def run(*args):
     cache = d.cache_load()
     prompt = d.prefs['prompt']
     out = d.menu(cache,prompt).strip()
+    aliased = False
 
     if len(out) > 0:
         if d.debug:
@@ -1431,6 +1432,7 @@ def run(*args):
                 if d.prefs['frequently_used'] > 0:
                     frequent_commands_store(out)
                 out = d.retrieve_aliased_command(out)
+                aliased = True
             else:
                 # Check for store modifications
                 # Dont allow command aliases that add new commands
@@ -1649,9 +1651,10 @@ def run(*args):
                         frequent_commands_store(out)
 
             # Detect if the command is a web address and pass to handle_command
-            if out[:7] == 'http://' or out[:8] == 'https://':
+            if out[:7] == 'http://' or out[:8] == 'https://' or aliased == True:
                 handle_command(d, out)
             elif out.find(':') != -1:
+                print(out)
                 tmp = out.split(':')
                 if len(tmp) != 2:
                     if d.debug:
