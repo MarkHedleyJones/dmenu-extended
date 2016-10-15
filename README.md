@@ -195,3 +195,4 @@ By default, all aliased commands are displayed prefixed without a prefix and no 
 ## Acknowledgements
 * **Alad** from the [CrunchBang forums](http://crunchbang.org/forums/viewtopic.php?id=36484) for advice on packaging.
 * **Head_on_a_Stick** also from the [CrunchBang forums](http://crunchbang.org/forums/viewtopic.php?id=36484) for advice on packaging.
+* [**EDI9999**](https://github.com/edi9999) for performance improvements to cache scanning.
