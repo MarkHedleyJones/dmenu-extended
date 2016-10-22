@@ -32,7 +32,7 @@ except:
     import urllib2
 
 
-_version_ = 16.084
+_version_ = 16.1022
 
 # Find out the system's favouite encoding
 system_encoding = locale.getpreferredencoding()
@@ -1147,24 +1147,65 @@ class extension(dmenu):
                 self.message_open("Downloading selected plugin...")
                 plugin_name = item.split(' - ')[0]
                 plugin = plugins[plugin_name]
-                plugin_source = self.download_text(plugin['url'])
 
-                with open(path_plugins + '/' + plugin_name + '.py', 'w') as f:
-                    for line in plugin_source:
-                        f.write(line)
+                # Check for dependencies
+                if 'dependencies' in plugins[plugin_name]:
+                    message = []
+                    lookup = []
+                    fail = False
+                    if 'external' in plugins[plugin_name]['dependencies']:
+                        for depend in plugins[plugin_name]['dependencies']['external']:
+                            line = ""
+                            if depend['name'] in d.scan_binaries():
+                                pass
+                            else:
+                                line = "External dependancy '" + depend['name'] + "' is MISSING."
+                                fail = True
+                                if 'url' in depend:
+                                    line += " See " + depend['url'] + "."
+                                    lookup.append(depend['url'])
+                                else:
+                                    lookup.append(None)
+                                message.append(line)
+                    if 'python' in plugins[plugin_name]['dependencies']:
+                        for depend in plugins[plugin_name]['dependencies']['python']:
+                            found = True
+                            try:
+                                exec("import " + depend)
+                            except:
+                                found = False
+                                fail = True
+                            if found == False:
+                                message.append("Python library '" + depend + "' MISSING. Please install (python-"+depend+")")
+                                lookup.append('https://pypi.python.org/pypi/'+depend)
+                    if fail:
+                        self.message_close()
+                        outcome = self.select(message, 'Message:', numeric=True)
+                        if lookup[outcome] is not None:
+                            d.open_url(lookup[outcome])
 
-                self.get_plugins(True)
-                self.message_close()
-                self.message_open("Rebuilding plugin cache")
-                self.plugins_available()
-                self.message_close()
+                if fail:
+                    self.message_close()
+                    self.menu(['Plugin has missing dependencies and therefore was not installed'])                    
+                else:
+                    plugin_source = self.download_text(plugin['url'])
 
-                self.menu(['Plugin downloaded and installed successfully'])
+                    with open(path_plugins + '/' + plugin_name + '.py', 'w') as f:
+                        for line in plugin_source:
+                            f.write(line)
 
-                if self.debug:
-                    print("Plugins available:")
-                    for plugin in self.plugins_available():
-                        print(plugin)
+                    self.get_plugins(True)
+                    self.message_close()
+                    self.message_open("Rebuilding plugin cache")
+                    self.plugins_available()
+                    self.message_close()
+
+                    self.menu(['Plugin downloaded and installed successfully'])
+
+                    if self.debug:
+                        print("Plugins available:")
+                        for plugin in self.plugins_available():
+                            print(plugin)
 
 
     def installed_plugins(self):
