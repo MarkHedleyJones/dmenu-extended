@@ -1321,40 +1321,60 @@ class extension(dmenu):
         subprocess.call(['systemctl', '--user', 'disable', 'update-dmenu-extended-db.timer'])
         self.menu(['Successfully disabled systemd service.'])
 
+    def edit_preferences(self):
+        self.open_file(file_prefs)
+        self.plugins_available() # Refresh the plugin cache
 
     def run(self, inputText):
+        options = [
+            'Rebuild cache',
+            self.prefs['indicator_submenu'] + ' Download new plugins',
+            self.prefs['indicator_submenu'] + ' Remove existing plugins',
+            'Update installed plugins',
+            'Edit menu preferences',
+            'Disable automatic cache rebuilding',
+            'Enable automatic cache rebuilding',
+        ]
+
+        actions = [
+            self.rebuild_cache,
+            self.download_plugins,
+            self.remove_plugin,
+            self.update_plugins,
+            self.edit_preferences,
+            self.disable_automatic_rebuild_cache,
+            self.enable_automatic_rebuild_cache
+        ]
+
+        # Build list of available options
+        items = [
+            options[0],
+            options[1]
+        ]
+
+        num_plugins_installed = len(self.installed_plugins())
+        
+        # Add option to remove existing plugins and update existing plugins
+        if num_plugins_installed > 0:
+            items += [options[2]]
+            items += [options[3]]
+
+        # Add option to edit menu preferences
+        items += [options[4]]
+
+        # Check to see whether systemd integration is available and add
         automatic_rebuild_status = self.get_automatic_rebuild_cache_status()
-        if automatic_rebuild_status == 0:
-            automatic_rebuild_option = []
-        elif automatic_rebuild_status == 1:
-            automatic_rebuild_option = ['Disable automatic cache rebuilding']
-            automatic_rebuild_action = self.disable_automatic_rebuild_cache
-        else:
-            automatic_rebuild_option = ['Enable automatic cache rebuilding']
-            automatic_rebuild_action = self.enable_automatic_rebuild_cache
+        if automatic_rebuild_status != 0:
+            if automatic_rebuild_status == 1:
+                items += [options[5]]
+            else:
+                items += [options[6]]
 
-        items = ['Rebuild cache',
-                 self.prefs['indicator_submenu'] + ' Download new plugins',
-                 self.prefs['indicator_submenu'] + ' Remove existing plugins',
-                 'Edit menu preferences',
-                 'Update installed plugins'] + automatic_rebuild_option
-
-        selectedIndex = self.select(items, "Action:", numeric=True)
-
-        if selectedIndex != -1:
-            if selectedIndex == 0:
-                self.rebuild_cache()
-            elif selectedIndex == 1:
-                self.download_plugins()
-            elif selectedIndex == 2:
-                self.remove_plugin()
-            elif selectedIndex == 3:
-                self.open_file(file_prefs)
-                self.plugins_available() # Refresh the plugin cache
-            elif selectedIndex == 4:
-                self.update_plugins()
-            elif selectedIndex == 5:
-                automatic_rebuild_action()
+        item = self.select(items, "Action:")
+        if item != -1:
+            index = options.index(item)
+            if index != -1:
+                actions[index]()
 
 
 def is_binary(d, path):
