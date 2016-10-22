@@ -1119,6 +1119,7 @@ class extension(dmenu):
             sys.exit()
 
         items = []
+        accept = []
 
         substitute = ('plugin_', '')
 
@@ -1128,13 +1129,16 @@ class extension(dmenu):
         for tmp in installed_plugins:
             installed_pluginFilenames.append(tmp['filename'])
 
+
         for plugin in plugins:
             if plugin + '.py' not in installed_pluginFilenames:
                 if "min_version" in plugins[plugin]:
                     if plugins[plugin]["min_version"] <= _version_:
                         items.append(plugin.replace(substitute[0], substitute[1]) + ' - ' + plugins[plugin]['desc'])
+                        accept.append(True)
                     else:
-                        items.append('X - ' + plugin.replace(substitute[0], substitute[1]) + ' - Requires dmenu_extended >= v' + str(plugins[plugin]["min_version"]))
+                        items.append(plugin.replace(substitute[0], substitute[1]) + ' - Requires dmenu_extended >= v' + str(plugins[plugin]["min_version"]))
+                        accept.append(False)
 
         self.message_close()
 
@@ -1143,75 +1147,79 @@ class extension(dmenu):
         else:
             item = substitute[0] + self.select(items, 'Install:')
 
-            if item != -1:
-                self.message_open("Downloading selected plugin...")
-                plugin_name = item.split(' - ')[0]
-                plugin = plugins[plugin_name]
+            index = items.index(item[len(substitute[0]):])
+            if accept[index]:
 
-                # Check for dependencies
-                if 'dependencies' in plugins[plugin_name]:
-                    message = []
-                    lookup = []
+                if item != -1:
+                    self.message_open("Downloading selected plugin...")
+                    plugin_name = item.split(' - ')[0]
+                    plugin = plugins[plugin_name]
                     fail = False
-                    if 'external' in plugins[plugin_name]['dependencies']:
-                        for depend in plugins[plugin_name]['dependencies']['external']:
-                            line = ""
-                            if depend['name'] in d.scan_binaries():
-                                pass
-                            else:
-                                line = "External dependancy '" + depend['name'] + "' is MISSING."
-                                fail = True
-                                if 'url' in depend:
-                                    line += " See " + depend['url'] + "."
-                                    lookup.append(depend['url'])
+                    # Check for dependencies
+                    if 'dependencies' in plugins[plugin_name]:
+                        message = []
+                        lookup = []
+                        if 'external' in plugins[plugin_name]['dependencies']:
+                            for depend in plugins[plugin_name]['dependencies']['external']:
+                                line = ""
+                                if depend['name'] in d.scan_binaries():
+                                    pass
                                 else:
-                                    lookup.append(None)
-                                message.append(line)
-                    if 'python' in plugins[plugin_name]['dependencies']:
-                        for depend in plugins[plugin_name]['dependencies']['python']:
-                            found = True
-                            try:
-                                exec("import " + depend)
-                            except:
-                                found = False
-                                fail = True
-                            if found == False:
-                                message.append("Python library '" + depend + "' MISSING. Please install (python-"+depend+")")
-                                lookup.append('https://pypi.python.org/pypi/'+depend)
+                                    line = "External dependancy '" + depend['name'] + "' is MISSING."
+                                    fail = True
+                                    if 'url' in depend:
+                                        line += " See " + depend['url'] + "."
+                                        lookup.append(depend['url'])
+                                    else:
+                                        lookup.append(None)
+                                    message.append(line)
+                        if 'python' in plugins[plugin_name]['dependencies']:
+                            for depend in plugins[plugin_name]['dependencies']['python']:
+                                found = True
+                                try:
+                                    exec("import " + depend)
+                                except:
+                                    found = False
+                                    fail = True
+                                if found == False:
+                                    message.append("Python library '" + depend + "' MISSING. Please install (python-"+depend+")")
+                                    lookup.append('https://pypi.python.org/pypi/'+depend)
+                        if fail:
+                            self.message_close()
+                            outcome = self.select(message, 'Message:', numeric=True)
+                            if lookup[outcome] is not None:
+                                d.open_url(lookup[outcome])
+
                     if fail:
                         self.message_close()
-                        outcome = self.select(message, 'Message:', numeric=True)
-                        if lookup[outcome] is not None:
-                            d.open_url(lookup[outcome])
+                        self.menu(['Plugin has missing dependencies and therefore was not installed'])                    
+                    else:
+                        plugin_source = self.download_text(plugin['url'])
 
-                if fail:
-                    self.message_close()
-                    self.menu(['Plugin has missing dependencies and therefore was not installed'])                    
-                else:
-                    plugin_source = self.download_text(plugin['url'])
+                        with open(path_plugins + '/' + plugin_name + '.py', 'w') as f:
+                            for line in plugin_source:
+                                f.write(line)
 
-                    with open(path_plugins + '/' + plugin_name + '.py', 'w') as f:
-                        for line in plugin_source:
-                            f.write(line)
+                        self.get_plugins(True)
+                        self.message_close()
+                        self.message_open("Rebuilding plugin cache")
+                        self.plugins_available()
+                        self.message_close()
 
-                    self.get_plugins(True)
-                    self.message_close()
-                    self.message_open("Rebuilding plugin cache")
-                    self.plugins_available()
-                    self.message_close()
+                        self.menu(['Plugin downloaded and installed successfully'])
 
-                    self.menu(['Plugin downloaded and installed successfully'])
-
-                    if self.debug:
-                        print("Plugins available:")
-                        for plugin in self.plugins_available():
-                            print(plugin)
+                        if self.debug:
+                            print("Plugins available:")
+                            for plugin in self.plugins_available():
+                                print(plugin)
+            else:
+                self.menu(['The selected plugin cannot be installed as it requires a newer version of dmenu-extended'])
 
 
     def installed_plugins(self):
         plugins = []
         for plugin in self.get_plugins():
-            if plugin["plugin"].title is not "Settings":
+            if plugin["filename"] != "plugin_settings.py":
                 plugins.append(plugin["plugin"].title.replace(':','') + ' (' + plugin["filename"] + ')')
         return plugins
 
