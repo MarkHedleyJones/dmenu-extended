@@ -777,9 +777,9 @@ class dmenu(object):
         aliases = self.load_json(file_cache_aliasesLookup)
         if self.debug:
             print("Converting '" + str(alias) + "' into its aliased command")
-
+        print(alias)
         for item in aliases:
-            if item[0] in alias:
+            if item[0] == alias:
                 if self.debug:
                     print("Converted " + alias + " to: " + item[1])
                 return item[1]
