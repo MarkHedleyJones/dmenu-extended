@@ -615,12 +615,12 @@ class dmenu(object):
                 restart = 0
                 for index, part in enumerate(out):
                     if part.count('"') % 2 != 0 and index + 1 <= len(out) - 1:
-                        out[index] = out[index].replace('"', '') + ' ' + out[index+1].replace('"', '')
+                        out[index] = out[index] + ' ' + out[index+1]
                         del(out[index+1])
                         restart = 1
                         break
-                    else:
-                        out[index] = out[index].replace('"', '')
+            for index, part in enumerate(out):
+                out[index] = part.replace('"', '')
         return out
 
 
