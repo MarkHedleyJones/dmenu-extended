@@ -32,7 +32,7 @@ except:
     import urllib2
 
 
-_version_ = 16.1023
+_version_ = 17.0110
 
 # Find out the system's favouite encoding
 system_encoding = locale.getpreferredencoding()
@@ -499,11 +499,14 @@ class dmenu(object):
                 items = " "
 
             out = p.communicate(items.encode(system_encoding))[0]
+            out = out.decode(system_encoding)
+            out = out.strip('\n')
+            out = out.strip()
 
-            if out.strip() == '':
+            if len(out) == 0:
                 sys.exit()
             else:
-                return out.decode().strip('\n')
+                return out
 
 
     def select(self, items, prompt="", numeric=False):
@@ -587,19 +590,62 @@ class dmenu(object):
                     self.open_file(path)
 
 
+    def command_to_list(self, command):
+        """
+        Takes any combination of strings and lists and flattens into a list of
+        strings. Also handles lists that contain stinrgs that contain spaces.
+        """
+        out = []
+        if type(command) == list:
+            tmp = []
+            for i, item in enumerate(command):
+                if item.find(' ') != -1:
+                    tmp = tmp + item.split(' ')
+                else:
+                    tmp =  tmp + [item]
+            out = tmp
+        elif type(command) == str or type(command) == unicode:
+            out = command.split(' ')
+
+        quote_count = "".join(out).count('"')
+        if quote_count > 0 and quote_count % 2 == 0:
+            # Bring split parts that were enclosed by quotes back together
+            restart = 1
+            while restart:
+                restart = 0
+                for index, part in enumerate(out):
+                    if part.count('"') % 2 != 0 and index + 1 <= len(out) - 1:
+                        out[index] = out[index].replace('"', '') + ' ' + out[index+1].replace('"', '')
+                        del(out[index+1])
+                        restart = 1
+                        break
+                    else:
+                        out[index] = out[index].replace('"', '')
+        return out
+
+
     def execute(self, command, fork=None):
         """
         Execute a command on behalf of dmenu. Will fork into background
         by default unless fork=False. Will prepend the value of
         self.preCommand to the given command, necessary for sudo calls.
         """
-        if fork == False:
-            extra = ''
-        else:
-            extra = ' &'
+        if self.debug:
+            print("Executing:"),
+            print(command)
+
+        command = self.command_to_list(command)
+        if fork:
+            command += ['&']
+
         if self.preCommand:
-            command = self.preCommand + command
-        return os.system(command + extra)
+            command = [self.preCommand] + command
+
+        if self.debug:
+            print("Command converted into:")
+            print(command)
+
+        return subprocess.call(command)
 
 
     def cache_regenerate(self, message=True):
@@ -776,7 +822,7 @@ class dmenu(object):
         """
         aliases = self.load_json(file_cache_aliasesLookup)
         if self.debug:
-            print("Converting '" + str(alias) + "' into its aliased command")
+            print("Converting '" + alias + "' into its aliased command")
         print(alias)
         for item in aliases:
             if item[0] == alias:
@@ -1192,7 +1238,7 @@ class extension(dmenu):
 
                     if fail:
                         self.message_close()
-                        self.menu(['Plugin has missing dependencies and therefore was not installed'])                    
+                        self.menu(['Plugin has missing dependencies and therefore was not installed'])
                     else:
                         plugin_source = self.download_text(plugin['url'])
 
@@ -1353,7 +1399,7 @@ class extension(dmenu):
         ]
 
         num_plugins_installed = len(self.installed_plugins())
-        
+
         # Add option to remove existing plugins and update existing plugins
         if num_plugins_installed > 0:
             items += [options[2]]
