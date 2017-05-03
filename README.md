@@ -192,6 +192,20 @@ By default, all aliased commands are displayed prefixed without a prefix and no 
 * `"indicator_alias": ""` -> `"indicator_alias": "#"`
 * `"alias_display_format": "{name}"` -> `"alias_display_format": "{name} ({command})"`
 
+### Using a password helper for sudo commands
+Password helper programs, such as zenity, can be used to prompt the user for a password outside of a terminal process whenever a password is required. Getting one setup requires creating a small bash script and configuration file. The following instructions step you through using zenity as the password helper program.
+
+1. Check you have zenity installed by running `whereis zenity`. You should see something like /usr/bin/zenity amongst other paths.
+2. Fill the password helper script `sudo nano /usr/local/bin/zenity_askpass` with:
+```
+#!/bin/bash
+zenity --password --title="Sudo password prompt"
+```
+3. Make the askpass script executable by running `sudo chmod +x /usr/local/bin/zenity_askpass`
+4. Create/edit the sudo configuration file `sudo nano /etc/sudo.conf` and make sure it contains the line `Path askpass /usr/local/bin/zenity_askpass`
+
+Test the configuration by running a sudo command via dmenu-extended (e.g., `sudo gedit`). You should be prompted grapically for the password before the program opens.
+
 ## Acknowledgements
 * **Alad** from the [CrunchBang forums](http://crunchbang.org/forums/viewtopic.php?id=36484) for advice on packaging.
 * **Head_on_a_Stick** also from the [CrunchBang forums](http://crunchbang.org/forums/viewtopic.php?id=36484) for advice on packaging.
