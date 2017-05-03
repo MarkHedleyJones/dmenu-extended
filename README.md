@@ -214,3 +214,4 @@ Test the configuration by running a sudo command via dmenu-extended (e.g., `sudo
 * **Alad** from the [CrunchBang forums](http://crunchbang.org/forums/viewtopic.php?id=36484) for advice on packaging.
 * **Head_on_a_Stick** also from the [CrunchBang forums](http://crunchbang.org/forums/viewtopic.php?id=36484) for advice on packaging.
 * [**EDI9999**](https://github.com/edi9999) for performance improvements to cache scanning.
+* **Pandya** from [this stackexchange answer](https://unix.stackexchange.com/a/254073) for infomation on how to set-up a password helper
