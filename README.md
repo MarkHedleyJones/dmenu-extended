@@ -206,6 +206,10 @@ zenity --password --title="Sudo password prompt"
 
 Test the configuration by running a sudo command via dmenu-extended (e.g., `sudo gedit`). You should be prompted grapically for the password before the program opens.
 
+<p align="center">
+  <img src="https://raw.github.com/markjones112358/dmenu-extended/master/sc-password.png" alt="Password manager screenshot"/>
+</p>
+
 ## Acknowledgements
 * **Alad** from the [CrunchBang forums](http://crunchbang.org/forums/viewtopic.php?id=36484) for advice on packaging.
 * **Head_on_a_Stick** also from the [CrunchBang forums](http://crunchbang.org/forums/viewtopic.php?id=36484) for advice on packaging.
