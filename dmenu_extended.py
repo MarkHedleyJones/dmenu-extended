@@ -359,7 +359,7 @@ class dmenu(object):
         paths = [os.path.join(data_home,'applications')]
 
         # Get other directories
-        data_other = os.environ.get('XDG_DATADIRS','/usr/local/share:/usr/share').split(":")
+        data_other = os.environ.get('XDG_DATA_DIRS','/usr/local/share:/usr/share').split(":")
         paths.extend([os.path.join(direc,'applications') for direc in data_other])
 
         # Filter paths that don't exist
