@@ -87,7 +87,8 @@ default_prefs = {
     ],
     "watch_folders": ["~/"],            # Base folders through which to search
     "follow_symlinks": False,           # Follow links to other locations
-    "ignore_folders": [],               # Folders to exclude from the search
+    "ignore_folders": [],               # Folders to exclude from the search absolute path
+    "global_ignore_folders": [],        # Folders to exclude from the search only folder name
     "scan_hidden_folders": False,       # Enter hidden folders while scanning for items
     "include_hidden_files": False,      # Include hidden files in the cache
     "include_hidden_folders": False,    # Include hidden folders in the cache
@@ -1015,7 +1016,11 @@ class dmenu(object):
 
         for watchdir in watch_folders:
             for root, dirs, files in walk(watchdir, topdown=True, followlinks=follow_symlinks):
-                dirs[:] = [d for d in dirs if os.path.join(root,d) not in ignore_folders]
+                dirs[:] = [
+                    d for d in dirs if
+                    os.path.join(root, d) not in ignore_folders
+                    and d not in self.prefs["global_ignore_folders"]
+                ]
                 if self.prefs['scan_hidden_folders'] == False:
                     dirs[:] = [d for d in dirs if d.startswith('.') == False]
 
