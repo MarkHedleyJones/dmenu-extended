@@ -90,7 +90,8 @@ Functions of the items are as follows.
 * `"valid_extensions"` list of file extensions of files to include in the cache
 * `"watch_folders"` list of base paths to recursively search through for items to include
 * `"follow_symlinks"` boolean option controlling whether to follow a link while scanning
-* `"ignore_folders"` list of folders to be excluded from the cache
+* `"ignore_folders"` list of paths to be excluded from the cache
+* `"global_ignore_folders"` names of folders to exclude from cache (regardless of location)
 * `"scan_hidden_folders"` boolean value controlling whether to enter hidden folders when scanning
 * `"include_hidden_files"` boolean value controlling whether to include hidden files in the cache
 * `"include_hidden_folders"` boolean value controlling whether to include hidden folders in the cache
