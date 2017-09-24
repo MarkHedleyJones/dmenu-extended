@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Installs dmenu_extended_cache_build as a systemd service to be executed every 20 minutes
 
 # Process command line arguments
@@ -34,6 +34,6 @@ if [ ! -d "$SCRIPT_PATH" ]; then
 	mkdir -p $SCRIPT_PATH
 fi
 
-echo "Installing systemd service in $SCRIPT_PATH..." 
+echo "Installing systemd service in $SCRIPT_PATH..."
 cp -v systemd/$SERVICE_UNIT_NAME $SCRIPT_PATH/update-dmenu-extended-db.service
 cp -v systemd/update-dmenu-extended-db.timer $SCRIPT_PATH
