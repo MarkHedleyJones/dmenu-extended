@@ -878,8 +878,11 @@ class dmenu(object):
                 print('Opening alias file')
             for line in f.readlines():
                 if line[:6].lower() == 'alias ':
+                    # I'm splitting this on the '=' char but there may be another
+                    # one in the alias command so join the remainder of the split
+                    # again with '=' chars
                     parts = line[6:].replace('\n','').replace('\'','').replace('"','').split('=')
-                    out.append([parts[0], parts[1]])
+                    out.append([parts[0], "=".join(parts[1:])])
         return out
 
 
