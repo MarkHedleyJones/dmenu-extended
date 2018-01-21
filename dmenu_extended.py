@@ -895,8 +895,7 @@ class dmenu(object):
                 if line[:6].lower() == 'alias ':
                     # I'm splitting this on the '=' char but there may be another
                     # one in the alias command so join the remainder of the split
-                    # again with '=' chars
-                    #parts = line[6:].replace('\n','').replace("\'",'\\\'').replace('"','\\"').split('=')           
+                    # again with '=' chars          
                     parts = line[6:].replace('\n', '').split('=')
                     # I'm sure there is a way to do this all in a regex
                     # We want to remove any outer quotes on the alias but preserve interior quotes
