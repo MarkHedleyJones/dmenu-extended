@@ -622,6 +622,21 @@ class dmenu(object):
                         break
             for index, part in enumerate(out):
                 out[index] = part.replace('"', '')
+                
+        quote_count = "".join(out).count("'")
+        if quote_count > 0 and quote_count % 2 == 0:
+            # Bring split parts that were enclosed by single quotes back together
+            restart = 1
+            while restart:
+                restart = 0
+                for index, part in enumerate(out):
+                    if part.count("'") % 2 != 0 and index + 1 <= len(out) - 1:
+                        out[index] = out[index] + ' ' + out[index+1]
+                        del(out[index+1])
+                        restart = 1
+                        break
+            for index, part in enumerate(out):
+                out[index] = part.replace("'", '')                
         return out
 
 
@@ -880,8 +895,13 @@ class dmenu(object):
                 if line[:6].lower() == 'alias ':
                     # I'm splitting this on the '=' char but there may be another
                     # one in the alias command so join the remainder of the split
-                    # again with '=' chars
-                    parts = line[6:].replace('\n','').replace('\'','').replace('"','').split('=')
+                    # again with '=' chars          
+                    parts = line[6:].replace('\n', '').split('=')
+                    # I'm sure there is a way to do this all in a regex
+                    # We want to remove any outer quotes on the alias but preserve interior quotes
+                    if (parts[1][0] == '"' and parts[-1][-1] == '"') or (parts[1][0] == "'" and parts[-1][-1] == "'"):
+                        parts[1] = parts[1][1:]
+                        parts[-1] = parts[-1][:-1]									                     
                     out.append([parts[0], "=".join(parts[1:])])
         return out
 
