@@ -15,20 +15,12 @@ do
 	esac
 done
 
-DECB_NONDEFAULT=false;
-
 if [ "$PER_USER_INSTALL" == "YES" ] ; then
 	SCRIPT_PATH=$HOME/.local/share/systemd/user
 	DECB_DEFAULT=~/.local/bin/dmenu_extended_cache_build
-	if [ ! -f $DECB_DEFAULT ]; then		
-		DECB_NONDEFAULT=true
-	fi
 else
 	SCRIPT_PATH=/usr/lib/systemd/user
-	DECB_DEFAULT=/usr/bin/dmenu_extended_cache_build
-	if [ ! -f DECB_DEFAULT ]; then
-		DECB_NONDEFAULT=true
-	fi
+	DECB_PATH=`whereis dmenu_extended_cache_build | sed 's/dmenu_extended_cache_build: \?//'`;
 fi
 
 if [ "$UNINSTALL" == "YES" ]; then
@@ -44,13 +36,11 @@ fi
 
 echo "Installing systemd service in $SCRIPT_PATH..."
 
-if [ $DECB_NONDEFAULT ]; then
+if [ -z "$DECB_PATH" ]; then
 	echo "dmenu_extended_cache_build not found at the default location."
 	echo "Please enter the full path to dmenu_extended_cache_build:"
 	read DECB_PATH
-else
-	DECB_PATH = $DECB_DEFAULT
-fi;
+fi
 
 # If per-user install, we need systemd to call dmenu_extended_cache build with /bin/sh -c
 if [ "$PER_USER_INSTALL" == "YES" ]; then
