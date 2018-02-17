@@ -32,6 +32,12 @@ You can try dmenu-extended without installation by running `python dmenu_extende
 ### Global install
 Execute `sudo python setup.py install` from within the dmenu-extended directory.
 
+#### Systemd background cache rebuild
+
+Run the separate install script to install systemd background update integration.
+
+    sudo bash systemd-install.sh
+
 ### Local installation
 #### Virtualenv
 Execute `python setup.py install` from within the dmenu-extended directory
@@ -53,6 +59,13 @@ Copy the required dmenu-extended files into your local bin folder
     cp ~/Downloads/dmenu-extended-master/dmenu_extended* ~/bin
 
 To keep your ~/bin folder on the path after restart, add `export PATH=$PATH:$HOME/bin` to the end of `~/.bash_profile`
+
+
+#### Systemd background cache rebuild
+
+Run the separate install script to install systemd background update integration.
+
+    bash systemd-install.sh --user
 
 # Usage
 
