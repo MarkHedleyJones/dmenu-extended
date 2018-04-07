@@ -783,51 +783,54 @@ class dmenu(object):
         for app_path in self.application_paths():
             for filename in os.listdir(app_path):
                 pathname = os.path.join(app_path,filename)
-                if os.path.isfile(pathname):
+                try:
+                    if os.path.isfile(pathname):
                     # Open the application file using the system's preferred encoding (probably utf-8)
-                    with codecs.open(pathname,'r',encoding=system_encoding, errors='ignore') as f:
-                        name = None
-                        name_generic = None
-                        command = None
-                        terminal = None
-                        for line in f.readlines():
-                            if line[0:5] == 'Exec=' and command is None:
-                                command_tmp = line[5:-1].split()
-                                command = ''
-                                space = ''
-                                for piece in command_tmp:
-                                    if piece.find('%') == -1:
-                                        command += space + piece
-                                        space = ' '
+                        with codecs.open(pathname,'r',encoding=system_encoding, errors='ignore') as f:
+                            name = None
+                            name_generic = None
+                            command = None
+                            terminal = None
+                            for line in f.readlines():
+                                if line[0:5] == 'Exec=' and command is None:
+                                    command_tmp = line[5:-1].split()
+                                    command = ''
+                                    space = ''
+                                    for piece in command_tmp:
+                                        if piece.find('%') == -1:
+                                            command += space + piece
+                                            space = ' '
+                                        else:
+                                            break
+                                elif line[0:5] == 'Name=' and name is None:
+                                    name = line[5:-1]
+                                elif line[0:12] == 'GenericName=' and name_generic is None:
+                                    name_generic = line[12:-1]
+                                elif line[0:9] == 'Terminal=' and terminal is None:
+                                    if line[9:-1].lower() == 'true':
+                                        terminal = True
                                     else:
-                                        break
-                            elif line[0:5] == 'Name=' and name is None:
-                                name = line[5:-1]
-                            elif line[0:12] == 'GenericName=' and name_generic is None:
-                                name_generic = line[12:-1]
-                            elif line[0:9] == 'Terminal=' and terminal is None:
-                                if line[9:-1].lower() == 'true':
-                                    terminal = True
-                                else:
+                                        terminal = False
+
+                            if name is not None and command is not None:
+                                if terminal is None:
                                     terminal = False
+                                if name_generic is None:
+                                    name_generic = name
+                                for path in paths:
+                                    if command[0:len(path)] == path:
+                                        if command[len(path)+1:].find('/') == -1:
+                                            command = command[len(path)+1:]
 
-                        if name is not None and command is not None:
-                            if terminal is None:
-                                terminal = False
-                            if name_generic is None:
-                                name_generic = name
-                            for path in paths:
-                                if command[0:len(path)] == path:
-                                    if command[len(path)+1:].find('/') == -1:
-                                        command = command[len(path)+1:]
-
-                            applications.append({
-                                                'name': name,
-                                                'name_generic': name_generic,
-                                                'command': command,
-                                                'terminal': terminal,
-                                                'descriptor': filename.replace('.desktop','')
-                                                })
+                                applications.append({
+                                                    'name': name,
+                                                    'name_generic': name_generic,
+                                                    'command': command,
+                                                    'terminal': terminal,
+                                                    'descriptor': filename.replace('.desktop','')
+                                                    })
+                except:
+                    pass
 
         return applications
 
@@ -1041,7 +1044,7 @@ class dmenu(object):
             for root, dirs, files in walk(watchdir, topdown=True, followlinks=follow_symlinks):
                 dirs[:] = [
                     d for d in dirs if
-                    os.path.join(root, d) not in ignore_folders
+                    (os.path.join(root, d)+'/') not in ignore_folders
                     and d not in self.prefs["global_ignore_folders"]
                 ]
                 if self.prefs['scan_hidden_folders'] == False:
