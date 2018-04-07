@@ -622,7 +622,7 @@ class dmenu(object):
                         break
             for index, part in enumerate(out):
                 out[index] = part.replace('"', '')
-                
+
         quote_count = "".join(out).count("'")
         if quote_count > 0 and quote_count % 2 == 0:
             # Bring split parts that were enclosed by single quotes back together
@@ -636,7 +636,7 @@ class dmenu(object):
                         restart = 1
                         break
             for index, part in enumerate(out):
-                out[index] = part.replace("'", '')                
+                out[index] = part.replace("'", '')
         return out
 
 
@@ -895,13 +895,13 @@ class dmenu(object):
                 if line[:6].lower() == 'alias ':
                     # I'm splitting this on the '=' char but there may be another
                     # one in the alias command so join the remainder of the split
-                    # again with '=' chars          
+                    # again with '=' chars
                     parts = line[6:].replace('\n', '').split('=')
                     # I'm sure there is a way to do this all in a regex
                     # We want to remove any outer quotes on the alias but preserve interior quotes
                     if (parts[1][0] == '"' and parts[-1][-1] == '"') or (parts[1][0] == "'" and parts[-1][-1] == "'"):
                         parts[1] = parts[1][1:]
-                        parts[-1] = parts[-1][:-1]									                     
+                        parts[-1] = parts[-1][:-1]
                     out.append([parts[0], "=".join(parts[1:])])
         return out
 
@@ -1580,6 +1580,8 @@ def run(*args):
                 # Check for store modifications
                 # Dont allow command aliases that add new commands
                 if out[0] in "+-":
+                    if d.debug:
+                        print("Detected command as an attempt to modify the cache")
                     action = out[0]
                     out = out[1:]
 
@@ -1797,18 +1799,15 @@ def run(*args):
             if out[:7] == 'http://' or out[:8] == 'https://' or aliased == True:
                 handle_command(d, out)
             elif out.find(':') != -1:
-                print(out)
+                if d.debug:
+                    print("Colon detected in command, could be a path or attempt to open something with something")
+                    print(out)
                 tmp = out.split(':')
-                if len(tmp) != 2:
-                    if d.debug:
-                        print('Input command not understood')
-                    sys.exit()
-                else:
-                    cmds = list(map(lambda x: x.strip(), tmp))
+                cmds = list(map(lambda x: x.strip(), tmp))
 
                 run_withshell = False
                 shell_hold = False
-                if cmds[0][-1] == ';':
+                if len(cmds[0]) > 0 and cmds[0][-1] == ';':
                     if cmds[0][-2] == ';':
                         shell_hold = True
                         if d.debug:
@@ -1820,12 +1819,14 @@ def run(*args):
                     run_withshell = True
 
                 if cmds[0] == '':
+                    if d.debug:
+                        print("No program specified, issuing program options to user")
                     items = list(filter(lambda x: x.find(cmds[1]) != -1, cache.split('\n')))
                     item = d.menu(items)
                     handle_command(d, item)
                 elif cmds[0] in d.scan_binaries():
                     if d.debug:
-                        print('Item[0] (' + cmds[0] + ') found in binaries')
+                        print('Item[0] (' + cmds[0] + ') found in binaries so will use this')
                     # Get paths from cache
                     items = list(filter(lambda x: x.find('/') != -1, cache.split('\n')))
                     # If extension passed, filter by this
@@ -1839,13 +1840,33 @@ def run(*args):
                         d.open_terminal(command, shell_hold)
                     else:
                         d.execute(command)
+                elif os.path.exists(out):
+                    if d.debug:
+                        print("The whole thing is a path, just open it with file_handler")
+                    handle_command(d, out)
                 elif cmds[0].find('/') != -1:
-                    # Path came first, assume user wants of open it with a bin
-                    if cmds[1] != '':
+                    if d.debug:
+                        print("First item is a path")
+                    if out[-1] == ':':
+                        if d.debug:
+                            print("User wants to be prompted with options for opening passed item")
+                        binary = d.menu(d.scan_binaries())
+                        command = binary + " '" + os.path.expanduser(out[:-1]) + "'"
+                    elif cmds[1] != '':
+                        # Check that the whole thing isn't just a path with a colon in it
                         command = cmds[1] + " '" + os.path.expanduser(cmds[0]) + "'"
+                        if d.debug:
+                            print("Second item passed so assume this is what the user wants to use to open path with")
+                            print("Command=" + command)
                     else:
+                        if d.debug:
+                            print("Second item not passed so allow the user to choose the program they wish to use")
                         binary = d.menu(d.scan_binaries())
                         command = binary + " '" + os.path.expanduser(cmds[0]) + "'"
+                        if d.debug:
+                            print("User selected: " + binary)
+                            print("Command=" + command)
+
 
                     d.execute(command)
                 else:
