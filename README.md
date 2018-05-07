@@ -230,5 +230,3 @@ Test the configuration by running a sudo command via dmenu-extended (e.g., `sudo
 * [**EDI9999**](https://github.com/edi9999) for performance improvements to cache scanning.
 * **Pandya** from [this stackexchange answer](https://unix.stackexchange.com/a/254073) for infomation on how to set-up a password helper
 * [**nanobecquerel**](https://github.com/nanobecquerel) for improving systemd integration
-
-If you would like to donate, please do so via my [Patreon](https://www.patreon.com/markhedleyjones) page.
