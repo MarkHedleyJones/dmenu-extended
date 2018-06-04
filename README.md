@@ -29,6 +29,8 @@ Clone this repository *or* download the zip and extract its contents.
 
 You can try dmenu-extended without installation by running `python dmenu_extended.py` from within the extracted folder.
 
+An AUR package is available here: [dmenu-extended-git](https://aur.archlinux.org/packages/dmenu-extended-git/).
+
 ### Global install
 Execute `sudo python setup.py install` from within the dmenu-extended directory.
 
