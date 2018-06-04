@@ -38,6 +38,7 @@ Run the separate install script to install systemd background update integration
 
     sudo bash systemd-install.sh
 
+
 ### Local installation
 #### Virtualenv
 Execute `python setup.py install` from within the dmenu-extended directory
@@ -137,7 +138,15 @@ It is possible to rebuild the cache from the terminal by running:
     dmenu_extended_cache_build
 
 You could run this script directly to rebuild your cache or call it from [cron](http://en.wikipedia.org/wiki/Cron).
-Dmenu has [systemd](http://en.wikipedia.org/wiki/Systemd) integration so you can set it rebulid your cache every 20 mins from the settings menu within dmenu-extended.
+Dmenu has [systemd](http://en.wikipedia.org/wiki/Systemd) integration so you can set it rebuild your cache every 20 mins from the settings menu within dmenu-extended.
+
+#### Background cache rebuild with Incron
+
+Have [Incron](https://wiki.archlinux.org/index.php/Incron) up and running. Edit your incrontab `incrontab -e` and add following line:
+
+    <PATH_TO_MONITOR>  IN_CREATE,IN_DELETE,IN_MOVE     flock <PATH_TO_MONITOR> -c dmenu_extended_cache_build
+
+This will update your cache everytime you create, delete or move a file from or to the monitored path. The `flock` command locks the command during runtime in the case of multiple events triggered, as this could lead to an incomplete cache. Check out incrontab(5) for more event symbols.
 
 ## Running Dmenu-extended with Rofi
 Ensure you have Rofi installed and edit the following two configuration options as so:
