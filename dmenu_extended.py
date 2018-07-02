@@ -1810,7 +1810,9 @@ def run(*args):
                         items = list(filter(lambda x: x.find(cmds[1]) != -1, items))
                     filename = d.menu(items)
                     filename = os.path.expanduser(filename)
-                    command = cmds[0] + " '" + filename + "'"
+                    if filename.find(' ') != -1:
+                        filename = '"' + filename + '"'
+                    command = cmds[0] + " " + filename
 
                     if run_withshell:
                         d.open_terminal(command, shell_hold)
