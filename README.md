@@ -29,8 +29,17 @@ Clone this repository *or* download the zip and extract its contents.
 
 You can try dmenu-extended without installation by running `python dmenu_extended.py` from within the extracted folder.
 
+An AUR package is available here: [dmenu-extended-git](https://aur.archlinux.org/packages/dmenu-extended-git/).
+
 ### Global install
 Execute `sudo python setup.py install` from within the dmenu-extended directory.
+
+#### Systemd background cache rebuild
+
+Run the separate install script to install systemd background update integration.
+
+    sudo bash systemd-install.sh
+
 
 ### Local installation
 #### Virtualenv
@@ -53,6 +62,13 @@ Copy the required dmenu-extended files into your local bin folder
     cp ~/Downloads/dmenu-extended-master/dmenu_extended* ~/bin
 
 To keep your ~/bin folder on the path after restart, add `export PATH=$PATH:$HOME/bin` to the end of `~/.bash_profile`
+
+
+#### Systemd background cache rebuild
+
+Run the separate install script to install systemd background update integration.
+
+    bash systemd-install.sh --user
 
 # Usage
 
@@ -124,7 +140,15 @@ It is possible to rebuild the cache from the terminal by running:
     dmenu_extended_cache_build
 
 You could run this script directly to rebuild your cache or call it from [cron](http://en.wikipedia.org/wiki/Cron).
-Dmenu has [systemd](http://en.wikipedia.org/wiki/Systemd) integration so you can set it rebulid your cache every 20 mins from the settings menu within dmenu-extended.
+Dmenu has [systemd](http://en.wikipedia.org/wiki/Systemd) integration so you can set it rebuild your cache every 20 mins from the settings menu within dmenu-extended.
+
+#### Background cache rebuild with Incron
+
+Have [Incron](https://wiki.archlinux.org/index.php/Incron) up and running. Edit your incrontab `incrontab -e` and add following line:
+
+    <PATH_TO_MONITOR>  IN_CREATE,IN_DELETE,IN_MOVE     flock <PATH_TO_MONITOR> -c dmenu_extended_cache_build
+
+This will update your cache everytime you create, delete or move a file from or to the monitored path. The `flock` command locks the command during runtime in the case of multiple events triggered, as this could lead to an incomplete cache. Check out incrontab(5) for more event symbols.
 
 ## Running Dmenu-extended with Rofi
 Ensure you have Rofi installed and edit the following two configuration options as so:
@@ -216,3 +240,4 @@ Test the configuration by running a sudo command via dmenu-extended (e.g., `sudo
 * **Head_on_a_Stick** also from the [CrunchBang forums](http://crunchbang.org/forums/viewtopic.php?id=36484) for advice on packaging.
 * [**EDI9999**](https://github.com/edi9999) for performance improvements to cache scanning.
 * **Pandya** from [this stackexchange answer](https://unix.stackexchange.com/a/254073) for infomation on how to set-up a password helper
+* [**nanobecquerel**](https://github.com/nanobecquerel) for improving systemd integration
