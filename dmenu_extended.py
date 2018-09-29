@@ -1129,7 +1129,10 @@ class extension(dmenu):
     def __init__(self):
         self.load_preferences()
 
-    plugins_index_url = 'https://raw.githubusercontent.com/markjones112358/dmenu-extended-plugins/master/plugins_index.json'
+    plugins_index_urls = [
+        'https://raw.githubusercontent.com/markjones112358/dmenu-extended-plugins/master/plugins_index.json',
+        'https://raw.githubusercontent.com/v1nc/dmenu-extended-plugins/master/plugins_index.json'
+    ]
 
     def rebuild_cache(self):
         time_start = time.time()
@@ -1180,29 +1183,26 @@ class extension(dmenu):
         self.plugins_loaded = self.get_plugins(True)
         self.cache_regenerate()
 
-
+    def download_plugins_json(self):
+        plugins = {}
+        for plugins_index_url in self.plugins_index_urls:
+            try:
+                plugins.update(self.download_json(plugins_index_url))
+            except:
+                self.message_close()
+                self.menu(["Error: Could not connect to plugin repository.",
+                           "Please check your internet connection and try again."])
+                sys.exit()
+        return plugins      
     def download_plugins(self):
-        self.message_open('Downloading a list of plugins...')
-
-        try:
-            plugins = self.download_json(self.plugins_index_url)
-        except:
-            self.message_close()
-            self.menu(["Error: Could not connect to plugin repository.",
-                       "Please check your internet connection and try again."])
-            sys.exit()
-
+        plugins = self.download_plugins_json()
         items = []
         accept = []
-
         substitute = ('plugin_', '')
-
         installed_plugins = self.get_plugins()
         installed_pluginFilenames = []
-
         for tmp in installed_plugins:
             installed_pluginFilenames.append(tmp['filename'])
-
 
         for plugin in plugins:
             if plugin + '.py' not in installed_pluginFilenames:
@@ -1213,17 +1213,12 @@ class extension(dmenu):
                     else:
                         items.append(plugin.replace(substitute[0], substitute[1]) + ' - Requires dmenu_extended >= v' + str(plugins[plugin]["min_version"]))
                         accept.append(False)
-
-        self.message_close()
-
         if len(items) == 0:
             self.menu(['There are no new plugins to install'])
         else:
             item = substitute[0] + self.select(items, 'Install:')
-
             index = items.index(item[len(substitute[0]):])
             if accept[index]:
-
                 if item != -1:
                     self.message_open("Downloading selected plugin...")
                     plugin_name = item.split(' - ')[0]
@@ -1288,8 +1283,6 @@ class extension(dmenu):
                                 print(plugin)
             else:
                 self.menu(['The selected plugin cannot be installed as it requires a newer version of dmenu-extended'])
-
-
     def installed_plugins(self):
         plugins = []
         for plugin in self.get_plugins():
@@ -1325,7 +1318,8 @@ class extension(dmenu):
         self.message_open('Checking for plugin updates...')
         plugins_here = list(map(lambda x: x['filename'].split('.')[0], self.get_plugins()))
         plugins_here.remove('plugin_settings')
-        plugins_there = self.download_json(self.plugins_index_url)
+        plugins_there = self.download_plugins_json()
+        self.message_close()
         updated = []
         for here in plugins_here:
             for there in plugins_there:
