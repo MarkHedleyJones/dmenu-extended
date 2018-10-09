@@ -1065,7 +1065,7 @@ class dmenu(object):
                 if type(item) == list:
                     if len(item) > 1:
                         aliased_items.append(self.format_alias(item[0], item[1]))
-                        aliases.append([item[0], item[1]])
+                        aliases.append([self.format_alias(item[0], item[1]), item[1]])
                     else:
                         if self.debug:
                             print("There are aliased items in the configuration with no command.")
