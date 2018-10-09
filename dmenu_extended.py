@@ -1009,6 +1009,8 @@ class dmenu(object):
 
         if 'ignore_folders' in self.prefs:
             for exclude_folder in self.prefs['ignore_folders']:
+                if exclude_folder[-1] == '/':
+                    exclude_folder = exclude_folder[:-1]
                 ignore_folders.append(exclude_folder.replace('~', os.path.expanduser('~')))
 
         if self.debug:
