@@ -155,8 +155,15 @@ Ensure you have Rofi installed and edit the following two configuration options 
 
     "menu": "rofi",
     "menu_arguments": [
-      "-dmenu"
+      "-dmenu",
+      "-i"
     ],
+
+You may also need to add
+
+    "prompt": "Open",
+
+to remove the extra colon depending on your Rofi version.
 
 ## Advanced usage
 Dmenu-extended understands the following modifier characters when entering a special command:
