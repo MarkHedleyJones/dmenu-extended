@@ -99,7 +99,7 @@ The arguments must be written exactly as they would appear in the menu. Any numb
 
 ## General Configuration
 
-Menu configuration is contained in a JSON formatted file found at *~/.config/dmenu-extended/config/dmenuExtended_preferences.json* that controls the appearance and functionality of the menu. This file is also accessible from the `-> Menu configuration` submenu as `* Edit menu preferences`
+Menu configuration is contained in a JSON formatted file found at `~/.config/dmenu-extended/config/dmenuExtended_preferences.txt` that controls the appearance and functionality of the menu. This file is also accessible from the `-> Menu configuration` submenu as `* Edit menu preferences`
 
 Functions of the items are as follows.
 
