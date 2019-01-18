@@ -38,7 +38,7 @@ _version_ = 18.1009
 system_encoding = locale.getpreferredencoding()
 
 path_base = os.path.expanduser('~') + '/.config/dmenu-extended'
-path_cache = path_base + '/cache'
+path_cache = os.getenv('XDG_CACHE_HOME', os.path.join(os.path.expanduser('~'), '.cache')) + '/dmenu-extended'
 path_prefs = path_base + '/config'
 path_plugins = path_base + '/plugins'
 
@@ -70,7 +70,10 @@ default_prefs = {
         "ods",                          # Open document spreadsheet
         "avi",                          # Video file
         "mpg",                          # Video file
+        "mp4",                          # Video file
         "mp3",                          # Music file
+        "m4a",                          # Music file
+        "ogg",                          # Media file
         "lyx",                          # Lyx document
         "bib",                          # LaTeX bibliograpy
         "iso",                          # CD image
@@ -133,6 +136,7 @@ default_prefs = {
     "indicator_alias": "",              # Symbol to indecate an aliased command
     "prompt": "Open:"                   # Prompt
 }
+
 
 def setup_user_files():
     """ Returns nothing
@@ -291,6 +295,7 @@ class dmenu(object):
     debug = False
     preCommand = False
     launch_args = [] # Holds a list of menu items to automatically select
+    cache_dir = path_cache  # Stores the cache dir, could be used by plugins
 
 
     def get_plugins(self, force=False):
@@ -777,6 +782,7 @@ class dmenu(object):
             else:
                 return command
 
+
     def scan_applications(self):
         paths = self.system_path()
         applications = []
@@ -1195,7 +1201,8 @@ class extension(dmenu):
                 self.menu(["Error: Could not connect to plugin repository.",
                            "Please check your internet connection and try again."])
                 sys.exit()
-        return plugins      
+        return plugins
+
     def download_plugins(self):
         plugins = self.download_plugins_json()
         items = []
@@ -1285,6 +1292,7 @@ class extension(dmenu):
                                 print(plugin)
             else:
                 self.menu(['The selected plugin cannot be installed as it requires a newer version of dmenu-extended'])
+
     def installed_plugins(self):
         plugins = []
         for plugin in self.get_plugins():
