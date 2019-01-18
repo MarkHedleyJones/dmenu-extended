@@ -10,6 +10,22 @@ import locale
 import operator
 import time
 
+Help = """
+Dmenu Extended command line options
+
+Usage:
+    dmenu_extended_run [OPTION] ["INPUT"]
+
+Options:
+    --debug             enable debug mode
+    --no-recent         hide recent entries
+    --no-settings       hide settings entry (put last)
+    --no-plugins        hide plugins entries
+    --no-scanned        hide scanned files
+
+Input: text enclosed in double quotes will be fed to the menu, as if entered manually.
+"""
+
 # Try and import the faster os.walk implementation - scandir
 scandir_present = False
 try:
@@ -38,7 +54,7 @@ _version_ = 18.1009
 system_encoding = locale.getpreferredencoding()
 
 path_base = os.path.expanduser('~') + '/.config/dmenu-extended'
-path_cache = path_base + '/cache'
+path_cache = os.getenv('XDG_CACHE_HOME', os.path.join(os.path.expanduser('~'), '.cache')) + '/dmenu-extended'
 path_prefs = path_base + '/config'
 path_plugins = path_base + '/plugins'
 
@@ -70,7 +86,10 @@ default_prefs = {
         "ods",                          # Open document spreadsheet
         "avi",                          # Video file
         "mpg",                          # Video file
+        "mp4",                          # Video file
         "mp3",                          # Music file
+        "m4a",                          # Music file
+        "ogg",                          # Media file
         "lyx",                          # Lyx document
         "bib",                          # LaTeX bibliograpy
         "iso",                          # CD image
@@ -133,6 +152,7 @@ default_prefs = {
     "indicator_alias": "",              # Symbol to indecate an aliased command
     "prompt": "Open:"                   # Prompt
 }
+
 
 def setup_user_files():
     """ Returns nothing
@@ -290,7 +310,12 @@ class dmenu(object):
     prefs = False
     debug = False
     preCommand = False
-    launch_args = [] # Holds a list of menu items to automatically select
+    launch_args = []        # Holds a list of menu items to automatically select
+    cache_dir = path_cache  # Stores the cache dir, could be used by plugins
+    show_scanned = True     # Show apps and scanned files
+    show_recent = True      # Show recent entries
+    show_settings = True    # If false, settings will be put last (not removed)
+    show_plugins = True     # If false, plugins won't be shown (but settings will)
 
 
     def get_plugins(self, force=False):
@@ -738,7 +763,24 @@ class dmenu(object):
                 else:
                     return self.cache_load(exitOnFail=True)
 
-        return cache_plugins + cache_frequent + cache_scanned
+        settings = self.prefs['indicator_submenu'] + ' Settings\n'
+
+        if self.show_plugins and cache_plugins:
+            # remove the Settings entry from plugins (handled separately)
+            cache_plugins = cache_plugins.replace(settings, '')
+        else:
+            cache_plugins = ''
+
+        if not self.show_scanned:
+            cache_scanned = ''
+
+        if not self.show_recent:
+            cache_frequent = ''
+
+        if self.show_settings:
+            return cache_plugins + settings + cache_frequent + cache_scanned
+        else:
+            return cache_plugins + cache_frequent + cache_scanned + settings
 
 
     def command_output(self, command, split=True):
@@ -776,6 +818,7 @@ class dmenu(object):
                 return self.prefs['indicator_alias'] + ' ' + command
             else:
                 return command
+
 
     def scan_applications(self):
         paths = self.system_path()
@@ -1133,7 +1176,8 @@ class extension(dmenu):
 
     plugins_index_urls = [
         'https://raw.githubusercontent.com/markjones112358/dmenu-extended-plugins/master/plugins_index.json',
-        'https://raw.githubusercontent.com/v1nc/dmenu-extended-plugins/master/plugins_index.json'
+        'https://raw.githubusercontent.com/v1nc/dmenu-extended-plugins/master/plugins_index.json',
+        'https://raw.githubusercontent.com/mg979/dmenu-extended-plugins/master/plugins_index.json'
     ]
 
     def rebuild_cache(self):
@@ -1195,7 +1239,8 @@ class extension(dmenu):
                 self.menu(["Error: Could not connect to plugin repository.",
                            "Please check your internet connection and try again."])
                 sys.exit()
-        return plugins      
+        return plugins
+
     def download_plugins(self):
         plugins = self.download_plugins_json()
         items = []
@@ -1285,6 +1330,7 @@ class extension(dmenu):
                                 print(plugin)
             else:
                 self.menu(['The selected plugin cannot be installed as it requires a newer version of dmenu-extended'])
+
     def installed_plugins(self):
         plugins = []
         for plugin in self.get_plugins():
@@ -1395,6 +1441,13 @@ class extension(dmenu):
         self.open_file(file_prefs)
         self.plugins_available() # Refresh the plugin cache
 
+    def clear_recent(self):
+        if os.path.isfile(file_cache_frequentlyUsed_frequency):
+            os.remove(file_cache_frequentlyUsed_frequency)
+        if os.path.isfile(file_cache_frequentlyUsed_ordered):
+            os.remove(file_cache_frequentlyUsed_ordered)
+        run()
+
     def run(self, inputText):
         options = [
             'Rebuild cache',
@@ -1402,6 +1455,7 @@ class extension(dmenu):
             self.prefs['indicator_submenu'] + ' Remove existing plugins',
             'Update installed plugins',
             'Edit menu preferences',
+            'Clear recent entries',
             'Disable automatic cache rebuilding',
             'Enable automatic cache rebuilding',
         ]
@@ -1412,6 +1466,7 @@ class extension(dmenu):
             self.remove_plugin,
             self.update_plugins,
             self.edit_preferences,
+            self.clear_recent,
             self.disable_automatic_rebuild_cache,
             self.enable_automatic_rebuild_cache
         ]
@@ -1432,13 +1487,17 @@ class extension(dmenu):
         # Add option to edit menu preferences
         items += [options[4]]
 
+        # Add option to clear recent entries
+        if self.prefs['frequently_used'] > 0:
+            items += [options[5]]
+
         # Check to see whether systemd integration is available and add
         automatic_rebuild_status = self.get_automatic_rebuild_cache_status()
         if automatic_rebuild_status != 0:
             if automatic_rebuild_status == 1:
-                items += [options[5]]
-            else:
                 items += [options[6]]
+            else:
+                items += [options[7]]
 
         item = self.select(items, "Action:")
         if item != -1:
@@ -1525,8 +1584,12 @@ def handle_command(d, out):
         d.execute(out)
 
 
-def run(*args):
-    launch_args = list(args[1:])
+def init_menu(launch_args):
+    """Parse args and load menu preferences."""
+
+    if '--help' in launch_args:
+        print(Help)
+        return 1
 
     if '--debug' in launch_args:
         d.debug = True
@@ -1534,8 +1597,35 @@ def run(*args):
         print('Debugging enabled')
         print('Launch arguments: ' + str(launch_args))
 
+    if '--no-settings' in launch_args:
+        d.show_settings = False
+        launch_args.remove('--no-settings')
+
+    if '--no-plugins' in launch_args:
+        d.show_plugins = False
+        launch_args.remove('--no-plugins')
+
+    if '--no-scanned' in launch_args:
+        d.show_scanned = False
+        launch_args.remove('--no-scanned')
+
+    if '--no-recent' in launch_args:
+        d.show_recent = False
+        launch_args.remove('--no-recent')
+
     d.launch_args = launch_args
     d.load_preferences()
+
+    # check executable
+    if os.system('which ' + d.prefs['menu']) != 0:
+        print(d.prefs['menu'] + ' executable not found, aborting...')
+        return 1
+
+
+def run(*args):
+    if init_menu(list(args[1:])):
+        return
+
     cache = d.cache_load()
     prompt = d.prefs['prompt']
     out = d.menu(cache,prompt).strip()
