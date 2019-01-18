@@ -1176,7 +1176,8 @@ class extension(dmenu):
 
     plugins_index_urls = [
         'https://raw.githubusercontent.com/markjones112358/dmenu-extended-plugins/master/plugins_index.json',
-        'https://raw.githubusercontent.com/v1nc/dmenu-extended-plugins/master/plugins_index.json'
+        'https://raw.githubusercontent.com/v1nc/dmenu-extended-plugins/master/plugins_index.json',
+        'https://raw.githubusercontent.com/mg979/dmenu-extended-plugins/master/plugins_index.json'
     ]
 
     def rebuild_cache(self):
