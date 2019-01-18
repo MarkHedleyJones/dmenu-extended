@@ -1403,6 +1403,13 @@ class extension(dmenu):
         self.open_file(file_prefs)
         self.plugins_available() # Refresh the plugin cache
 
+    def clear_recent(self):
+        if os.path.isfile(file_cache_frequentlyUsed_frequency):
+            os.remove(file_cache_frequentlyUsed_frequency)
+        if os.path.isfile(file_cache_frequentlyUsed_ordered):
+            os.remove(file_cache_frequentlyUsed_ordered)
+        run()
+
     def run(self, inputText):
         options = [
             'Rebuild cache',
@@ -1410,6 +1417,7 @@ class extension(dmenu):
             self.prefs['indicator_submenu'] + ' Remove existing plugins',
             'Update installed plugins',
             'Edit menu preferences',
+            'Clear recent entries',
             'Disable automatic cache rebuilding',
             'Enable automatic cache rebuilding',
         ]
@@ -1420,6 +1428,7 @@ class extension(dmenu):
             self.remove_plugin,
             self.update_plugins,
             self.edit_preferences,
+            self.clear_recent,
             self.disable_automatic_rebuild_cache,
             self.enable_automatic_rebuild_cache
         ]
@@ -1440,13 +1449,17 @@ class extension(dmenu):
         # Add option to edit menu preferences
         items += [options[4]]
 
+        # Add option to clear recent entries
+        if self.prefs['frequently_used'] > 0:
+            items += [options[5]]
+
         # Check to see whether systemd integration is available and add
         automatic_rebuild_status = self.get_automatic_rebuild_cache_status()
         if automatic_rebuild_status != 0:
             if automatic_rebuild_status == 1:
-                items += [options[5]]
-            else:
                 items += [options[6]]
+            else:
+                items += [options[7]]
 
         item = self.select(items, "Action:")
         if item != -1:
