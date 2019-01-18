@@ -10,6 +10,22 @@ import locale
 import operator
 import time
 
+Help = """
+Dmenu Extended command line options
+
+Usage:
+    dmenu_extended_run [OPTION] ["INPUT"]
+
+Options:
+    --debug             enable debug mode
+    --no-recent         hide recent entries
+    --no-settings       hide settings entry (put last)
+    --no-plugins        hide plugins entries
+    --no-scanned        hide scanned files
+
+Input: text enclosed in double quotes will be fed to the menu, as if entered manually.
+"""
+
 # Try and import the faster os.walk implementation - scandir
 scandir_present = False
 try:
@@ -294,8 +310,12 @@ class dmenu(object):
     prefs = False
     debug = False
     preCommand = False
-    launch_args = [] # Holds a list of menu items to automatically select
+    launch_args = []        # Holds a list of menu items to automatically select
     cache_dir = path_cache  # Stores the cache dir, could be used by plugins
+    show_scanned = True     # Show apps and scanned files
+    show_recent = True      # Show recent entries
+    show_settings = True    # If false, settings will be put last (not removed)
+    show_plugins = True     # If false, plugins won't be shown (but settings will)
 
 
     def get_plugins(self, force=False):
@@ -743,7 +763,24 @@ class dmenu(object):
                 else:
                     return self.cache_load(exitOnFail=True)
 
-        return cache_plugins + cache_frequent + cache_scanned
+        settings = self.prefs['indicator_submenu'] + ' Settings\n'
+
+        if self.show_plugins and cache_plugins:
+            # remove the Settings entry from plugins (handled separately)
+            cache_plugins = cache_plugins.replace(settings, '')
+        else:
+            cache_plugins = ''
+
+        if not self.show_scanned:
+            cache_scanned = ''
+
+        if not self.show_recent:
+            cache_frequent = ''
+
+        if self.show_settings:
+            return cache_plugins + settings + cache_frequent + cache_scanned
+        else:
+            return cache_plugins + cache_frequent + cache_scanned + settings
 
 
     def command_output(self, command, split=True):
@@ -1546,8 +1583,12 @@ def handle_command(d, out):
         d.execute(out)
 
 
-def run(*args):
-    launch_args = list(args[1:])
+def init_menu(launch_args):
+    """Parse args and load menu preferences."""
+
+    if '--help' in launch_args:
+        print(Help)
+        return 1
 
     if '--debug' in launch_args:
         d.debug = True
@@ -1555,8 +1596,35 @@ def run(*args):
         print('Debugging enabled')
         print('Launch arguments: ' + str(launch_args))
 
+    if '--no-settings' in launch_args:
+        d.show_settings = False
+        launch_args.remove('--no-settings')
+
+    if '--no-plugins' in launch_args:
+        d.show_plugins = False
+        launch_args.remove('--no-plugins')
+
+    if '--no-scanned' in launch_args:
+        d.show_scanned = False
+        launch_args.remove('--no-scanned')
+
+    if '--no-recent' in launch_args:
+        d.show_recent = False
+        launch_args.remove('--no-recent')
+
     d.launch_args = launch_args
     d.load_preferences()
+
+    # check executable
+    if os.system('which ' + d.prefs['menu']) != 0:
+        print(d.prefs['menu'] + ' executable not found, aborting...')
+        return 1
+
+
+def run(*args):
+    if init_menu(list(args[1:])):
+        return
+
     cache = d.cache_load()
     prompt = d.prefs['prompt']
     out = d.menu(cache,prompt).strip()
