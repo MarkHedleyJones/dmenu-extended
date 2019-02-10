@@ -142,13 +142,34 @@ It is possible to rebuild the cache from the terminal by running:
 You could run this script directly to rebuild your cache or call it from [cron](http://en.wikipedia.org/wiki/Cron).
 Dmenu has [systemd](http://en.wikipedia.org/wiki/Systemd) integration so you can set it rebuild your cache every 20 mins from the settings menu within dmenu-extended.
 
-#### Background cache rebuild with Incron
+## Background cache rebuild with Incron
 
 Have [Incron](https://wiki.archlinux.org/index.php/Incron) up and running. Edit your incrontab `incrontab -e` and add following line:
 
     <PATH_TO_MONITOR>  IN_CREATE,IN_DELETE,IN_MOVE     flock <PATH_TO_MONITOR> -c dmenu_extended_cache_build
 
 This will update your cache everytime you create, delete or move a file from or to the monitored path. The `flock` command locks the command during runtime in the case of multiple events triggered, as this could lead to an incomplete cache. Check out incrontab(5) for more event symbols.
+
+## Rebuild cache via pacman hook
+
+You can update your application cache after installing/uninstalling a package via a [pacman hook](https://wiki.archlinux.org/index.php/Pacman#Hooks) for immediate access/removal.
+Create a file `/usr/share/libalpm/hooks/dmenu-cache-rebuild.hook`:
+
+```
+[Trigger]
+Type = Package
+Operation = Install
+Operation = Remove
+Target = *
+
+[Action]
+Description = Rebuilds Cache of dmenu-extended after package installation or removal
+When = PostTransaction
+Exec = /usr/bin/sudo -u <USER> /usr/bin/dmenu_extended_cache_build
+Depends = dmenu-extended-git
+```
+
+You need to execute the rebuild command via `sudo -u <USER>`, because pacman runs as root and would therefore not update userfiles.
 
 ## Running Dmenu-extended with Rofi
 Ensure you have Rofi installed and edit the following two configuration options as so:
