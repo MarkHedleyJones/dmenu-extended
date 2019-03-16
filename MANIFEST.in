@@ -1,4 +1,4 @@
-include dmenu_extended/core.py
+include dmenu_extended/dmenu_extended.py
 include dmenu_extended/__init__.py
 include scripts/dmenu_extended_run
 include scripts/dmenu_extended_cache_build
