@@ -15,9 +15,8 @@ setup(name='dmenu_extended',
       author='Mark H. Jones',
       author_email='markjones112358@gmail.com',
       url='https://github.com/markjones112358/dmenu-extended',
-      py_modules=['dmenu_extended'],
-      # packages=['dmenu_extended', 'dmenu_extended/config', 'dmenu_extended/plugins'],
-      scripts=['dmenu_extended_run', 'dmenu_extended_cache_build'],
-      data_files=[('share/dmenu-extended/', ['systemd-install.sh']),
+      packages=['dmenu_extended'],
+      scripts=['scripts/dmenu_extended_run', 'scripts/dmenu_extended_cache_build'],
+      data_files=[('share/dmenu-extended/', ['scripts/systemd-install.sh']),
                   ('share/dmenu-extended/systemd', ['systemd/update-dmenu-extended-db.timer'])]
       )

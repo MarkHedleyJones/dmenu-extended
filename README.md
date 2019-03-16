@@ -5,7 +5,7 @@ An extension to the original [dmenu](http://tools.suckless.org/dmenu/) allowing 
 ## See it in action
 
 <p align="center">
-  <img src="https://raw.github.com/markjones112358/dmenu-extended/master/demo.gif" alt="Dmenu-extended demo"/>
+  <img src="https://raw.github.com/markjones112358/dmenu-extended/master/docs/demo.gif" alt="Dmenu-extended demo"/>
 </p>
 
 ## Feature Summary:
@@ -239,7 +239,7 @@ zenity --password --title="Sudo password prompt"
 Test the configuration by running a sudo command via dmenu-extended (e.g., `sudo gedit`). You should be prompted grapically for the password before the program opens.
 
 <p align="center">
-  <img src="https://raw.github.com/markjones112358/dmenu-extended/master/sc-password.png" alt="Password manager screenshot"/>
+  <img src="https://raw.github.com/markjones112358/dmenu-extended/master/docs/sc-password.png" alt="Password manager screenshot"/>
 </p>
 
 ## Acknowledgements
