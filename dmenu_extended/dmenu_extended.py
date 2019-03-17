@@ -1630,6 +1630,9 @@ def run(*args):
     if init_menu(list(args[1:])):
         return
 
+    if d.debug:
+        print(sys.version)
+
     cache = d.cache_load()
     prompt = d.prefs['prompt']
     out = d.menu(cache,prompt).strip()
