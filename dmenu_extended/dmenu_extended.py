@@ -10,6 +10,10 @@ import locale
 import operator
 import time
 
+# Ensure output is in utf-8 when writing to stdout in Python2
+if sys.version_info[0] < 3:
+    sys.stdout = codecs.getwriter('utf8')(sys.stdout)
+
 Help = """
 Dmenu Extended command line options
 
