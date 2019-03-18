@@ -1,0 +1,9 @@
+/usr/local/lib/python2.7/dist-packages/dmenu_extended/main.py
+/usr/local/lib/python2.7/dist-packages/dmenu_extended/__init__.py
+/usr/local/lib/python2.7/dist-packages/dmenu_extended/main.pyc
+/usr/local/lib/python2.7/dist-packages/dmenu_extended/__init__.pyc
+/usr/local/bin/dmenu_extended_cache_build
+/usr/local/bin/dmenu_extended_run
+/usr/local/share/dmenu-extended/systemd-install.sh
+/usr/local/share/dmenu-extended/systemd/update-dmenu-extended-db.timer
+/usr/local/lib/python2.7/dist-packages/dmenu_extended-0.1.0.egg-info
