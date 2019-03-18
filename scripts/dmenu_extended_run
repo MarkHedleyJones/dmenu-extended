@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf8 -*-
-import dmenu_extended.dmenu_extended as dmenu_extended
+import dmenu_extended.main
 import sys
 
 if __name__ == "__main__":
-    dmenu_extended.run(*sys.argv)
+    dmenu_extended.main.run(*sys.argv)

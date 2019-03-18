@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf8 -*-
-import dmenu_extended.dmenu_extended as dmenu_extended
+import dmenu_extended.main
+
 if __name__ == "__main__":
     print("Rebuilding dmenu_extended cache...")
-    dmenu_extended.dmenu().cache_build()
+    dmenu_extended.main.dmenu().cache_build()

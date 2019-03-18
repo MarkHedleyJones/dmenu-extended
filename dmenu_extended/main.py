@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 import sys
@@ -48,7 +49,7 @@ except:
     import urllib2
 
 
-_version_ = 18.1009
+_version_ = 19.0318
 
 # Find out the system's favouite encoding
 system_encoding = locale.getpreferredencoding()
@@ -615,6 +616,14 @@ class dmenu(object):
                     self.prefs['fileopener'] = offer
                     self.open_file(path)
 
+    def decode(self, string):
+        try:
+            if (type(string) == str):
+                string = string.decode('utf-8')
+        except AttributeError:
+            # This Python 3+
+            pass
+        return string
 
     def command_to_list(self, command):
         """
@@ -625,43 +634,44 @@ class dmenu(object):
         if type(command) == list:
             tmp = []
             for i, item in enumerate(command):
-                if item.find(' ') != -1:
-                    tmp = tmp + item.split(' ')
+                item = self.decode(item)
+                if item.find(u' ') != -1:
+                    tmp = tmp + item.split(u' ')
                 else:
                     tmp =  tmp + [item]
             out = tmp
         elif type(command) == str or type(command) == unicode:
-            out = command.split(' ')
+            out = self.decode(command).split(u' ')
 
-        quote_count = "".join(out).count('"')
+        quote_count = u"".join(out).count(u'"')
         if quote_count > 0 and quote_count % 2 == 0:
             # Bring split parts that were enclosed by quotes back together
             restart = 1
             while restart:
                 restart = 0
                 for index, part in enumerate(out):
-                    if part.count('"') % 2 != 0 and index + 1 <= len(out) - 1:
-                        out[index] = out[index] + ' ' + out[index+1]
+                    if part.count(u'"') % 2 != 0 and index + 1 <= len(out) - 1:
+                        out[index] = out[index] + u' ' + out[index+1]
                         del(out[index+1])
                         restart = 1
                         break
             for index, part in enumerate(out):
-                out[index] = part.replace('"', '')
+                out[index] = part.replace(u'"', u'')
 
-        quote_count = "".join(out).count("'")
+        quote_count = u"".join(out).count(u"'")
         if quote_count > 0 and quote_count % 2 == 0:
             # Bring split parts that were enclosed by single quotes back together
             restart = 1
             while restart:
                 restart = 0
                 for index, part in enumerate(out):
-                    if part.count("'") % 2 != 0 and index + 1 <= len(out) - 1:
-                        out[index] = out[index] + ' ' + out[index+1]
+                    if part.count(u"'") % 2 != 0 and index + 1 <= len(out) - 1:
+                        out[index] = out[index] + u' ' + out[index+1]
                         del(out[index+1])
                         restart = 1
                         break
             for index, part in enumerate(out):
-                out[index] = part.replace("'", '')
+                out[index] = part.replace(u"'", u'')
         return out
 
 
