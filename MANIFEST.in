@@ -1,10 +1,7 @@
-include dmenu_extended/dmenu_extended.py
+include dmenu_extended/main.py
 include dmenu_extended/__init__.py
 include scripts/dmenu_extended_run
 include scripts/dmenu_extended_cache_build
 include scripts/systemd-install.sh
-include systemd/update-dmenu-extended-db.system.service
-include systemd/update-dmenu-extended-db.user.service
 include systemd/update-dmenu-extended-db.timer
-include tests/test.py
-include tests/testing.py
+include tests/test_main.py
