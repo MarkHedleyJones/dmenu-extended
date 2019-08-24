@@ -1,3 +1,5 @@
+<img src="https://travis-ci.org/MarkHedleyJones/dmenu-extended.svg?branch=master" alt="build:passed">
+
 # dmenu-extended
 
 An extension to the original [dmenu](http://tools.suckless.org/dmenu/) allowing super fast access to your files, folders, and programs. dmenu-extended has support for plugins, command aliasing, file filtering, and customisation. You can also use dmenu-extended with [rofi](https://davedavenport.github.io/rofi/)!.
