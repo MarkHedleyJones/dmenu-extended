@@ -809,11 +809,12 @@ class dmenu(object):
     def scan_binaries(self):
         out = []
         for path in self.system_path():
-            if not os.path.exists(path):
-                continue
-            for binary in os.listdir(path):
-                if binary[:3] is not 'gpk':
-                    out.append(binary)
+            if os.path.isdir(path):
+                for binary in os.listdir(path):
+                    if binary[:3] is not 'gpk':
+                        out.append(binary)
+            elif os.path.isfile(path):
+                out.append(path)
         return out
 
 
