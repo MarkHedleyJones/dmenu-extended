@@ -248,12 +248,7 @@ def load_plugins(debug=False):
                     plugins_loaded[-1]['plugin'].debug = True
                     print('Loaded plugin ' + plugin)
             except Exception as e:
-                if debug:
-                    print('Error loading plugin ' + plugin)
-                    print(str(e))
-                else:
-                    print('!! Plugin was deleted to prevent interruption to dmenuExtended')
-                    os.remove(path_plugins + '/' + plugin + '.py')
+                print('Error loading plugin ' + plugin + ': ' + str(e))
 
     return plugins_loaded
 
