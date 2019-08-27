@@ -240,7 +240,7 @@ def load_plugins(debug=False):
     for plugin in plugins.__all__:
         if plugin not in ['__init__', 'plugin_settings.py']:
             try:
-                __import__('../plugins.' + plugin)
+                __import__('plugins.' + plugin)
                 exec('plugins_loaded.append({"filename": "' + plugin + '.py", "plugin": plugins.' + plugin + '.extension()})')
                 # Pass the plug-in's version of dmenu the list of launch arguments
                 plugins_loaded[-1]['plugin'].launch_args = d.launch_args
