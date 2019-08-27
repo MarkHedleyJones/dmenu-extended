@@ -1,2 +1,1 @@
-from .main import dmenu
-from .main import run
+from .main import *
