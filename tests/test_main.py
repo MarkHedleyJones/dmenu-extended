@@ -11,6 +11,9 @@ import dmenu_extended as d
 
 menu = d.dmenu()
 
+def test_required_variables_available():
+    assert d.path_cache[-len('dmenu-extended'):] == 'dmenu-extended'
+
 def test_command_to_list():
     assert menu.command_to_list(['a', 'b', 'c']) == [u'a', u'b', u'c']
     assert menu.command_to_list('a b c') == [u'a', u'b', u'c']
