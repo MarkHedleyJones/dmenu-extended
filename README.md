@@ -146,11 +146,12 @@ Dmenu has [systemd](http://en.wikipedia.org/wiki/Systemd) integration so you can
 
 ## Background cache rebuild with Incron
 
+You can also rebuild the cache everytime a file or folder is being created, deleted or moved from or to the monitored path.
 Have [Incron](https://wiki.archlinux.org/index.php/Incron) up and running. Edit your incrontab `incrontab -e` and add following line:
 
-    <PATH_TO_MONITOR>  IN_CREATE,IN_DELETE,IN_MOVE     flock <PATH_TO_MONITOR> -c dmenu_extended_cache_build
+    <PATH_TO_MONITOR>  IN_CREATE,IN_DELETE,IN_MOVE     /usr/bin/dmenu_extended_cache_build
 
-This will update your cache everytime you create, delete or move a file from or to the monitored path. The `flock` command locks the command during runtime in the case of multiple events triggered, as this could lead to an incomplete cache. Check out incrontab(5) for more event symbols.
+Check out incrontab(5) for more event symbols. Make sure to include the whole path to your executable to run - incron sometimes seems to ignore your user PATH.
 
 ## Rebuild cache via pacman hook
 
@@ -272,3 +273,4 @@ Test the configuration by running a sudo command via dmenu-extended (e.g., `sudo
 * **Pandya** from [this stackexchange answer](https://unix.stackexchange.com/a/254073) for infomation on how to set-up a password helper
 * [**nanobecquerel**](https://github.com/nanobecquerel) for improving systemd integration
 * [**fat-fighter**](https://github.com/fat-fighter) for bug fixes and solving GitHub issues
+* [**vestingz**](https://github.com/vestingz) for Incron and pacman integration.
