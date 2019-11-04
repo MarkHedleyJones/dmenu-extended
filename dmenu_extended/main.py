@@ -1420,8 +1420,11 @@ class extension(dmenu):
         if has_systemd != 0:
             return 0
         subprocess.call(['systemctl', '--user', 'daemon-reload'])
-        has_service = subprocess.check_output(['systemctl', '--user', 'list-unit-files', \
-                'update-dmenu-extended-db.timer'])
+        try:
+            has_service = subprocess.check_output(['systemctl', '--user', 'list-unit-files', \
+                                                  'update-dmenu-extended-db.timer'])
+        except subprocess.CalledProcessError:
+            return 0
         if 'update-dmenu-extended-db.timer' not in str(has_service):
             return 0
         is_enabled = subprocess.call(['systemctl', '--user', 'is-enabled', 'update-dmenu-extended-db.timer'])
