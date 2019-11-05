@@ -149,9 +149,9 @@ Dmenu has [systemd](http://en.wikipedia.org/wiki/Systemd) integration so you can
 You can also rebuild the cache everytime a file or folder is being created, deleted or moved from or to the monitored path.
 Have [Incron](https://wiki.archlinux.org/index.php/Incron) up and running. Edit your incrontab `incrontab -e` and add following line:
 
-    <PATH_TO_MONITOR>  IN_CREATE,IN_DELETE,IN_MOVE     /usr/bin/dmenu_extended_cache_build
+    <PATH_TO_MONITOR>  IN_CREATE,IN_DELETE,IN_MOVE     <PATH_DMENU_EXTENDED_CACHE_BUILD>
 
-Check out incrontab(5) for more event symbols. Make sure to include the whole path to your executable to run - incron sometimes seems to ignore your user PATH.
+Enter the path of *dmenu_extended_cache_build*, you can find this by running `which dmenu_extended_cache_build`. All paths must be absolute! Check out incrontab(5) for more event symbols.
 
 ## Rebuild cache via pacman hook
 
