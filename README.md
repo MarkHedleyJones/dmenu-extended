@@ -129,6 +129,7 @@ Functions of the items are as follows.
 * `"filebrowser"` application to handle opening folders
 * `"webbrowser"` application to handle opening urls (web browser)
 * `"terminal"` terminal emulator application
+* `"terminal_editor"` application used to edit files directly in the terminal
 * `"indicator_submenu"` symbol to indicate a submenu item in the cache
 * `"indicator_edit"` symbol to indicate an item will launch an editor in the cache
 * `"indicator_alias"` symbol to indicate an aliased command in the cache
@@ -195,7 +196,8 @@ Dmenu-extended understands the following modifier characters when entering a spe
 1. **+** (plus) - Manually add an entry to the cache
 2. **-** (minus) - Remove a manually added entry from the cache
 3. **:** (colon) - Open with
-4. **;** (semi-colon) - Execute in terminal
+4. **@** (at) - Open in default terminal editor
+5. **;** (semi-colon) - Execute in terminal
 
 These modifiers are entered into the menu; examples follow.
 
@@ -227,6 +229,10 @@ There are a few different ways to use the colon operator, summarised by example 
 * `/home/me/Documents/writing.txt:` - Open this file using... Returns a list of applications to launch the given file
 * `/home/me/Documents/writing.txt:gedit` - Open this file with gedit.
 * `gedit:/home/me/Documents/writing.txt` - Open this file with gedit.
+
+### **@** (at) - Open in terminal editor
+
+Default editor is set to `vim`, but it can be changed in the preferences (`"terminal_editor"`). The terminal window is closed as soon as the application is exited.
 
 ### **;** (semi-colon) - Execute in terminal
 Dmenu-extended doesn't know when the application you enter needs to be executed in a terminal window. To tell dmenu-extended to launch the following in a terminal, append a semi-colon to the end. Once the terminal program has exited the terminal will close.

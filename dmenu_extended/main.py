@@ -148,6 +148,7 @@ default_prefs = {
     "filebrowser": "xdg-open",          # Program to handle opening paths
     "webbrowser": "xdg-open",           # Program to hangle opening urls
     "terminal": "xterm",                # Terminal
+    "terminal_editor": "vim",           # Terminal editor
     "indicator_submenu": "->",          # Symbol to indicate a submenu item
     "indicator_edit": "*",              # Symbol to indicate an item will launch an editor
     "indicator_alias": "",              # Symbol to indecate an aliased command
@@ -585,6 +586,27 @@ class dmenu(object):
             os.system('sh -e ' + sh_command_file)
         else:
             os.system(self.prefs['terminal'] + ' -e ' + sh_command_file)
+
+
+    def open_in_terminal_editor(self, path):
+        if not os.path.exists(path):
+            if d.debug:
+                print("Open in the default terminal editor...")
+                print(str(path) + ": path doesn't exist")
+            return
+
+        cmd = "%s -e '%s %s'" % (
+            d.prefs['terminal'],
+            d.prefs['terminal_editor'],
+            path.replace(' ', '\\ ')
+        )
+
+        if d.debug:
+            print("Open in the default terminal editor...")
+            print("Terminal will be held open upon command finishing")
+            print("Command is: " + str(cmd))
+
+        return d.execute(cmd, False)
 
 
     def open_file(self, path):
@@ -1531,7 +1553,9 @@ def handle_command(d, out):
         out = os.path.expanduser(out)
         if d.debug:
             print("Tilda found, expanding to " + str(out))
-    if out[-1] == ';':
+    if out[-1] == '@':
+        d.open_in_terminal_editor(out[:-1])
+    elif out[-1] == ';':
         terminal_hold = False
         out = out[:-1]
         if out[-1] == ';':
