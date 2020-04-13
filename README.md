@@ -232,7 +232,10 @@ There are a few different ways to use the colon operator, summarised by example 
 
 ### **@** (at) - Open in terminal editor
 
-Default editor is set to `vim`, but it can be changed in the preferences (`"terminal_editor"`). The terminal window is closed as soon as the application is exited.
+Suffix to open the chosen file inside the preferred editor in a terminal window. Default editor is set to `vim`, but it can be changed in the preferences (`"terminal_editor"`). The terminal window is closed as soon as the application is exited.
+For instance:
+
+* `/home/me/Documents/writing.txt@`
 
 ### **;** (semi-colon) - Execute in terminal
 Dmenu-extended doesn't know when the application you enter needs to be executed in a terminal window. To tell dmenu-extended to launch the following in a terminal, append a semi-colon to the end. Once the terminal program has exited the terminal will close.
