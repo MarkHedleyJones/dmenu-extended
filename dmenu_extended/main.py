@@ -115,10 +115,11 @@ default_prefs = {
     "include_items": [],                # Extra items to display - manually added
     "exclude_items": [],                # Items to hide - manually hidden
     "include_binaries": False,
-    "filter_binaries": False,            # Only include binaries that have an associated .desktop file
+    "filter_binaries": False,           # Only include binaries that have an associated .desktop file
     "include_applications": True,       # Add items from /usr/share/applications
     "alias_applications": True,         # Alias applications with their common names
     "path_aliasFile": "",               # Pointer to an aliases file (if any)
+    "abbreviate_homedir": False,        # Use ~ in place of /home/username
     "frequently_used": 0,               # Number of most frequently used commands to show in the menu
     "alias_display_format": "{name}",
     "path_shellCommand": "~/.dmenuEextended_shellCommand.sh",
@@ -1129,6 +1130,11 @@ class dmenu(object):
                         foldernames.append(os.path.join(root,name) + '/')
 
         foldernames = list(filter(lambda x: x not in ignore_folders, foldernames))
+
+        if 'abbreviate_homedir' in self.prefs:
+          homedir = os.path.expanduser("~")
+          filenames = list(map(lambda x: x.replace(homedir, "~"), filenames))
+          foldernames = list(map(lambda x: x.replace(homedir, "~"), foldernames))
 
         include_items = []
 
