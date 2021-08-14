@@ -1666,7 +1666,7 @@ def run(*args):
 
     if len(out) > 0:
         if d.debug:
-            print("First menu closed with user input: " + out)
+            print("First menu closed with user input: '" + out + "'")
         # Check if the action relates to a plugin
         plugins = load_plugins(d.debug)
         plugin_hook = False
