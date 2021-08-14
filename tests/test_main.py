@@ -2,7 +2,6 @@
 # -*- coding: utf8 -*-
 
 import mock
-import pytest
 import sys
 from os import path
 
