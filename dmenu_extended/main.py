@@ -893,11 +893,11 @@ class dmenu(object):
                                         command = command[len(path)+1:]
 
                             applications.append({
-                                                'name': name,
-                                                'name_generic': name_generic,
-                                                'command': command,
+                                                'name': name.strip(),
+                                                'name_generic': name_generic.strip(),
+                                                'command': command.strip(),
                                                 'terminal': terminal,
-                                                'descriptor': filename.replace('.desktop','')
+                                                'descriptor': filename.replace('.desktop','').strip()
                                                 })
 
         return applications
