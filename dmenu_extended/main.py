@@ -614,7 +614,7 @@ class dmenu(object):
         if self.debug:
             print('Opening file with command: ' + self.prefs['fileopener'] + " '" + path + "'")
         exit_code = self.execute(self.prefs['fileopener'] + ' "' + path + '"', fork=False)
-        if exit_code is not 0:
+        if exit_code != 0:
             open_failure = False
             offer = None
             if exit_code == 256 and self.prefs['fileopener'] == 'gnome-open':
@@ -828,7 +828,7 @@ class dmenu(object):
         for path in self.system_path():
             if os.path.isdir(path):
                 for binary in os.listdir(path):
-                    if binary[:3] is not 'gpk':
+                    if binary[:3] != 'gpk':
                         out.append(binary)
             elif os.path.isfile(path):
                 out.append(path)
