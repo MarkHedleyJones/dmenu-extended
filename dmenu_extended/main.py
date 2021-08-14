@@ -49,7 +49,7 @@ except:
     import urllib2
 
 
-_version_ = 19.0318
+_version_ = 21.0814
 
 # Find out the system's favouite encoding
 system_encoding = locale.getpreferredencoding()
@@ -614,7 +614,7 @@ class dmenu(object):
         if self.debug:
             print('Opening file with command: ' + self.prefs['fileopener'] + " '" + path + "'")
         exit_code = self.execute(self.prefs['fileopener'] + ' "' + path + '"', fork=False)
-        if exit_code is not 0:
+        if exit_code != 0:
             open_failure = False
             offer = None
             if exit_code == 256 and self.prefs['fileopener'] == 'gnome-open':
@@ -828,7 +828,7 @@ class dmenu(object):
         for path in self.system_path():
             if os.path.isdir(path):
                 for binary in os.listdir(path):
-                    if binary[:3] is not 'gpk':
+                    if binary[:3] != 'gpk':
                         out.append(binary)
             elif os.path.isfile(path):
                 out.append(path)
@@ -893,11 +893,11 @@ class dmenu(object):
                                         command = command[len(path)+1:]
 
                             applications.append({
-                                                'name': name,
-                                                'name_generic': name_generic,
-                                                'command': command,
+                                                'name': name.strip(),
+                                                'name_generic': name_generic.strip(),
+                                                'command': command.strip(),
                                                 'terminal': terminal,
-                                                'descriptor': filename.replace('.desktop','')
+                                                'descriptor': filename.replace('.desktop','').strip()
                                                 })
 
         return applications
@@ -1666,7 +1666,7 @@ def run(*args):
 
     if len(out) > 0:
         if d.debug:
-            print("First menu closed with user input: " + out)
+            print("First menu closed with user input: '" + out + "'")
         # Check if the action relates to a plugin
         plugins = load_plugins(d.debug)
         plugin_hook = False
