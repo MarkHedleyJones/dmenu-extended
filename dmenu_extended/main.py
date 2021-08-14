@@ -1131,7 +1131,7 @@ class dmenu(object):
 
         foldernames = list(filter(lambda x: x not in ignore_folders, foldernames))
 
-        if 'abbreviate_homedir' in self.prefs:
+        if 'abbreviate_homedir' in self.prefs and self.prefs['abbreviate_homedir']:
           homedir = os.path.expanduser("~")
           filenames = list(map(lambda x: x.replace(homedir, "~"), filenames))
           foldernames = list(map(lambda x: x.replace(homedir, "~"), foldernames))
