@@ -49,7 +49,7 @@ except:
     import urllib2
 
 
-_version_ = 21.0814
+_version_ = "0.2.0"
 
 # Find out the system's favouite encoding
 system_encoding = locale.getpreferredencoding()
