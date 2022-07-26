@@ -49,9 +49,34 @@ try:
 except:
     import urllib2
 
-version = pkg_resources.get_distribution('dmenu-extended').version
+def parse_version_string(version_string):
+    version_parts = list(map(int, version_string.split('.')))
+    return {
+        "major": version_parts[0],
+        "minor": version_parts[1],
+        "patch": version_parts[2],
+    }
 
-# Find out the system's favouite encoding
+def plugin_is_supported(min_version, version):
+    if isinstance(min_version, float):
+        # Version numbers were changed from year.month format to symantec
+        # versioning starting at 0.2.0. Any plugin with a non-zero version_required
+        # requirement would equate to version 0.2.0
+        if min_version > 0:
+            min_version = "0.2.0"
+        else:
+            min_version = "0.0.0"
+    version_required = parse_version_string(min_version)
+    for key in ["major", "minor", "patch"]:
+        if version[key] > version_required[key]:
+            return True
+        elif version[key] < version_required[key]:
+            return False
+    return True
+
+version = parse_version_string(pkg_resources.get_distribution("dmenu-extended").version)
+
+# Find out the system's favourite encoding
 system_encoding = locale.getpreferredencoding()
 
 path_base = os.path.expanduser('~') + '/.config/dmenu-extended'
@@ -1288,7 +1313,7 @@ class extension(dmenu):
         for plugin in plugins:
             if plugin + '.py' not in installed_pluginFilenames:
                 if "min_version" in plugins[plugin]:
-                    if plugins[plugin]["min_version"] <= _version_:
+                    if plugin_is_supported(plugins[plugin]["min_version"], version):
                         items.append(plugin.replace(substitute[0], substitute[1]) + ' - ' + plugins[plugin]['desc'])
                         accept.append(True)
                     else:
