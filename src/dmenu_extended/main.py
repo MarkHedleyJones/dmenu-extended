@@ -10,6 +10,7 @@ import codecs
 import locale
 import operator
 import time
+import pkg_resources
 
 Help = """
 Dmenu Extended command line options
@@ -48,8 +49,7 @@ try:
 except:
     import urllib2
 
-
-_version_ = "0.2.0"
+version = pkg_resources.get_distribution('dmenu-extended').version
 
 # Find out the system's favouite encoding
 system_encoding = locale.getpreferredencoding()
