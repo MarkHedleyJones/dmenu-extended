@@ -27,20 +27,45 @@ An extension to the original [dmenu](http://tools.suckless.org/dmenu/) allowing 
 
 
 ## Installation
-Clone this repository *or* download the zip and extract its contents.
 
-You can try dmenu-extended without installation by running `python dmenu_extended.py` from within the extracted folder.
+### Method 1: Quick Install via PIP
 
+* System-wide install: `sudo pip3 install --upgrade dmenu_extended`
+* Per-user install: `pip3 install --upgrade dmenu_extended`
+
+### Method 2: Install from Source
+Clone this repository using `git`, or download the zip file and extract its contents.
+From within the extracted folder, build the project:
+
+```bash
+python3 -m build --wheel
+```
+Then to install, *choose one* of the following two options:
+
+#### System-wide install:
+```bash
+sudo pip3 install --upgrade dist/dmenu_extended-*-py3-none-any.whl
+```
+#### Per-user install:
+```bash
+pip3 install --upgrade dist/dmenu_extended-*-py3-none-any.whl
+```
+
+### Method 3: Install via AUR
 An AUR package is available here: [dmenu-extended-git](https://aur.archlinux.org/packages/dmenu-extended-git/).
 
-### Global install
-Execute `sudo python setup.py install` from within the dmenu-extended directory.
+### Optional: Installing the systemd auto-updater service
 
-#### Systemd background cache rebuild
 
-Run the separate install script to install systemd background update integration.
+After installing dmenu-extended, a background updater service can be enabled.
+This will periodically update the cache in the background every 20 minutes.
+To install the background service, run:
+```bash
+dmenu_extended_install_systemd_service
+```
+Alternative intervals can be specified by passing the `--interval-interval-mins [MINS]` argument and specifying the interval in minutes.
+The service can then be enabled and disabled in the `-> Settings` menu of dmenu-extended.
 
-    sudo bash systemd-install.sh
 
 
 ### Local installation
