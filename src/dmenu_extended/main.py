@@ -720,7 +720,7 @@ class dmenu(object):
     def cache_regenerate(self, message=True):
         if message:
             self.message_open('building cache...\nThis may take a while (press enter to run in background).')
-        cache = self.cache_build()
+        cache = self.build_cache()
         if message:
             self.message_close()
         return cache
@@ -978,7 +978,7 @@ class dmenu(object):
         return out
 
 
-    def cache_build(self):
+    def build_cache(self):
         self.load_preferences()
 
         if self.debug:
@@ -1450,12 +1450,12 @@ class extension(dmenu):
         subprocess.call(['systemctl', '--user', 'daemon-reload'])
         try:
             has_service = subprocess.check_output(['systemctl', '--user', 'list-unit-files', \
-                                                  'update-dmenu-extended-db.timer'])
+                                                  'dmenu-extended-update-db.timer'])
         except subprocess.CalledProcessError:
             return 0
-        if 'update-dmenu-extended-db.timer' not in str(has_service):
+        if 'dmenu-extended-update-db.timer' not in str(has_service):
             return 0
-        is_enabled = subprocess.call(['systemctl', '--user', 'is-enabled', 'update-dmenu-extended-db.timer'])
+        is_enabled = subprocess.call(['systemctl', '--user', 'is-enabled', 'dmenu-extended-update-db.timer'])
         if is_enabled == 0:
             return 1
         else:
@@ -1464,14 +1464,14 @@ class extension(dmenu):
 
     # These two methods presume that we have systemd and the scripts are installed.
     def enable_automatic_rebuild_cache(self):
-        subprocess.call(['systemctl', '--user', 'enable', 'update-dmenu-extended-db.timer'])
-        subprocess.call(['systemctl', '--user', 'start', 'update-dmenu-extended-db.timer'])
+        subprocess.call(['systemctl', '--user', 'enable', 'dmenu-extended-update-db.timer'])
+        subprocess.call(['systemctl', '--user', 'start', 'dmenu-extended-update-db.timer'])
         self.menu(['Successfully enabled systemd service.'])
 
 
     def disable_automatic_rebuild_cache(self):
-        subprocess.call(['systemctl', '--user', 'stop', 'update-dmenu-extended-db.timer'])
-        subprocess.call(['systemctl', '--user', 'disable', 'update-dmenu-extended-db.timer'])
+        subprocess.call(['systemctl', '--user', 'stop', 'dmenu-extended-update-db.timer'])
+        subprocess.call(['systemctl', '--user', 'disable', 'dmenu-extended-update-db.timer'])
         self.menu(['Successfully disabled systemd service.'])
 
     def edit_preferences(self):
@@ -2015,6 +2015,9 @@ def run(*args):
                 handle_command(d, out)
 
 d = dmenu()
+
+def build_cache():
+    d.build_cache()
 
 if __name__ == "__main__":
     run(*sys.argv)
