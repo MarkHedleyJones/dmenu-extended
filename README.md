@@ -65,13 +65,6 @@ pip3 install --upgrade dist/dmenu_extended-*-py3-none-any.whl
 ### Method 3: Install via AUR
 An AUR package is available here: [dmenu-extended-git](https://aur.archlinux.org/packages/dmenu-extended-git/).
 
-
-#### Systemd background cache rebuild
-
-Run the separate install script to install systemd background update integration.
-
-    bash systemd-install.sh --user
-
 # Usage
 
 ## Create a keybinding
