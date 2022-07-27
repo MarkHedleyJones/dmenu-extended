@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dmenu_extended"
+version = "0.2.0"
+authors = [
+  { name="Mark Hedley Jones", email="markhedleyjones@gmail.com" },
+]
+description = "A wrapper for dmenu that implements plugins and fast file/folder searching"
+readme = "README.md"
+license = { file="LICENSE" }
+requires-python = ">=3.6"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.scripts]
+"dmenu_extended_run" = "dmenu_extended.main:run"
+"dmenu_extended_cache_build" = "dmenu_extended.main:build_cache"
+"dmenu_extended_install_systemd_service" = "dmenu_extended.install_systemd_service:run"
+
+[project.urls]
+"Homepage" = "https://github.com/MarkHedleyJones/dmenu-extended"
+"Bug Tracker" = "https://github.com/MarkHedleyJones/dmenu-extended/issues"

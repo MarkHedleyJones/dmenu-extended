@@ -10,6 +10,7 @@ import codecs
 import locale
 import operator
 import time
+import pkg_resources
 
 Help = """
 Dmenu Extended command line options
@@ -48,10 +49,34 @@ try:
 except:
     import urllib2
 
+def parse_version_string(version_string):
+    version_parts = list(map(int, version_string.split('.')))
+    return {
+        "major": version_parts[0],
+        "minor": version_parts[1],
+        "patch": version_parts[2],
+    }
 
-_version_ = 21.0814
+def plugin_is_supported(min_version, version):
+    if isinstance(min_version, float):
+        # Version numbers were changed from year.month format to symantec
+        # versioning starting at 0.2.0. Any plugin with a non-zero version_required
+        # requirement would equate to version 0.2.0
+        if min_version > 0:
+            min_version = "0.2.0"
+        else:
+            min_version = "0.0.0"
+    version_required = parse_version_string(min_version)
+    for key in ["major", "minor", "patch"]:
+        if version[key] > version_required[key]:
+            return True
+        elif version[key] < version_required[key]:
+            return False
+    return True
 
-# Find out the system's favouite encoding
+version = parse_version_string(pkg_resources.get_distribution("dmenu-extended").version)
+
+# Find out the system's favourite encoding
 system_encoding = locale.getpreferredencoding()
 
 path_base = os.path.expanduser('~') + '/.config/dmenu-extended'
@@ -720,7 +745,7 @@ class dmenu(object):
     def cache_regenerate(self, message=True):
         if message:
             self.message_open('building cache...\nThis may take a while (press enter to run in background).')
-        cache = self.cache_build()
+        cache = self.build_cache()
         if message:
             self.message_close()
         return cache
@@ -978,7 +1003,7 @@ class dmenu(object):
         return out
 
 
-    def cache_build(self):
+    def build_cache(self):
         self.load_preferences()
 
         if self.debug:
@@ -1288,7 +1313,7 @@ class extension(dmenu):
         for plugin in plugins:
             if plugin + '.py' not in installed_pluginFilenames:
                 if "min_version" in plugins[plugin]:
-                    if plugins[plugin]["min_version"] <= _version_:
+                    if plugin_is_supported(plugins[plugin]["min_version"], version):
                         items.append(plugin.replace(substitute[0], substitute[1]) + ' - ' + plugins[plugin]['desc'])
                         accept.append(True)
                     else:
@@ -1450,12 +1475,12 @@ class extension(dmenu):
         subprocess.call(['systemctl', '--user', 'daemon-reload'])
         try:
             has_service = subprocess.check_output(['systemctl', '--user', 'list-unit-files', \
-                                                  'update-dmenu-extended-db.timer'])
+                                                  'dmenu-extended-update-db.timer'])
         except subprocess.CalledProcessError:
             return 0
-        if 'update-dmenu-extended-db.timer' not in str(has_service):
+        if 'dmenu-extended-update-db.timer' not in str(has_service):
             return 0
-        is_enabled = subprocess.call(['systemctl', '--user', 'is-enabled', 'update-dmenu-extended-db.timer'])
+        is_enabled = subprocess.call(['systemctl', '--user', 'is-enabled', 'dmenu-extended-update-db.timer'])
         if is_enabled == 0:
             return 1
         else:
@@ -1464,14 +1489,14 @@ class extension(dmenu):
 
     # These two methods presume that we have systemd and the scripts are installed.
     def enable_automatic_rebuild_cache(self):
-        subprocess.call(['systemctl', '--user', 'enable', 'update-dmenu-extended-db.timer'])
-        subprocess.call(['systemctl', '--user', 'start', 'update-dmenu-extended-db.timer'])
+        subprocess.call(['systemctl', '--user', 'enable', 'dmenu-extended-update-db.timer'])
+        subprocess.call(['systemctl', '--user', 'start', 'dmenu-extended-update-db.timer'])
         self.menu(['Successfully enabled systemd service.'])
 
 
     def disable_automatic_rebuild_cache(self):
-        subprocess.call(['systemctl', '--user', 'stop', 'update-dmenu-extended-db.timer'])
-        subprocess.call(['systemctl', '--user', 'disable', 'update-dmenu-extended-db.timer'])
+        subprocess.call(['systemctl', '--user', 'stop', 'dmenu-extended-update-db.timer'])
+        subprocess.call(['systemctl', '--user', 'disable', 'dmenu-extended-update-db.timer'])
         self.menu(['Successfully disabled systemd service.'])
 
     def edit_preferences(self):
@@ -2015,6 +2040,9 @@ def run(*args):
                 handle_command(d, out)
 
 d = dmenu()
+
+def build_cache():
+    d.build_cache()
 
 if __name__ == "__main__":
     run(*sys.argv)
