@@ -45,18 +45,19 @@ Dependencies:
 * `python3-setuptools`
 
 Clone this repository using `git`, or download the zip file and extract its contents.
-From within the extracted folder, build the project:
+From within the extracted folder, **either** execute `setup.sh` or, execute the following commands manually:
 
+Build the package with:
 ```bash
 python3 -m build --wheel
 ```
-Then to install, *choose one* of the following two options:
+Then to install the package, *choose one* of the following two options:
 
-#### System-wide install:
+#### For a system-wide install:
 ```bash
 sudo pip3 install --upgrade dist/dmenu_extended-*-py3-none-any.whl
 ```
-#### Per-user install:
+#### For a per-user install:
 ```bash
 pip3 install --upgrade dist/dmenu_extended-*-py3-none-any.whl
 ```
