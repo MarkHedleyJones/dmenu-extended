@@ -20,7 +20,7 @@ classifiers = [
 
 [project.scripts]
 "dmenu_extended_run" = "dmenu_extended.main:run"
-"dmenu_extended_build_cache" = "dmenu_extended.main:build_cache"
+"dmenu_extended_cache_build" = "dmenu_extended.main:build_cache"
 "dmenu_extended_install_systemd_service" = "dmenu_extended.install_systemd_service:run"
 
 [project.urls]

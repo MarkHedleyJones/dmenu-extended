@@ -21,7 +21,7 @@ def parse_args():
 
 
 def get_executable_path(username):
-    executable_name = "dmenu_extended_build_cache"
+    executable_name = "dmenu_extended_cache_build"
     executable_paths = ["/usr/local/bin", "/usr/bin", f"/home/{username}/.local/bin"]
     for executable_path in executable_paths:
         path = os.path.join(executable_path, executable_name)
@@ -34,7 +34,7 @@ def target_files(rebuild_interval_mins=20):
     groupid = grp.getgrnam(username).gr_gid
     executable_path = get_executable_path(username)
     if not executable_path:
-        raise Exception("Could not find dmenu_extended_build_cache executable")
+        raise Exception("Could not find dmenu_extended_cache_build executable")
 
     return {
         "dmenu-extended-update-db.service": "\n".join(
