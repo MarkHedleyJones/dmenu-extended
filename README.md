@@ -18,22 +18,32 @@ An extension to the original [dmenu](http://tools.suckless.org/dmenu/) allowing 
 * Support for scanning alias files (e.g. .bashrc)
 
 ## Dependencies
-* **Python**, compatible with versions 2 and 3.
-* **dmenu**, preferably version 4.5 or later.
-* **terminus font**, a clear and clean bitmap font (optional).
+* **Python3**, version 3.6 or higher
+* **dmenu**, version 4.5 or later.
+* [Optional] **terminus font**, a clear and clean bitmap font.
 
 ### Quick dependency install:
-* Ubuntu - `sudo apt-get install suckless-tools xfonts-terminus`
+* Ubuntu - `sudo apt-get install suckless-tools`
 
 
 ## Installation
 
 ### Method 1: Quick Install via PIP
 
-* System-wide install: `sudo pip3 install --upgrade dmenu_extended`
-* Per-user install: `pip3 install --upgrade dmenu_extended`
+#### System-wide install/update:
+```bash
+sudo pip3 install --upgrade dmenu_extended
+```
+#### Per-user install/update:
+```bash
+pip3 install --upgrade dmenu_extended
+```
 
 ### Method 2: Install from Source
+Dependencies:
+
+* `python3-setuptools`
+
 Clone this repository using `git`, or download the zip file and extract its contents.
 From within the extracted folder, build the project:
 
@@ -53,42 +63,6 @@ pip3 install --upgrade dist/dmenu_extended-*-py3-none-any.whl
 
 ### Method 3: Install via AUR
 An AUR package is available here: [dmenu-extended-git](https://aur.archlinux.org/packages/dmenu-extended-git/).
-
-### Optional: Installing the systemd auto-updater service
-
-
-After installing dmenu-extended, a background updater service can be enabled.
-This will periodically update the cache in the background every 20 minutes.
-To install the background service, run:
-```bash
-dmenu_extended_install_systemd_service
-```
-Alternative intervals can be specified by passing the `--interval-interval-mins [MINS]` argument and specifying the interval in minutes.
-The service can then be enabled and disabled in the `-> Settings` menu of dmenu-extended.
-
-
-
-### Local installation
-#### Virtualenv
-Execute `python setup.py install` from within the dmenu-extended directory
-#### Manual
-Move both `dmenu_extended.py` and `dmenu_extended_run` into a folder that is in your system path.
-
-*For example*:
-
-Create a folder called bin in your home directory (if you don't already have one)
-
-    mkdir ~/bin
-
-Add this folder to your systems `$PATH` variable
-
-    export PATH=$PATH:$HOME/bin
-
-Copy the required dmenu-extended files into your local bin folder
-
-    cp ~/Downloads/dmenu-extended-master/dmenu_extended* ~/bin
-
-To keep your ~/bin folder on the path after restart, add `export PATH=$PATH:$HOME/bin` to the end of `~/.bash_profile`
 
 
 #### Systemd background cache rebuild
@@ -170,6 +144,19 @@ It is possible to rebuild the cache from the terminal by running:
 
 You could run this script directly to rebuild your cache or call it from [cron](http://en.wikipedia.org/wiki/Cron).
 Dmenu has [systemd](http://en.wikipedia.org/wiki/Systemd) integration so you can set it rebuild your cache every 20 mins from the settings menu within dmenu-extended.
+
+
+## Background cache rebuild with Systemd
+
+After installing dmenu-extended, a background updater service can be enabled.
+This will periodically update the cache in the background every 20 minutes.
+To install the background service, run:
+```bash
+dmenu_extended_install_systemd_service
+```
+Alternative intervals can be specified by passing the `--interval-interval-mins [MINS]` argument and specifying the interval in minutes.
+The service can then be enabled and disabled in the `-> Settings` menu of dmenu-extended.
+
 
 ## Background cache rebuild with Incron
 
