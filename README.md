@@ -63,7 +63,6 @@ An AUR package is available here: [dmenu-extended-git](https://aur.archlinux.org
 ## Usage
 
 ### Create a keybinding
-
 Test that the new menu has been installed by running `dmenu_extended_run` from your terminal. **NOTE:** The first run will be slow as it is set to scan you home folder recursively to build the cache.
 
 The most productive way to use dmenu-extended is to bind the command `dmenu_extended_run` to an easy to reach key combo. The way in which you do this will be different depending on your desktop environment but here is a brief list.
@@ -88,7 +87,6 @@ To do this you might bind the following command to an alternate key combination:
 The arguments must be written exactly as they would appear in the menu. Any number of arguments can be passed and each will be executed in the order they are passed. Each item represents one item selection from a menu. Remember to quote each item so they are passed to the menu correctly.
 
 ## Configuration
-
 Menu configuration is contained in a JSON formatted file found at `~/.config/dmenu-extended/config/dmenuExtended_preferences.txt` that controls the appearance and functionality of the menu. This file is also accessible from the `-> Menu configuration` submenu as `* Edit menu preferences`
 
 Functions of the items are as follows.
@@ -136,7 +134,6 @@ Dmenu has [systemd](http://en.wikipedia.org/wiki/Systemd) integration so you can
 
 
 ### Background cache rebuild with Systemd
-
 After installing dmenu-extended, a background updater service can be enabled.
 This will periodically update the cache in the background every 20 minutes.
 To install the background service, run:
@@ -148,7 +145,6 @@ The service can then be enabled and disabled in the `-> Settings` menu of dmenu-
 
 
 ### Background cache rebuild with Incron
-
 You can also rebuild the cache everytime a file or folder is being created, deleted or moved from or to the monitored path.
 Have [Incron](https://wiki.archlinux.org/index.php/Incron) up and running. Edit your incrontab `incrontab -e` and add following line:
 
@@ -157,7 +153,6 @@ Have [Incron](https://wiki.archlinux.org/index.php/Incron) up and running. Edit 
 Enter the path of *dmenu_extended_cache_build*, you can find this by running `which dmenu_extended_cache_build`. All paths must be absolute! Check out incrontab(5) for more event symbols.
 
 ### Rebuild cache via pacman hook
-
 You can update your application cache after installing/uninstalling a package via a [pacman hook](https://wiki.archlinux.org/index.php/Pacman#Hooks) for immediate access/removal.
 Create a file `/usr/share/libalpm/hooks/dmenu-cache-rebuild.hook`:
 
