@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dmenu_extended"
-version = "0.2.0"
+version = "0.2.2"
 authors = [
   { name="Mark Hedley Jones", email="markhedleyjones@gmail.com" },
 ]
