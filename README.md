@@ -17,18 +17,19 @@ An extension to the original [dmenu](http://tools.suckless.org/dmenu/) allowing 
 * Ability to swap the menu to Rofi
 * Support for scanning alias files (e.g. .bashrc)
 
-## Dependencies
-* **Python3**, version 3.6 or higher
-* **dmenu**, version 4.5 or later.
-* [Optional] **terminus font**, a clear and clean bitmap font.
-
-### Quick dependency install:
-* Ubuntu - `sudo apt-get install suckless-tools`
-
 
 ## Installation
 
-### Method 1: Quick Install via PIP
+### Dependencies
+* **Python3**, version 3.6 or higher
+* **dmenu**, version 4.5 or later
+
+Quick dependency install:
+* Ubuntu - `sudo apt-get install suckless-tools`
+* Arch - `sudo pacman -S dmenu`
+* Fedora - `sudo dnf install dmenu`
+
+### Install Method 1: PIP (recommended)
 
 #### System-wide install/update:
 ```bash
@@ -39,7 +40,7 @@ sudo pip3 install --upgrade dmenu_extended
 pip3 install --upgrade dmenu_extended
 ```
 
-### Method 2: Install from Source
+### Install Method 2: Install from Source
 Dependencies:
 
 * `python3-setuptools`
@@ -65,15 +66,15 @@ pip3 install --upgrade dist/dmenu_extended-*-py3-none-any.whl
 ### Method 3: Install via AUR
 An AUR package is available here: [dmenu-extended-git](https://aur.archlinux.org/packages/dmenu-extended-git/).
 
-# Usage
+## Usage
 
-## Create a keybinding
+### Create a keybinding
 
 Test that the new menu has been installed by running `dmenu_extended_run` from your terminal. **NOTE:** The first run will be slow as it is set to scan you home folder recursively to build the cache.
 
 The most productive way to use dmenu-extended is to bind the command `dmenu_extended_run` to an easy to reach key combo. The way in which you do this will be different depending on your desktop environment but here is a brief list.
 
-### Ubuntu (Unity), Debian (Gnome), Mint (Cinnamon)
+#### Ubuntu (Unity), Debian (Gnome), Mint (Cinnamon)
 1. Open **System settings** -> **Keyboard** -> **Shortcuts**
 2. Click **Custom shortcuts** and then the **+** (*add custom shortcut*) to add a new command
 3. Enter "dmenu_extended" as the name
@@ -81,10 +82,10 @@ The most productive way to use dmenu-extended is to bind the command `dmenu_exte
 5. Click next *disabled* (*unassigned*)
 6. Press the desired combination of keys (e.g. Alt+Enter)
 
-### Tiling window managers
+#### Tiling window managers
 If you use a tiling window manager, you may already have a key-combination bound to launch dmenu (i.e. Ctrl+P). Edit your window managers configuration file to launch `dmenu_extended_run` instead.
 
-### Advanced keybinds
+### Advanced keybindings
 `dmenu_extended_run` supports automated menu item selection via argument passing. If, for example, you frequently use the 'Internet Search' plugin with a particular search provider, you may want a binding that takes you directly to that provider.
 To do this you might bind the following command to an alternate key combination:
 
@@ -92,7 +93,7 @@ To do this you might bind the following command to an alternate key combination:
 
 The arguments must be written exactly as they would appear in the menu. Any number of arguments can be passed and each will be executed in the order they are passed. Each item represents one item selection from a menu. Remember to quote each item so they are passed to the menu correctly.
 
-## General Configuration
+## Configuration
 
 Menu configuration is contained in a JSON formatted file found at `~/.config/dmenu-extended/config/dmenuExtended_preferences.txt` that controls the appearance and functionality of the menu. This file is also accessible from the `-> Menu configuration` submenu as `* Edit menu preferences`
 
@@ -131,7 +132,7 @@ Functions of the items are as follows.
 Adding the item `""` to `"valid_extensions"` will cause files with no extension to be included in the cache.
 Adding the item `"*"` to  `"valid_extensions"` will cause **all** files to be included in the cache.
 
-## Rebuild the cache from terminal
+### Rebuild the cache from terminal
 It is possible to rebuild the cache from the terminal by running:
 
     dmenu_extended_cache_build
@@ -140,7 +141,7 @@ You could run this script directly to rebuild your cache or call it from [cron](
 Dmenu has [systemd](http://en.wikipedia.org/wiki/Systemd) integration so you can set it rebuild your cache every 20 mins from the settings menu within dmenu-extended.
 
 
-## Background cache rebuild with Systemd
+### Background cache rebuild with Systemd
 
 After installing dmenu-extended, a background updater service can be enabled.
 This will periodically update the cache in the background every 20 minutes.
@@ -152,7 +153,7 @@ Alternative intervals can be specified by passing the `--interval-interval-mins 
 The service can then be enabled and disabled in the `-> Settings` menu of dmenu-extended.
 
 
-## Background cache rebuild with Incron
+### Background cache rebuild with Incron
 
 You can also rebuild the cache everytime a file or folder is being created, deleted or moved from or to the monitored path.
 Have [Incron](https://wiki.archlinux.org/index.php/Incron) up and running. Edit your incrontab `incrontab -e` and add following line:
@@ -161,7 +162,7 @@ Have [Incron](https://wiki.archlinux.org/index.php/Incron) up and running. Edit 
 
 Enter the path of *dmenu_extended_cache_build*, you can find this by running `which dmenu_extended_cache_build`. All paths must be absolute! Check out incrontab(5) for more event symbols.
 
-## Rebuild cache via pacman hook
+### Rebuild cache via pacman hook
 
 You can update your application cache after installing/uninstalling a package via a [pacman hook](https://wiki.archlinux.org/index.php/Pacman#Hooks) for immediate access/removal.
 Create a file `/usr/share/libalpm/hooks/dmenu-cache-rebuild.hook`:
@@ -281,6 +282,16 @@ Test the configuration by running a sudo command via dmenu-extended (e.g., `sudo
 <p align="center">
   <img src="https://raw.github.com/markhedleyjones/dmenu-extended/master/docs/sc-password.png" alt="Password manager screenshot"/>
 </p>
+
+## Contributing
+Any sort of contribution is welcome, for example:
+* Helping out people who have [Issues](https://github.com/MarkHedleyJones/dmenu-extended/issues)
+* Writing tests
+* Improving code
+* Writing [plugins](https://github.com/MarkHedleyJones/dmenu-extended-plugins)
+* Updating documentation
+
+For those looking to improve the code, the code uses [Black](https://github.com/psf/black) formatting on default settings. Pull-requests should be created with the same formatting. Only Python3 is currently supported, support for Python2 is being dropped.
 
 ## Acknowledgements
 * **Alad** from the [CrunchBang forums](http://crunchbang.org/forums/viewtopic.php?id=36484) for advice on packaging.
