@@ -21,13 +21,13 @@ An extension to the original [dmenu](http://tools.suckless.org/dmenu/) allowing 
 ## Installation
 
 ### Dependencies
-* **Python3**, version 3.6 or higher
-* **dmenu**, version 4.5 or later
+* **Python** - version 3.6 or higher
+* **dmenu** - version 4.5 or later
 
 Quick dependency install:
-* Ubuntu - `sudo apt-get install suckless-tools`
-* Arch - `sudo pacman -S dmenu`
-* Fedora - `sudo dnf install dmenu`
+* **Ubuntu** - `sudo apt-get install suckless-tools`
+* **Arch** - `sudo pacman -S dmenu`
+* **Fedora** - `sudo dnf install dmenu`
 
 ### Install Method 1: PIP (recommended)
 ```bash
