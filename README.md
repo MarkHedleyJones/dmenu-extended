@@ -30,15 +30,13 @@ Quick dependency install:
 * Fedora - `sudo dnf install dmenu`
 
 ### Install Method 1: PIP (recommended)
-
-#### System-wide install/update:
 ```bash
 sudo pip3 install --upgrade dmenu_extended
 ```
-#### Per-user install/update:
-```bash
-pip3 install --upgrade dmenu_extended
-```
+Alternatively, omit `sudo` from the above command to install dmenu-extended only for the current user.
+
+To uninstall dmenu-extended, run `sudo pip3 uninstall dmenu_extended`.
+Note that if dmenu-extended was installed without `sudo` (or root), the uninstall command should also be run without `sudo` (or root).
 
 ### Install Method 2: Install from Source
 Dependencies:
@@ -54,14 +52,10 @@ python3 -m build --wheel
 ```
 Then to install the package, *choose one* of the following two options:
 
-#### For a system-wide install:
 ```bash
 sudo pip3 install --upgrade dist/dmenu_extended-*-py3-none-any.whl
 ```
-#### For a per-user install:
-```bash
-pip3 install --upgrade dist/dmenu_extended-*-py3-none-any.whl
-```
+Alternatively, omit `sudo` from the above command to install dmenu-extended only for the current user.
 
 ### Method 3: Install via AUR
 An AUR package is available here: [dmenu-extended-git](https://aur.archlinux.org/packages/dmenu-extended-git/).
