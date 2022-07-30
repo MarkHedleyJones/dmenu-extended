@@ -12,6 +12,7 @@ import operator
 import time
 import pkg_resources
 import urllib
+import imp
 
 Help = """
 Dmenu Extended command line options
@@ -351,17 +352,7 @@ class dmenu(object):
         elif force:
             if self.debug:
                 print("Forced reloading of plugins")
-
-            # For Python2/3 compatibility
-            try:
-                # Python2
-                reload(plugins)
-            except NameError:
-                # Python3
-                from imp import reload
-
-                reload(plugins)
-
+            imp.reload(plugins)
             self.plugins_loaded = load_plugins(self.debug)
 
         return self.plugins_loaded
