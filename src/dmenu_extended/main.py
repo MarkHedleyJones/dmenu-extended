@@ -472,7 +472,7 @@ class dmenu(object):
     def connect_to(self, url):
         request = urllib.request.Request(url)
         response = urllib.request.urlopen(request)
-        return response.read().decode(system_encoding)
+        return response.read()
 
     def download_text(self, url):
         return self.connect_to(url)
@@ -531,7 +531,6 @@ class dmenu(object):
                 items = " "
 
             out = p.communicate(items.encode(system_encoding))[0]
-            out = out.decode(system_encoding)
             out = out.strip("\n")
             out = out.strip()
 
@@ -651,15 +650,6 @@ class dmenu(object):
                     self.prefs["fileopener"] = offer
                     self.open_file(path)
 
-    def decode(self, string):
-        try:
-            if type(string) == str:
-                string = string.decode("utf-8")
-        except AttributeError:
-            # This Python 3+
-            pass
-        return string
-
     def command_to_list(self, command):
         """
         Takes any combination of strings and lists and flattens into a list of
@@ -669,14 +659,13 @@ class dmenu(object):
         if type(command) == list:
             tmp = []
             for i, item in enumerate(command):
-                item = self.decode(item)
                 if item.find(" ") != -1:
                     tmp = tmp + item.split(" ")
                 else:
                     tmp = tmp + [item]
             out = tmp
-        elif type(command) == str or type(command) == unicode:
-            out = self.decode(command).split(" ")
+        elif type(command) == str:
+            out = command.split(" ")
 
         quote_count = "".join(out).count('"')
         if quote_count > 0 and quote_count % 2 == 0:
@@ -830,9 +819,7 @@ class dmenu(object):
     def command_output(self, command, split=True):
         if type(command) != list:
             command = command.split(" ")
-        tmp = subprocess.check_output(command)
-
-        out = tmp.decode(system_encoding)
+        out = subprocess.check_output(command)
 
         if split:
             return out.split("\n")
