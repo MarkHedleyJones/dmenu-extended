@@ -364,13 +364,6 @@ class dmenu(object):
         # Get the PATH environmental variable
         path = os.environ.get("PATH")
 
-        # If we're in Python <3 (less-than-three), we want this to be a unicode string
-        # In python 3, all strings are unicode already, trying to decode gives AttributeError
-        try:
-            path = path.decode(sys.getfilesystemencoding())
-        except AttributeError:
-            pass
-
         # Split and remove duplicates
         path = list(set(path.split(":")))
 
