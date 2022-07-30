@@ -1,18 +1,18 @@
 #! /usr/bin/env python
 
 from __future__ import unicode_literals
-import sys
-import os
-import subprocess
-import signal
-import json
 import codecs
+import imp
+import json
 import locale
 import operator
-import time
+import os
 import pkg_resources
+import signal
+import subprocess
+import sys
+import time
 import urllib
-import imp
 
 Help = """
 Dmenu Extended command line options
