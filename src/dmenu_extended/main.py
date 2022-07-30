@@ -29,24 +29,6 @@ Options:
 Input: text enclosed in double quotes will be fed to the menu, as if entered manually.
 """
 
-# Try and import the faster os.walk implementation - scandir
-scandir_present = False
-try:
-    from os import scandir, walk
-
-    scandir_present = True
-except ImportError:
-    scandir_present = False
-if scandir_present == False:
-    try:
-        from scandir import scandir, walk
-
-        scandir_present = True
-    except ImportError:
-        from os import walk
-
-        scandir_present = False
-
 
 def parse_version_string(version_string):
     version_parts = list(map(int, version_string.split(".")))
@@ -1042,13 +1024,6 @@ class dmenu(object):
     def build_cache(self):
         self.load_preferences()
 
-        if self.debug:
-            if scandir_present:
-                print("Optimised directory scanning library (scandir) loaded")
-            else:
-                print("Cound not load optimised directory scanning library (scandir)")
-                print("Consider installing scandir: pip install scandir")
-
         valid_extensions = []
         if "valid_extensions" in self.prefs:
             for extension in self.prefs["valid_extensions"]:
@@ -1179,7 +1154,7 @@ class dmenu(object):
             print("Scanning files and folders, this may take a while...")
 
         for watchdir in watch_folders:
-            for root, dirs, files in walk(
+            for root, dirs, files in os.walk(
                 watchdir, topdown=True, followlinks=follow_symlinks
             ):
                 dirs[:] = [
