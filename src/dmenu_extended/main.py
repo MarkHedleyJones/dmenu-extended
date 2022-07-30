@@ -107,7 +107,7 @@ default_prefs = {
         "m4a",  # Music file
         "ogg",  # Media file
         "lyx",  # Lyx document
-        "bib",  # LaTeX bibliograpy
+        "bib",  # LaTeX bibliography
         "iso",  # CD image
         "ps",  # Postscript document
         "zip",  # Compressed archive
@@ -157,12 +157,12 @@ default_prefs = {
     "password_helper": ["zenity", "--password", "--title={prompt}"],
     "fileopener": "xdg-open",  # Program to handle opening files
     "filebrowser": "xdg-open",  # Program to handle opening paths
-    "webbrowser": "xdg-open",  # Program to hangle opening urls
+    "webbrowser": "xdg-open",  # Program to handle opening urls
     "terminal": "xterm",  # Terminal
     "terminal_editor": "vim",  # Terminal editor
     "indicator_submenu": "->",  # Symbol to indicate a submenu item
     "indicator_edit": "*",  # Symbol to indicate an item will launch an editor
-    "indicator_alias": "",  # Symbol to indecate an aliased command
+    "indicator_alias": "",  # Symbol to indicate an aliased command
     "prompt": "Open:",  # Prompt
 }
 
@@ -342,7 +342,7 @@ class dmenu(object):
         """Returns a list of loaded plugins
 
         This method will load plugins in the plugins directory if they
-        havent already been loaded. Optionally, you may force the
+        have not already been loaded. Optionally, you may force the
         reloading of plugins by setting the parameter 'force' to true.
         """
 
@@ -407,7 +407,7 @@ class dmenu(object):
         return paths
 
     def load_json(self, path):
-        """Loads and retuns the parsed contents of a specified json file
+        """Loads and returns the parsed contents of a specified json file
 
         This method will return 'False' if either the file does not exist
         or the specified file could not be parsed as valid json.
@@ -670,7 +670,7 @@ class dmenu(object):
     def command_to_list(self, command):
         """
         Takes any combination of strings and lists and flattens into a list of
-        strings. Also handles lists that contain stinrgs that contain spaces.
+        strings. Also handles lists that contain strings that contain spaces.
         """
         out = []
         if type(command) == list:
@@ -1382,7 +1382,7 @@ class extension(dmenu):
                                     pass
                                 else:
                                     line = (
-                                        "External dependancy '"
+                                        "External dependency '"
                                         + depend["name"]
                                         + "' is MISSING."
                                     )
@@ -2053,7 +2053,7 @@ def run(*args):
                                 cache_scanned.remove(command)
                             except ValueError:
                                 if d.debug:
-                                    print("Couldnt remove item from the cache")
+                                    print("Could not remove item from the cache")
                                 else:
                                     pass
                         else:
@@ -2080,13 +2080,13 @@ def run(*args):
                                 cache_scanned.remove(d.format_alias(alias, command))
                             except ValueError:
                                 if d.debug:
-                                    print("Couldnt remove item from the cache")
+                                    print("Could not remove item from the cache")
                                 else:
                                     pass
                     else:
                         d.message_close()
                         d.menu(
-                            "An error occured while servicing your request.\nYou may need to delete your configuration file."
+                            "An error occurred while servicing your request.\nYou may need to delete your configuration file."
                         )
                         sys.exit()
 
