@@ -3,7 +3,6 @@
 import codecs
 import imp
 import json
-import locale
 import operator
 import os
 import pkg_resources
@@ -58,9 +57,6 @@ def plugin_is_supported(min_version, version):
 
 
 version = parse_version_string(pkg_resources.get_distribution("dmenu-extended").version)
-
-# Find out the system's favourite encoding
-system_encoding = locale.getpreferredencoding()
 
 path_base = os.path.expanduser("~") + "/.config/dmenu-extended"
 path_cache = (
@@ -407,7 +403,7 @@ class dmenu(object):
         """
 
         if os.path.exists(path):
-            with codecs.open(path, "r", encoding=system_encoding) as f:
+            with codecs.open(path, "r") as f:
                 try:
                     return json.load(f)
                 except:
@@ -429,7 +425,7 @@ class dmenu(object):
     def save_json(self, path, items):
         """Saves a dictionary to a specified path using the json format"""
 
-        with codecs.open(path, "w", encoding=system_encoding) as f:
+        with codecs.open(path, "w") as f:
             json.dump(items, f, sort_keys=True, indent=4)
 
     def load_preferences(self):
@@ -489,7 +485,6 @@ class dmenu(object):
         )
         msg = str(message)
         msg = "Please wait: " + msg
-        msg = msg.encode(system_encoding)
         self.message.stdin.write(msg)
         self.message.stdin.close()
 
@@ -530,7 +525,7 @@ class dmenu(object):
             if self.prefs["menu"] == "rofi" and items == "":
                 items = " "
 
-            out = p.communicate(items.encode(system_encoding))[0]
+            out = p.communicate(items)[0]
             out = out.strip("\n")
             out = out.strip()
 
@@ -733,7 +728,7 @@ class dmenu(object):
 
     def cache_save(self, items, path):
         try:
-            with codecs.open(path, "w", encoding=system_encoding) as f:
+            with codecs.open(path, "w") as f:
                 if type(items) == list:
                     for item in items:
                         f.write(item + "\n")
@@ -764,7 +759,7 @@ class dmenu(object):
                         "Caching performance will be affected while these items remain"
                     )
                     print("Offending items have been excluded from cache")
-                with codecs.open(path, "wb", encoding=system_encoding) as f:
+                with codecs.open(path, "wb") as f:
                     for item in tmp:
                         f.write(item + "\n")
                 return 2
@@ -777,7 +772,7 @@ class dmenu(object):
         try:
             if self.debug:
                 print("Opening cache at " + path)
-            with codecs.open(path, "r", encoding=system_encoding) as f:
+            with codecs.open(path, "r") as f:
                 return f.read()
         except:
             return False
@@ -865,9 +860,7 @@ class dmenu(object):
                 pathname = os.path.join(app_path, filename)
                 if os.path.isfile(pathname):
                     # Open the application file using the system's preferred encoding (probably utf-8)
-                    with codecs.open(
-                        pathname, "r", encoding=system_encoding, errors="ignore"
-                    ) as f:
+                    with codecs.open(pathname, "r", errors="ignore") as f:
                         name = None
                         name_generic = None
                         command = None
