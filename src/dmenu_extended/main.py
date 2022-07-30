@@ -11,6 +11,7 @@ import locale
 import operator
 import time
 import pkg_resources
+import urllib
 
 Help = """
 Dmenu Extended command line options
@@ -45,12 +46,6 @@ if scandir_present == False:
         from os import walk
 
         scandir_present = False
-
-# Python 3 urllib import with Python 2 fallback
-try:
-    import urllib.request as urllib2
-except:
-    import urllib2
 
 
 def parse_version_string(version_string):
@@ -510,8 +505,8 @@ class dmenu(object):
         self.save_json(file_prefs, self.prefs)
 
     def connect_to(self, url):
-        request = urllib2.Request(url)
-        response = urllib2.urlopen(request)
+        request = urllib.request.Request(url)
+        response = urllib.request.urlopen(request)
         return response.read().decode(system_encoding)
 
     def download_text(self, url):
