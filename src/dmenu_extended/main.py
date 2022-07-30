@@ -482,6 +482,7 @@ class dmenu(object):
             [self.prefs["menu"]] + self.prefs["menu_arguments"],
             stdin=subprocess.PIPE,
             preexec_fn=os.setsid,
+            text=True,
         )
         msg = str(message)
         msg = "Please wait: " + msg
@@ -516,6 +517,7 @@ class dmenu(object):
                 [self.prefs["menu"]] + self.prefs["menu_arguments"] + ["-p", prompt],
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
+                text=True,
             )
 
             if type(items) == list:
