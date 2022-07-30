@@ -1,16 +1,16 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 
-from __future__ import unicode_literals
-import sys
-import os
-import subprocess
-import signal
-import json
 import codecs
-import locale
+import imp
+import json
 import operator
-import time
+import os
 import pkg_resources
+import signal
+import subprocess
+import sys
+import time
+import urllib
 
 Help = """
 Dmenu Extended command line options
@@ -27,30 +27,6 @@ Options:
 
 Input: text enclosed in double quotes will be fed to the menu, as if entered manually.
 """
-
-# Try and import the faster os.walk implementation - scandir
-scandir_present = False
-try:
-    from os import scandir, walk
-
-    scandir_present = True
-except ImportError:
-    scandir_present = False
-if scandir_present == False:
-    try:
-        from scandir import scandir, walk
-
-        scandir_present = True
-    except ImportError:
-        from os import walk
-
-        scandir_present = False
-
-# Python 3 urllib import with Python 2 fallback
-try:
-    import urllib.request as urllib2
-except:
-    import urllib2
 
 
 def parse_version_string(version_string):
@@ -81,9 +57,6 @@ def plugin_is_supported(min_version, version):
 
 
 version = parse_version_string(pkg_resources.get_distribution("dmenu-extended").version)
-
-# Find out the system's favourite encoding
-system_encoding = locale.getpreferredencoding()
 
 path_base = os.path.expanduser("~") + "/.config/dmenu-extended"
 path_cache = (
@@ -130,7 +103,7 @@ default_prefs = {
         "m4a",  # Music file
         "ogg",  # Media file
         "lyx",  # Lyx document
-        "bib",  # LaTeX bibliograpy
+        "bib",  # LaTeX bibliography
         "iso",  # CD image
         "ps",  # Postscript document
         "zip",  # Compressed archive
@@ -180,12 +153,12 @@ default_prefs = {
     "password_helper": ["zenity", "--password", "--title={prompt}"],
     "fileopener": "xdg-open",  # Program to handle opening files
     "filebrowser": "xdg-open",  # Program to handle opening paths
-    "webbrowser": "xdg-open",  # Program to hangle opening urls
+    "webbrowser": "xdg-open",  # Program to handle opening urls
     "terminal": "xterm",  # Terminal
     "terminal_editor": "vim",  # Terminal editor
     "indicator_submenu": "->",  # Symbol to indicate a submenu item
     "indicator_edit": "*",  # Symbol to indicate an item will launch an editor
-    "indicator_alias": "",  # Symbol to indecate an aliased command
+    "indicator_alias": "",  # Symbol to indicate an aliased command
     "prompt": "Open:",  # Prompt
 }
 
@@ -365,7 +338,7 @@ class dmenu(object):
         """Returns a list of loaded plugins
 
         This method will load plugins in the plugins directory if they
-        havent already been loaded. Optionally, you may force the
+        have not already been loaded. Optionally, you may force the
         reloading of plugins by setting the parameter 'force' to true.
         """
 
@@ -374,17 +347,7 @@ class dmenu(object):
         elif force:
             if self.debug:
                 print("Forced reloading of plugins")
-
-            # For Python2/3 compatibility
-            try:
-                # Python2
-                reload(plugins)
-            except NameError:
-                # Python3
-                from imp import reload
-
-                reload(plugins)
-
+            imp.reload(plugins)
             self.plugins_loaded = load_plugins(self.debug)
 
         return self.plugins_loaded
@@ -396,13 +359,6 @@ class dmenu(object):
 
         # Get the PATH environmental variable
         path = os.environ.get("PATH")
-
-        # If we're in Python <3 (less-than-three), we want this to be a unicode string
-        # In python 3, all strings are unicode already, trying to decode gives AttributeError
-        try:
-            path = path.decode(sys.getfilesystemencoding())
-        except AttributeError:
-            pass
 
         # Split and remove duplicates
         path = list(set(path.split(":")))
@@ -440,14 +396,14 @@ class dmenu(object):
         return paths
 
     def load_json(self, path):
-        """Loads and retuns the parsed contents of a specified json file
+        """Loads and returns the parsed contents of a specified json file
 
         This method will return 'False' if either the file does not exist
         or the specified file could not be parsed as valid json.
         """
 
         if os.path.exists(path):
-            with codecs.open(path, "r", encoding=system_encoding) as f:
+            with codecs.open(path, "r") as f:
                 try:
                     return json.load(f)
                 except:
@@ -469,7 +425,7 @@ class dmenu(object):
     def save_json(self, path, items):
         """Saves a dictionary to a specified path using the json format"""
 
-        with codecs.open(path, "w", encoding=system_encoding) as f:
+        with codecs.open(path, "w") as f:
             json.dump(items, f, sort_keys=True, indent=4)
 
     def load_preferences(self):
@@ -510,9 +466,9 @@ class dmenu(object):
         self.save_json(file_prefs, self.prefs)
 
     def connect_to(self, url):
-        request = urllib2.Request(url)
-        response = urllib2.urlopen(request)
-        return response.read().decode(system_encoding)
+        request = urllib.request.Request(url)
+        response = urllib.request.urlopen(request)
+        return response.read()
 
     def download_text(self, url):
         return self.connect_to(url)
@@ -526,10 +482,10 @@ class dmenu(object):
             [self.prefs["menu"]] + self.prefs["menu_arguments"],
             stdin=subprocess.PIPE,
             preexec_fn=os.setsid,
+            text=True,
         )
         msg = str(message)
         msg = "Please wait: " + msg
-        msg = msg.encode(system_encoding)
         self.message.stdin.write(msg)
         self.message.stdin.close()
 
@@ -561,6 +517,7 @@ class dmenu(object):
                 [self.prefs["menu"]] + self.prefs["menu_arguments"] + ["-p", prompt],
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
+                text=True,
             )
 
             if type(items) == list:
@@ -570,8 +527,7 @@ class dmenu(object):
             if self.prefs["menu"] == "rofi" and items == "":
                 items = " "
 
-            out = p.communicate(items.encode(system_encoding))[0]
-            out = out.decode(system_encoding)
+            out = p.communicate(items)[0]
             out = out.strip("\n")
             out = out.strip()
 
@@ -691,32 +647,22 @@ class dmenu(object):
                     self.prefs["fileopener"] = offer
                     self.open_file(path)
 
-    def decode(self, string):
-        try:
-            if type(string) == str:
-                string = string.decode("utf-8")
-        except AttributeError:
-            # This Python 3+
-            pass
-        return string
-
     def command_to_list(self, command):
         """
         Takes any combination of strings and lists and flattens into a list of
-        strings. Also handles lists that contain stinrgs that contain spaces.
+        strings. Also handles lists that contain strings that contain spaces.
         """
         out = []
         if type(command) == list:
             tmp = []
             for i, item in enumerate(command):
-                item = self.decode(item)
                 if item.find(" ") != -1:
                     tmp = tmp + item.split(" ")
                 else:
                     tmp = tmp + [item]
             out = tmp
-        elif type(command) == str or type(command) == unicode:
-            out = self.decode(command).split(" ")
+        elif type(command) == str:
+            out = command.split(" ")
 
         quote_count = "".join(out).count('"')
         if quote_count > 0 and quote_count % 2 == 0:
@@ -784,7 +730,7 @@ class dmenu(object):
 
     def cache_save(self, items, path):
         try:
-            with codecs.open(path, "w", encoding=system_encoding) as f:
+            with codecs.open(path, "w") as f:
                 if type(items) == list:
                     for item in items:
                         f.write(item + "\n")
@@ -815,7 +761,7 @@ class dmenu(object):
                         "Caching performance will be affected while these items remain"
                     )
                     print("Offending items have been excluded from cache")
-                with codecs.open(path, "wb", encoding=system_encoding) as f:
+                with codecs.open(path, "wb") as f:
                     for item in tmp:
                         f.write(item + "\n")
                 return 2
@@ -828,7 +774,7 @@ class dmenu(object):
         try:
             if self.debug:
                 print("Opening cache at " + path)
-            with codecs.open(path, "r", encoding=system_encoding) as f:
+            with codecs.open(path, "r") as f:
                 return f.read()
         except:
             return False
@@ -870,9 +816,7 @@ class dmenu(object):
     def command_output(self, command, split=True):
         if type(command) != list:
             command = command.split(" ")
-        tmp = subprocess.check_output(command)
-
-        out = tmp.decode(system_encoding)
+        out = subprocess.check_output(command)
 
         if split:
             return out.split("\n")
@@ -918,9 +862,7 @@ class dmenu(object):
                 pathname = os.path.join(app_path, filename)
                 if os.path.isfile(pathname):
                     # Open the application file using the system's preferred encoding (probably utf-8)
-                    with codecs.open(
-                        pathname, "r", encoding=system_encoding, errors="ignore"
-                    ) as f:
+                    with codecs.open(pathname, "r", errors="ignore") as f:
                         name = None
                         name_generic = None
                         command = None
@@ -1046,13 +988,6 @@ class dmenu(object):
 
     def build_cache(self):
         self.load_preferences()
-
-        if self.debug:
-            if scandir_present:
-                print("Optimised directory scanning library (scandir) loaded")
-            else:
-                print("Cound not load optimised directory scanning library (scandir)")
-                print("Consider installing scandir: pip install scandir")
 
         valid_extensions = []
         if "valid_extensions" in self.prefs:
@@ -1184,7 +1119,7 @@ class dmenu(object):
             print("Scanning files and folders, this may take a while...")
 
         for watchdir in watch_folders:
-            for root, dirs, files in walk(
+            for root, dirs, files in os.walk(
                 watchdir, topdown=True, followlinks=follow_symlinks
             ):
                 dirs[:] = [
@@ -1422,7 +1357,7 @@ class extension(dmenu):
                                     pass
                                 else:
                                     line = (
-                                        "External dependancy '"
+                                        "External dependency '"
                                         + depend["name"]
                                         + "' is MISSING."
                                     )
@@ -2093,7 +2028,7 @@ def run(*args):
                                 cache_scanned.remove(command)
                             except ValueError:
                                 if d.debug:
-                                    print("Couldnt remove item from the cache")
+                                    print("Could not remove item from the cache")
                                 else:
                                     pass
                         else:
@@ -2120,13 +2055,13 @@ def run(*args):
                                 cache_scanned.remove(d.format_alias(alias, command))
                             except ValueError:
                                 if d.debug:
-                                    print("Couldnt remove item from the cache")
+                                    print("Could not remove item from the cache")
                                 else:
                                     pass
                     else:
                         d.message_close()
                         d.menu(
-                            "An error occured while servicing your request.\nYou may need to delete your configuration file."
+                            "An error occurred while servicing your request.\nYou may need to delete your configuration file."
                         )
                         sys.exit()
 
