@@ -145,8 +145,7 @@ class ServiceInstaller:
             print(f"Started {target}")
 
 
-if __name__ == "__main__":
-
+def run():
     def parse_args():
         parser = argparse.ArgumentParser(
             description="Install dmenu-extended systemd services"
@@ -187,3 +186,7 @@ if __name__ == "__main__":
         service_installer.install(args.rebuild_interval_mins)
         if args.start or prompt_to_start(service_installer.filenames["timer"]):
             service_installer.start()
+
+
+if __name__ == "__main__":
+    run()
