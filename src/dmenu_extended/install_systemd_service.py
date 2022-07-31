@@ -158,6 +158,7 @@ if __name__ == "__main__":
         parser.add_argument(
             "--rebuild-interval-mins",
             type=int,
+            default=20,
             help="How often to update the cache (in minutes)",
         )
         return parser.parse_args()
