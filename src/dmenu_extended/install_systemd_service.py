@@ -51,7 +51,9 @@ class ServiceInstaller:
         }
         self.filenames["target"] = "dmenu_extended_cache_build"
 
-    def generate_install_files(self, rebuild_interval_mins=20):
+    def generate_install_files(self, rebuild_interval_mins):
+        if rebuild_interval_mins is None or rebuild_interval_mins < 1:
+            raise Exception("Invalid rebuild interval")
         return {
             self.filenames["service"]: "\n".join(
                 [
@@ -71,7 +73,7 @@ class ServiceInstaller:
             self.filenames["timer"]: "\n".join(
                 [
                     "[Unit]",
-                    f"Description=Run {self.filenames['service']} every 20 minutes",
+                    f"Description=Run {self.filenames['service']} every {rebuild_interval_mins} minutes",
                     f"Requires={self.filenames['service']}",
                     "",
                     "[Timer]",
