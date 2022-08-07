@@ -485,7 +485,8 @@ class dmenu(object):
         self.message.stdin.close()
 
     def message_close(self):
-        os.killpg(self.message.pid, signal.SIGTERM)
+        if hasattr(self, "message"):
+            os.killpg(self.message.pid, signal.SIGTERM)
 
     def get_password(self, helper_text=None):
         prompt = "Password"
