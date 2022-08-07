@@ -38,20 +38,29 @@ def parse_version_string(version_string):
     }
 
 
-def plugin_is_supported(min_version, version):
-    if isinstance(min_version, float):
+def get_plugin_required_version_string(plugin):
+    if "required_version" in plugin:
+        # Check for new semantic-based required version string
+        return plugin["required_version"]
+    if "min_version" in plugin:
         # Version numbers were changed from year.month format to symantec
         # versioning starting at 0.2.0. Any plugin with a non-zero version_required
         # requirement would equate to version 0.2.0
-        if min_version > 0:
-            min_version = "0.2.0"
-        else:
-            min_version = "0.0.0"
-    version_required = parse_version_string(min_version)
+        if "_min_version_comment" in plugin:
+            print(plugin["_min_version_comment"])
+        return "0.2.0" if plugin["min_version"] > 0 else "0.0.0"
+
+
+def plugin_is_supported(plugin, version):
+    required_version_string = get_plugin_required_version_string(plugin)
+    if required_version_string is None:
+        return True
+
+    required_version = parse_version_string(required_version_string)
     for key in ["major", "minor", "patch"]:
-        if version[key] > version_required[key]:
+        if version[key] > required_version[key]:
             return True
-        elif version[key] < version_required[key]:
+        elif version[key] < required_version[key]:
             return False
     return True
 
@@ -1315,21 +1324,20 @@ class extension(dmenu):
 
         for plugin in plugins:
             if plugin + ".py" not in installed_pluginFilenames:
-                if "min_version" in plugins[plugin]:
-                    if plugin_is_supported(plugins[plugin]["min_version"], version):
-                        items.append(
-                            plugin.replace(substitute[0], substitute[1])
-                            + " - "
-                            + plugins[plugin]["desc"]
-                        )
-                        accept.append(True)
-                    else:
-                        items.append(
-                            plugin.replace(substitute[0], substitute[1])
-                            + " - Requires dmenu_extended >= v"
-                            + str(plugins[plugin]["min_version"])
-                        )
-                        accept.append(False)
+                if plugin_is_supported(plugins[plugin], version):
+                    items.append(
+                        plugin.replace(substitute[0], substitute[1])
+                        + " - "
+                        + plugins[plugin]["desc"]
+                    )
+                    accept.append(True)
+                else:
+                    items.append(
+                        plugin.replace(substitute[0], substitute[1])
+                        + " - Requires dmenu_extended version >= "
+                        + get_plugin_required_version_string(plugins[plugin])
+                    )
+                    accept.append(False)
         if len(items) == 0:
             self.menu(["There are no new plugins to install"])
         else:
