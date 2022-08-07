@@ -1,7 +1,7 @@
-#! /usr/bin/env python3
+#!/usr/bin/env python3
 
 import codecs
-import imp
+import importlib
 import json
 import operator
 import os
@@ -10,7 +10,7 @@ import signal
 import subprocess
 import sys
 import time
-import urllib
+import urllib.request
 
 Help = """
 Dmenu Extended command line options
@@ -29,34 +29,77 @@ Input: text enclosed in double quotes will be fed to the menu, as if entered man
 """
 
 
-def parse_version_string(version_string):
-    version_parts = list(map(int, version_string.split(".")))
-    return {
-        "major": version_parts[0],
-        "minor": version_parts[1],
-        "patch": version_parts[2],
-    }
+class Version:
+    def __init__(self, version_string):
+        self.string = version_string
+        self.parsed = list(map(int, version_string.split(".")))[:3]
+
+    def __lt__(self, other):
+        if self.parsed[0] != other.parsed[0]:
+            return self.parsed[0] < other.parsed[0]
+        if self.parsed[1] != other.parsed[1]:
+            return self.parsed[1] < other.parsed[1]
+        return self.parsed[2] < other.parsed[2]
+
+    def __le__(self, other):
+        if self.parsed[0] != other.parsed[0]:
+            return self.parsed[0] <= other.parsed[0]
+        if self.parsed[1] != other.parsed[1]:
+            return self.parsed[1] <= other.parsed[1]
+        return self.parsed[2] <= other.parsed[2]
+
+    def __gt__(self, other):
+        return not self <= other
+
+    def __ge__(self, other):
+        return not self < other
+
+    def __eq__(self, other):
+        return (
+            self.parsed[0] == other.parsed[0]
+            and self.parsed[1] == other.parsed[1]
+            and self.parsed[2] == other.parsed[2]
+        )
+
+    def __ne__(self, other):
+        return not self == other
 
 
-def plugin_is_supported(min_version, version):
-    if isinstance(min_version, float):
+provided_package_versions = {
+    "dmenu-extended": Version(pkg_resources.get_distribution("dmenu-extended").version),
+    "python": Version(".".join(map(str, sys.version_info[:3]))),
+}
+
+
+def get_plugin_requirements(plugin):
+    if "requirements" in plugin:
+        # Check for new semantic-based required version string
+        return {
+            package: Version(requirement)
+            for package, requirement in plugin["requirements"].items()
+        }
+    if "min_version" in plugin:
         # Version numbers were changed from year.month format to symantec
         # versioning starting at 0.2.0. Any plugin with a non-zero version_required
         # requirement would equate to version 0.2.0
-        if min_version > 0:
-            min_version = "0.2.0"
+        if "_min_version_comment" in plugin:
+            print(plugin["_min_version_comment"])
+        if plugin["min_version"] > 0:
+            return {"dmenu-extended": Version("0.2.0")}
         else:
-            min_version = "0.0.0"
-    version_required = parse_version_string(min_version)
-    for key in ["major", "minor", "patch"]:
-        if version[key] > version_required[key]:
-            return True
-        elif version[key] < version_required[key]:
-            return False
-    return True
+            return {}
 
 
-version = parse_version_string(pkg_resources.get_distribution("dmenu-extended").version)
+def unsatisfied_plugin_requirements(plugin):
+    unsatisfied_requirements = {}
+    for package_name, required_version in get_plugin_requirements(plugin).items():
+        if (
+            package_name not in provided_package_versions
+            or provided_package_versions[package_name] < required_version
+        ):
+            unsatisfied_requirements[package_name] = required_version.string
+    return unsatisfied_requirements
+
 
 path_base = os.path.expanduser("~") + "/.config/dmenu-extended"
 path_cache = (
@@ -347,7 +390,7 @@ class dmenu(object):
         elif force:
             if self.debug:
                 print("Forced reloading of plugins")
-            imp.reload(plugins)
+            importlib.reload(plugins)
             self.plugins_loaded = load_plugins(self.debug)
 
         return self.plugins_loaded
@@ -465,16 +508,11 @@ class dmenu(object):
     def save_preferences(self):
         self.save_json(file_prefs, self.prefs)
 
-    def connect_to(self, url):
-        request = urllib.request.Request(url)
-        response = urllib.request.urlopen(request)
-        return response.read()
-
     def download_text(self, url):
-        return self.connect_to(url)
+        return urllib.request.urlopen(url).read()
 
     def download_json(self, url):
-        return json.loads(self.connect_to(url))
+        return json.loads(self.download_text(url))
 
     def message_open(self, message):
         self.load_preferences()
@@ -490,7 +528,8 @@ class dmenu(object):
         self.message.stdin.close()
 
     def message_close(self):
-        os.killpg(self.message.pid, signal.SIGTERM)
+        if hasattr(self, "message"):
+            os.killpg(self.message.pid, signal.SIGTERM)
 
     def get_password(self, helper_text=None):
         prompt = "Password"
@@ -501,7 +540,7 @@ class dmenu(object):
         for index, item in enumerate(command):
             if "{prompt}" in item:
                 command[index] = item.format(prompt=prompt)
-        return subprocess.check_output(command)
+        return self.command_output(command)
 
     def menu(self, items, prompt=""):
         self.load_preferences()
@@ -816,8 +855,7 @@ class dmenu(object):
     def command_output(self, command, split=True):
         if type(command) != list:
             command = command.split(" ")
-        out = subprocess.check_output(command)
-
+        out = subprocess.check_output(command, text=True)
         if split:
             return out.split("\n")
         else:
@@ -1295,7 +1333,8 @@ class extension(dmenu):
         for plugins_index_url in self.plugins_index_urls:
             try:
                 plugins.update(self.download_json(plugins_index_url))
-            except:
+            except Exception as e:
+                print("Error downloading plugins index: " + str(e))
                 self.message_close()
                 self.menu(
                     [
@@ -1312,27 +1351,24 @@ class extension(dmenu):
         accept = []
         substitute = ("plugin_", "")
         installed_plugins = self.get_plugins()
-        installed_pluginFilenames = []
-        for tmp in installed_plugins:
-            installed_pluginFilenames.append(tmp["filename"])
+        installed_pluginFilenames = [x["filename"] for x in installed_plugins]
 
-        for plugin in plugins:
-            if plugin + ".py" not in installed_pluginFilenames:
-                if "min_version" in plugins[plugin]:
-                    if plugin_is_supported(plugins[plugin]["min_version"], version):
-                        items.append(
-                            plugin.replace(substitute[0], substitute[1])
-                            + " - "
-                            + plugins[plugin]["desc"]
-                        )
-                        accept.append(True)
-                    else:
-                        items.append(
-                            plugin.replace(substitute[0], substitute[1])
-                            + " - Requires dmenu_extended >= v"
-                            + str(plugins[plugin]["min_version"])
-                        )
-                        accept.append(False)
+        for plugin_name, plugin in plugins.items():
+            if plugin_name + ".py" not in installed_pluginFilenames:
+                unsatisfied_requirements = unsatisfied_plugin_requirements(plugin)
+                if len(unsatisfied_requirements) == 0:
+                    desc = plugin["desc"]
+                    accept.append(True)
+                else:
+                    desc = "Requires: "
+                    for (
+                        package_name,
+                        version_string,
+                    ) in unsatisfied_requirements.items():
+                        desc += f"{package_name} => {version_string}"
+                    accept.append(False)
+                items.append(f"{plugin_name.replace(*substitute)} - {desc}")
+
         if len(items) == 0:
             self.menu(["There are no new plugins to install"])
         else:
@@ -1404,10 +1440,8 @@ class extension(dmenu):
                         )
                     else:
                         plugin_source = self.download_text(plugin["url"])
-
-                        with open(path_plugins + "/" + plugin_name + ".py", "w") as f:
-                            for line in plugin_source:
-                                f.write(line)
+                        with open(path_plugins + "/" + plugin_name + ".py", "wb") as f:
+                            f.write(plugin_source)
 
                         self.get_plugins(True)
                         self.message_close()
@@ -1424,7 +1458,7 @@ class extension(dmenu):
             else:
                 self.menu(
                     [
-                        "The selected plugin cannot be installed as it requires a newer version of dmenu-extended"
+                        "The requested plugin has unmet dependencies, please update your system and try again"
                     ]
                 )
 
