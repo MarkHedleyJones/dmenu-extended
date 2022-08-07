@@ -1291,7 +1291,8 @@ class extension(dmenu):
         for plugins_index_url in self.plugins_index_urls:
             try:
                 plugins.update(self.download_json(plugins_index_url))
-            except:
+            except Exception as e:
+                print("Error downloading plugins index: " + str(e))
                 self.message_close()
                 self.menu(
                     [
