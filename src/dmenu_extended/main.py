@@ -29,43 +29,77 @@ Input: text enclosed in double quotes will be fed to the menu, as if entered man
 """
 
 
-def parse_version_string(version_string):
-    version_parts = list(map(int, version_string.split(".")))
-    return {
-        "major": version_parts[0],
-        "minor": version_parts[1],
-        "patch": version_parts[2],
-    }
+class Version:
+    def __init__(self, version_string):
+        self.string = version_string
+        self.parsed = list(map(int, version_string.split(".")))[:3]
+
+    def __lt__(self, other):
+        if self.parsed[0] != other.parsed[0]:
+            return self.parsed[0] < other.parsed[0]
+        if self.parsed[1] != other.parsed[1]:
+            return self.parsed[1] < other.parsed[1]
+        return self.parsed[2] < other.parsed[2]
+
+    def __le__(self, other):
+        if self.parsed[0] != other.parsed[0]:
+            return self.parsed[0] <= other.parsed[0]
+        if self.parsed[1] != other.parsed[1]:
+            return self.parsed[1] <= other.parsed[1]
+        return self.parsed[2] <= other.parsed[2]
+
+    def __gt__(self, other):
+        return not self <= other
+
+    def __ge__(self, other):
+        return not self < other
+
+    def __eq__(self, other):
+        return (
+            self.parsed[0] == other.parsed[0]
+            and self.parsed[1] == other.parsed[1]
+            and self.parsed[2] == other.parsed[2]
+        )
+
+    def __ne__(self, other):
+        return not self == other
 
 
-def get_plugin_required_version_string(plugin):
-    if "required_version" in plugin:
+provided_package_versions = {
+    "dmenu-extended": Version(pkg_resources.get_distribution("dmenu-extended").version),
+    "python": Version(".".join(map(str, sys.version_info[:3]))),
+}
+
+
+def get_plugin_requirements(plugin):
+    if "requirements" in plugin:
         # Check for new semantic-based required version string
-        return plugin["required_version"]
+        return {
+            package: Version(requirement)
+            for package, requirement in plugin["requirements"].items()
+        }
     if "min_version" in plugin:
         # Version numbers were changed from year.month format to symantec
         # versioning starting at 0.2.0. Any plugin with a non-zero version_required
         # requirement would equate to version 0.2.0
         if "_min_version_comment" in plugin:
             print(plugin["_min_version_comment"])
-        return "0.2.0" if plugin["min_version"] > 0 else "0.0.0"
+        if plugin["min_version"] > 0:
+            return {"dmenu-extended": Version("0.2.0")}
+        else:
+            return {}
 
 
-def plugin_is_supported(plugin, version):
-    required_version_string = get_plugin_required_version_string(plugin)
-    if required_version_string is None:
-        return True
+def unsatisfied_plugin_requirements(plugin):
+    unsatisfied_requirements = {}
+    for package_name, required_version in get_plugin_requirements(plugin).items():
+        if (
+            package_name not in provided_package_versions
+            or provided_package_versions[package_name] < required_version
+        ):
+            unsatisfied_requirements[package_name] = required_version.string
+    return unsatisfied_requirements
 
-    required_version = parse_version_string(required_version_string)
-    for key in ["major", "minor", "patch"]:
-        if version[key] > required_version[key]:
-            return True
-        elif version[key] < required_version[key]:
-            return False
-    return True
-
-
-version = parse_version_string(pkg_resources.get_distribution("dmenu-extended").version)
 
 path_base = os.path.expanduser("~") + "/.config/dmenu-extended"
 path_cache = (
@@ -1317,26 +1351,24 @@ class extension(dmenu):
         accept = []
         substitute = ("plugin_", "")
         installed_plugins = self.get_plugins()
-        installed_pluginFilenames = []
-        for tmp in installed_plugins:
-            installed_pluginFilenames.append(tmp["filename"])
+        installed_pluginFilenames = [x["filename"] for x in installed_plugins]
 
-        for plugin in plugins:
-            if plugin + ".py" not in installed_pluginFilenames:
-                if plugin_is_supported(plugins[plugin], version):
-                    items.append(
-                        plugin.replace(substitute[0], substitute[1])
-                        + " - "
-                        + plugins[plugin]["desc"]
-                    )
+        for plugin_name, plugin in plugins.items():
+            if plugin_name + ".py" not in installed_pluginFilenames:
+                unsatisfied_requirements = unsatisfied_plugin_requirements(plugin)
+                if len(unsatisfied_requirements) == 0:
+                    desc = plugin["desc"]
                     accept.append(True)
                 else:
-                    items.append(
-                        plugin.replace(substitute[0], substitute[1])
-                        + " - Requires dmenu_extended version >= "
-                        + get_plugin_required_version_string(plugins[plugin])
-                    )
+                    desc = "Requires: "
+                    for (
+                        package_name,
+                        version_string,
+                    ) in unsatisfied_requirements.items():
+                        desc += f"{package_name} => {version_string}"
                     accept.append(False)
+                items.append(f"{plugin_name.replace(*substitute)} - {desc}")
+
         if len(items) == 0:
             self.menu(["There are no new plugins to install"])
         else:
@@ -1426,7 +1458,7 @@ class extension(dmenu):
             else:
                 self.menu(
                     [
-                        "The selected plugin cannot be installed as it requires a newer version of dmenu-extended"
+                        "The requested plugin has unmet dependencies, please update your system and try again"
                     ]
                 )
 
