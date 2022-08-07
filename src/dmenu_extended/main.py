@@ -10,7 +10,7 @@ import signal
 import subprocess
 import sys
 import time
-import urllib
+import urllib.request
 
 Help = """
 Dmenu Extended command line options
@@ -466,9 +466,7 @@ class dmenu(object):
         self.save_json(file_prefs, self.prefs)
 
     def connect_to(self, url):
-        request = urllib.request.Request(url)
-        response = urllib.request.urlopen(request)
-        return response.read()
+        return urllib.request.urlopen(url).read()
 
     def download_text(self, url):
         return self.connect_to(url)
