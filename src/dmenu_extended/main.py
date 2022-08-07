@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import codecs
-import imp
+import importlib
 import json
 import operator
 import os
@@ -356,7 +356,7 @@ class dmenu(object):
         elif force:
             if self.debug:
                 print("Forced reloading of plugins")
-            imp.reload(plugins)
+            importlib.reload(plugins)
             self.plugins_loaded = load_plugins(self.debug)
 
         return self.plugins_loaded
