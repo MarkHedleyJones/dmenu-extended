@@ -506,7 +506,7 @@ class dmenu(object):
         for index, item in enumerate(command):
             if "{prompt}" in item:
                 command[index] = item.format(prompt=prompt)
-        return subprocess.check_output(command)
+        return self.command_output(command)
 
     def menu(self, items, prompt=""):
         self.load_preferences()
@@ -821,8 +821,7 @@ class dmenu(object):
     def command_output(self, command, split=True):
         if type(command) != list:
             command = command.split(" ")
-        out = subprocess.check_output(command)
-
+        out = subprocess.check_output(command, text=True)
         if split:
             return out.split("\n")
         else:
