@@ -465,14 +465,11 @@ class dmenu(object):
     def save_preferences(self):
         self.save_json(file_prefs, self.prefs)
 
-    def connect_to(self, url):
+    def download_text(self, url):
         return urllib.request.urlopen(url).read()
 
-    def download_text(self, url):
-        return self.connect_to(url)
-
     def download_json(self, url):
-        return json.loads(self.connect_to(url))
+        return json.loads(self.download_text(url))
 
     def message_open(self, message):
         self.load_preferences()
@@ -1402,10 +1399,8 @@ class extension(dmenu):
                         )
                     else:
                         plugin_source = self.download_text(plugin["url"])
-
-                        with open(path_plugins + "/" + plugin_name + ".py", "w") as f:
-                            for line in plugin_source:
-                                f.write(line)
+                        with open(path_plugins + "/" + plugin_name + ".py", "wb") as f:
+                            f.write(plugin_source)
 
                         self.get_plugins(True)
                         self.message_close()
