@@ -1,7 +1,9 @@
+*.egg-info*
 *.pyc
-cache.txt
-settings.txt
-build/*
-*.swp
-*.sublime-workspace
 *.sublime-project
+*.sublime-workspace
+*.swp
+build/*
+cache.txt
+dist
+settings.txt
