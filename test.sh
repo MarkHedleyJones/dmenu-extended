@@ -31,11 +31,11 @@ Run dmenu-extended tests
 
 Available options:
 
--a, --all            Run all tests (requires docker)
 -b, --build          Build the docker image to run system tests (requires docker)
 -c, --check-version  Check that the version defined in pyproject.toml is higher than that listed on pypi
 -h, --help           Print this help and exit
 -l, --lint           Check the code using flake8 and black
+-s, --system         Run all tests (requires docker)
 
 EOF
   exit
@@ -45,13 +45,13 @@ parse_params() {
   build=0
   check_version=0
   format=0
-  all=0
+  system=0
   lint=0
   while :; do
     case "${1-}" in
     -b | --build) build=1 ;;
     -c | --check-version) check_version=1 ;;
-    -a | --all) all=1 ;;
+    -a | --system) system=1 ;;
     -h | --help) usage ;;
     -l | --lint) lint=1 ;;
     -?*)
@@ -79,7 +79,7 @@ if [ "${check_version}" -eq 1 ]; then
     exit 1
   fi
 fi
-if [ "${build}" -eq 1 ] || [ "${all}" -eq 1 ] || [ "${lint}" -eq 1 ]; then
+if [ "${build}" -eq 1 ] || [ "${system}" -eq 1 ] || [ "${lint}" -eq 1 ]; then
   image_hash="$(docker images -q dmenu-extended-test:latest)"
   if [ "${build}" -eq 1 ] || [ "${image_hash}" = "" ]; then
     if [ "${image_hash}" = "" ]; then
@@ -103,7 +103,7 @@ if [ "${build}" -eq 1 ] || [ "${all}" -eq 1 ] || [ "${lint}" -eq 1 ]; then
       success "Linting with ${linter} was successful"
     fi
   fi
-  if [ "${all}" -eq 1 ]; then
+  if [ "${system}" -eq 1 ]; then
     docker run --rm dmenu-extended-test:latest bash -c "cd /home/user/dmenu-extended/src/dmenu_extended && python3 -m pytest ../../tests"
     docker run --rm dmenu-extended-test:latest /home/user/dmenu-extended/tests/system_tests.sh
   fi
