@@ -252,7 +252,7 @@ def setup_user_files():
         default_prefs["path_aliasFile"] = os.path.expanduser("~") + "/.zsh_aliases"
 
     # Dump the prefs file
-    if os.path.exists(file_prefs) == False:
+    if os.path.exists(file_prefs) is False:
         with open(file_prefs, "w") as f:
             json.dump(default_prefs, f, sort_keys=True, indent=4)
         print("Preferences file created at: " + file_prefs)
@@ -387,7 +387,7 @@ class dmenu(object):
         reloading of plugins by setting the parameter 'force' to true.
         """
 
-        if self.plugins_loaded == False:
+        if self.plugins_loaded is False:
             self.plugins_loaded = load_plugins(self.debug)
         elif force:
             if self.debug:
@@ -474,10 +474,10 @@ class dmenu(object):
             json.dump(items, f, sort_keys=True, indent=4)
 
     def load_preferences(self):
-        if self.prefs == False:
+        if self.prefs is False:
             self.prefs = self.load_json(file_prefs)
 
-            if self.prefs == False:
+            if self.prefs is False:
                 self.open_file(file_prefs)
                 sys.exit()
             else:
@@ -611,7 +611,7 @@ class dmenu(object):
             f.write("#! /bin/bash\n")
             f.write(command + "\n")
 
-            if hold == True:
+            if hold is True:
                 f.write('echo "\n\nPress enter to exit";')
                 f.write("read var;")
 
@@ -820,11 +820,11 @@ class dmenu(object):
         cache_plugins = self.cache_open(file_cache_plugins)
         cache_scanned = self.cache_open(file_cache)
 
-        if cache_plugins == False or cache_scanned == False:
+        if cache_plugins is False or cache_scanned is False:
             if exitOnFail:
                 sys.exit()
             else:
-                if self.cache_regenerate() == False:
+                if self.cache_regenerate() is False:
                     self.menu(["Error caching data"])
                     sys.exit()
                 else:
@@ -1165,17 +1165,17 @@ class dmenu(object):
                     if os.path.join(root, d) not in ignore_folders
                     and d not in self.prefs["global_ignore_folders"]
                 ]
-                if self.prefs["scan_hidden_folders"] == False:
-                    dirs[:] = [d for d in dirs if d.startswith(".") == False]
+                if self.prefs["scan_hidden_folders"] is False:
+                    dirs[:] = [d for d in dirs if d.startswith(".") is False]
 
                 if self.prefs["scan_hidden_folders"] or root.find("/.") == -1:
                     for name in files:
                         if (
                             self.prefs["include_hidden_files"]
-                            or name.startswith(".") == False
+                            or name.startswith(".") is False
                         ):
                             if (
-                                valid_extensions == True
+                                valid_extensions is True
                                 or os.path.splitext(name)[1].lower() in valid_extensions
                             ):
                                 filenames.append(os.path.join(root, name))
@@ -1415,7 +1415,7 @@ class extension(dmenu):
                                 except:
                                     found = False
                                     fail = True
-                                if found == False:
+                                if found is False:
                                     message.append(
                                         "Python library '"
                                         + depend
@@ -1679,9 +1679,9 @@ class extension(dmenu):
 
 
 def is_binary(d, path):
-    if os.path.isfile(path) == False:
+    if os.path.isfile(path) is False:
         return False
-    if os.access(path, os.X_OK) == False:
+    if os.access(path, os.X_OK) is False:
         return False
     for extension in d.prefs["valid_extensions"]:
         if path[-len(extension) - 1 :] == "." + extension:
@@ -1818,7 +1818,7 @@ def run(*args):
         for plugin in plugins:
             if (
                 hasattr(plugin["plugin"], "is_submenu")
-                and plugin["plugin"].is_submenu == True
+                and plugin["plugin"].is_submenu is True
             ):
                 pluginTitle = (
                     d.prefs["indicator_submenu"] + " " + plugin["plugin"].title.strip()
@@ -1830,7 +1830,7 @@ def run(*args):
                 plugin_hook = (plugin["plugin"], pluginTitle)
 
         # Check for plugin call
-        if plugin_hook != False:
+        if plugin_hook is not False:
             plugin_hook[0].load_preferences()
             plugin_hook[0].run(out[len(plugin_hook[1]) :].strip())
             if d.debug:
@@ -1976,7 +1976,7 @@ def run(*args):
                             elif d.debug:
                                 print("No")
 
-                    if action == "+" and found_in_store == True:
+                    if action == "+" and found_in_store is True:
                         option = d.prefs["indicator_submenu"] + " Remove from store"
                         if alias is None:
                             answer = d.menu(
@@ -1992,7 +1992,7 @@ def run(*args):
                         if answer != option:
                             sys.exit()
                         action = "-"
-                    elif action == "-" and found_in_store == False:
+                    elif action == "-" and found_in_store is False:
                         option = d.prefs["indicator_submenu"] + " Add to store"
                         if alias is None:
                             answer = d.menu(
@@ -2014,7 +2014,7 @@ def run(*args):
 
                     cache_scanned = d.cache_open(file_cache)[:-1]
 
-                    if cache_scanned == False:
+                    if cache_scanned is False:
                         d.cache_regenerate()
                         d.message_close()
                         sys.exit()
@@ -2141,7 +2141,7 @@ def run(*args):
                         frequent_commands_store(out)
 
             # Detect if the command is a web address and pass to handle_command
-            if out[:7] == "http://" or out[:8] == "https://" or aliased == True:
+            if out[:7] == "http://" or out[:8] == "https://" or aliased is True:
                 handle_command(d, out)
             elif out.find(":") != -1:
                 if d.debug:
