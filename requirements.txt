@@ -1,3 +1,5 @@
 build
+flake8-black
+flake8-isort
 mock
 pytest
