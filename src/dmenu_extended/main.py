@@ -670,7 +670,7 @@ class dmenu(object):
                     "Error: "
                     + self.prefs["fileopener"]
                     + " reports no application is associated with this filetype (MIME"
-                    " type: "
+                    + " type: "
                     + mimetype
                     + ")"
                 ]
