@@ -40,8 +40,8 @@ parse_params "$@"
 
 if [ "${full}" -eq 1 ]; then
   docker build -f ${script_dir}/tests/Dockerfile -t dmenu-extended-test:latest .
-  docker run -it --rm dmenu-extended-test:latest bash -c "cd /home/user/dmenu-extended/src/dmenu_extended && python3 -m pytest ../../tests"
-  docker run -it --rm dmenu-extended-test:latest /home/user/dmenu-extended/tests/system_tests.sh
+  docker run --rm dmenu-extended-test:latest bash -c "cd /home/user/dmenu-extended/src/dmenu_extended && python3 -m pytest ../../tests"
+  docker run --rm dmenu-extended-test:latest /home/user/dmenu-extended/tests/system_tests.sh
 else
   cd ${script_dir}/src/dmenu_extended
   python3 -m pytest ../../tests
