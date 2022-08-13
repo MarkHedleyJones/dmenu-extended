@@ -8,12 +8,12 @@ on:
       - main
 
 jobs:
-  test:
+  System test:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@master
     - name: Build test image
       run: ./test.sh --build
-    - name: System Test
+    - name: Run system test
       run: ./test.sh --full
