@@ -1,3 +1,4 @@
 build
+flake8-black
 mock
 pytest

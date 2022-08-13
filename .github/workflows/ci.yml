@@ -15,7 +15,9 @@ jobs:
       uses: actions/checkout@master
     - name: Check version string
       run: ./test.sh --check-version
-    - name: Build test image
+    - name: Build test environment
       run: ./test.sh --build
+    - name: Lint code
+      run: ./test.sh --lint
     - name: Run system test
-      run: ./test.sh --full
+      run: ./test.sh --system

@@ -9,6 +9,18 @@ build_image() {
   return $?
 }
 
+task() {
+  echo "${1} ..."
+}
+
+error() {
+  echo " ✗ - ${1}"
+}
+
+success() {
+  echo " ✓ - ${1}"
+}
+
 usage() {
   cat <<EOF
 Usage: $(
@@ -19,24 +31,29 @@ Run dmenu-extended tests
 
 Available options:
 
--h, --help           Print this help and exit
--f, --full           Run full test-suite (requires docker)
 -b, --build          Build the docker image to run system tests (requires docker)
 -c, --check-version  Check that the version defined in pyproject.toml is higher than that listed on pypi
+-h, --help           Print this help and exit
+-l, --lint           Check the code using flake8 and black
+-s, --system         Run all tests (requires docker)
+
 EOF
   exit
 }
 
 parse_params() {
-  full=0
   build=0
   check_version=0
+  format=0
+  system=0
+  lint=0
   while :; do
     case "${1-}" in
-    -h | --help) usage ;;
-    -f | --full) full=1 ;;
     -b | --build) build=1 ;;
     -c | --check-version) check_version=1 ;;
+    -a | --system) system=1 ;;
+    -h | --help) usage ;;
+    -l | --lint) lint=1 ;;
     -?*)
       echo "Unknown option: $1"
       exit 1
@@ -55,30 +72,42 @@ if [ "${check_version}" -eq 1 ]; then
   version=$(grep -E '^version =' ${script_dir}/pyproject.toml | cut -d '"' -f 2)
   pypi_version=$(curl -s https://pypi.org/pypi/dmenu-extended/json | jq -r '.info.version')
   if ${script_dir}/tests/check_version_string.sh "${version}" "${pypi_version}"; then
-    echo "The version in pyproject.toml (${version}) has been correctly incremented relative to the version on pypi (${pypi_version})"
+    success "The version in pyproject.toml (${version}) has been correctly incremented relative to the version on pypi (${pypi_version})"
     exit 0
   else
-    echo "The version in pyproject.toml (${version}) has not been incremented relative to the current version on pypi (${pypi_version})"
+    error "The version in pyproject.toml (${version}) has not been incremented relative to the current version on pypi (${pypi_version})"
     exit 1
   fi
 fi
-if [ "${build}" -eq 1 ] || [ "${full}" -eq 1 ]; then
-  if [ "${build}" -eq 1 ]; then
+if [ "${build}" -eq 1 ] || [ "${system}" -eq 1 ] || [ "${lint}" -eq 1 ]; then
+  image_hash="$(docker images -q dmenu-extended-test:latest)"
+  if [ "${build}" -eq 1 ] || [ "${image_hash}" = "" ]; then
+    if [ "${image_hash}" = "" ]; then
+      task "Docker image not found - building"
+    fi
     if ! build_image; then
-      echo "Failed to build the image"
+      error "Failed to build the image"
       exit 1
     else
-      echo "Image built successfully"
+      success "Image built successfully"
     fi
   fi
-  if [ "${full}" -eq 1 ]; then
-    if [ "$(docker images -q dmenu-extended-test:latest)" = "" ]; then
-      echo "Docker image not found. Automatically building it..."
-      build_image
-    fi
+  if [ "${system}" -eq 1 ] || [ "${lint}" -eq 1 ]; then
     trap 'docker rmi dmenu-extended-test > /dev/null' EXIT
-    docker run --rm dmenu-extended-test:latest bash -c "cd /home/user/dmenu-extended/src/dmenu_extended && python3 -m pytest ../../tests"
-    docker run --rm dmenu-extended-test:latest /home/user/dmenu-extended/tests/system_tests.sh
+    if [ "${lint}" -eq 1 ]; then
+      linter="flake8"
+      task "Checking code with ${linter}"
+      if ! docker run --rm dmenu-extended-test:latest bash -c "cd dmenu-extended && ${linter} ./src/dmenu_extended"; then
+        error "Linting with ${linter} failed"
+        exit 1
+      else
+        success "Linting with ${linter} was successful"
+      fi
+    fi
+    if [ "${system}" -eq 1 ]; then
+      docker run --rm dmenu-extended-test:latest bash -c "cd /home/user/dmenu-extended/src/dmenu_extended && python3 -m pytest ../../tests"
+      docker run --rm dmenu-extended-test:latest /home/user/dmenu-extended/tests/system_tests.sh
+    fi
   fi
 else
   cd ${script_dir}/src/dmenu_extended
