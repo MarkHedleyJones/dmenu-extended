@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import codecs
 import importlib
 import json
 import operator
@@ -448,7 +447,7 @@ class dmenu(object):
         """
 
         if os.path.exists(path):
-            with codecs.open(path, "r") as f:
+            with open(path, "r") as f:
                 try:
                     return json.load(f)
                 except:
@@ -470,7 +469,7 @@ class dmenu(object):
     def save_json(self, path, items):
         """Saves a dictionary to a specified path using the json format"""
 
-        with codecs.open(path, "w") as f:
+        with open(path, "w") as f:
             json.dump(items, f, sort_keys=True, indent=4)
 
     def load_preferences(self):
@@ -766,7 +765,7 @@ class dmenu(object):
 
     def cache_save(self, items, path):
         try:
-            with codecs.open(path, "w") as f:
+            with open(path, "w") as f:
                 if type(items) == list:
                     for item in items:
                         f.write(item + "\n")
@@ -797,7 +796,7 @@ class dmenu(object):
                         "Caching performance will be affected while these items remain"
                     )
                     print("Offending items have been excluded from cache")
-                with codecs.open(path, "wb") as f:
+                with open(path, "wb") as f:
                     for item in tmp:
                         f.write(item + "\n")
                 return 2
@@ -810,7 +809,7 @@ class dmenu(object):
         try:
             if self.debug:
                 print("Opening cache at " + path)
-            with codecs.open(path, "r") as f:
+            with open(path, "r") as f:
                 return f.read()
         except:
             return False
@@ -896,7 +895,7 @@ class dmenu(object):
             for filename in os.listdir(app_path):
                 pathname = os.path.join(app_path, filename)
                 if os.path.isfile(pathname):
-                    with codecs.open(pathname, "r", errors="ignore") as f:
+                    with open(pathname, "r", errors="ignore") as f:
                         name = None
                         name_generic = None
                         command = None
