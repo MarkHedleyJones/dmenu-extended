@@ -90,22 +90,24 @@ if [ "${build}" -eq 1 ] || [ "${system}" -eq 1 ] || [ "${lint}" -eq 1 ]; then
       exit 1
     else
       success "Image built successfully"
-      trap 'docker rmi dmenu-extended-test > /dev/null' EXIT
     fi
   fi
-  if [ "${lint}" -eq 1 ]; then
-    linter="flake8"
-    task "Checking code with ${linter}"
-    if ! docker run --rm dmenu-extended-test:latest bash -c "cd dmenu-extended && ${linter} ./src/dmenu_extended"; then
-      error "Linting with ${linter} failed"
-      failed_lint_checks+=(${linter})
-    else
-      success "Linting with ${linter} was successful"
+  if [ "${system}" -eq 1 ] || [ "${lint}" -eq 1 ]; then
+    trap 'docker rmi dmenu-extended-test > /dev/null' EXIT
+    if [ "${lint}" -eq 1 ]; then
+      linter="flake8"
+      task "Checking code with ${linter}"
+      if ! docker run --rm dmenu-extended-test:latest bash -c "cd dmenu-extended && ${linter} ./src/dmenu_extended"; then
+        error "Linting with ${linter} failed"
+        failed_lint_checks+=(${linter})
+      else
+        success "Linting with ${linter} was successful"
+      fi
     fi
-  fi
-  if [ "${system}" -eq 1 ]; then
-    docker run --rm dmenu-extended-test:latest bash -c "cd /home/user/dmenu-extended/src/dmenu_extended && python3 -m pytest ../../tests"
-    docker run --rm dmenu-extended-test:latest /home/user/dmenu-extended/tests/system_tests.sh
+    if [ "${system}" -eq 1 ]; then
+      docker run --rm dmenu-extended-test:latest bash -c "cd /home/user/dmenu-extended/src/dmenu_extended && python3 -m pytest ../../tests"
+      docker run --rm dmenu-extended-test:latest /home/user/dmenu-extended/tests/system_tests.sh
+    fi
   fi
 else
   cd ${script_dir}/src/dmenu_extended
