@@ -1,0 +1,21 @@
+name: Continuous Integration
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  system-test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@master
+    - name: Check version string
+      run: ./test.sh --check-version
+    - name: Build test image
+      run: ./test.sh --build
+    - name: Run system test
+      run: ./test.sh --full
