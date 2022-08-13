@@ -73,7 +73,10 @@ class ServiceInstaller:
             self.filenames["timer"]: "\n".join(
                 [
                     "[Unit]",
-                    f"Description=Run {self.filenames['service']} every {rebuild_interval_mins} minutes",
+                    (
+                        f"Description=Run {self.filenames['service']} every "
+                        f"{rebuild_interval_mins} minutes"
+                    ),
                     f"Requires={self.filenames['service']}",
                     "",
                     "[Timer]",
