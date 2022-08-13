@@ -13,5 +13,7 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@master
+    - name: Build test image
+      run: ./test.sh --build
     - name: System Test
       run: ./test.sh --full
