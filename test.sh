@@ -99,7 +99,7 @@ if [ "${build}" -eq 1 ] || [ "${system}" -eq 1 ] || [ "${lint}" -eq 1 ]; then
       task "Checking code with ${linter}"
       if ! docker run --rm dmenu-extended-test:latest bash -c "cd dmenu-extended && ${linter} ./src/dmenu_extended"; then
         error "Linting with ${linter} failed"
-        failed_lint_checks+=(${linter})
+        exit 1
       else
         success "Linting with ${linter} was successful"
       fi
