@@ -14,4 +14,4 @@ jobs:
     - name: Checkout
       uses: actions/checkout@master
     - name: System Test
-      run: ls && cd dmenu-extended && ls && ./test.sh --full
+      run: ./test.sh --full
