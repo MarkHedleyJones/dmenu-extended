@@ -8,7 +8,7 @@ on:
       - main
 
 jobs:
-  System test:
+  system-test:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
