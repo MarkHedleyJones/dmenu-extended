@@ -752,7 +752,7 @@ class dmenu(object):
             print(command)
 
         if self.prefs["interactive_shell"] is True:
-            shell = os.environ.get('SHELL', "/bin/bash")
+            shell = os.environ.get("SHELL", "/bin/bash")
             command = shell + " -i -c " + " ".join(command)
         return subprocess.call(command, shell=self.prefs["interactive_shell"])
 
