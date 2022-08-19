@@ -21,3 +21,17 @@ COPY --chown=user . /home/user/dmenu-extended
 RUN cd /home/user/dmenu-extended \
   && python3 -m build --wheel \
   && pip3 install dist/dmenu_extended-*-py3-none-any.whl --upgrade
+
+# We can't run the real dmenu here because it requires a tty
+# For measuring performance we can just create a fake dmenu
+# This just exits, which lets us measure the time it takes to open the menu
+USER root
+# RUN echo "#!/usr/bin/env sh\nexit 0" > /usr/bin/dmenu \
+#   && chmod +x /usr/bin/dmenu
+RUN echo "#!/usr/bin/env bash\n\
+counter=0\n\
+while read -r line; do let \"counter++\"; done\n\
+echo \"Items: \$((\${counter} - 1))\" > /tmp/dmenu.log\n\
+exit 0\n" > /usr/bin/dmenu && chmod +x /usr/bin/dmenu
+
+USER user
