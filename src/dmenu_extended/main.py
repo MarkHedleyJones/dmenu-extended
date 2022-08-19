@@ -203,6 +203,7 @@ default_prefs = {
     "indicator_edit": "*",  # Symbol to indicate an item will launch an editor
     "indicator_alias": "",  # Symbol to indicate an aliased command
     "prompt": "Open:",  # Prompt
+    "interactive_shell": False,  # Run commands in interactive mode
 }
 
 
@@ -750,7 +751,10 @@ class dmenu(object):
             print("Command converted into:")
             print(command)
 
-        return subprocess.call(command)
+        if self.prefs["interactive_shell"] is True:
+            shell = os.environ.get('SHELL', "/bin/bash")
+            command = shell + " -i -c " + " ".join(command)
+        return subprocess.call(command, shell=self.prefs["interactive_shell"])
 
     def cache_regenerate(self, message=True):
         if message:
