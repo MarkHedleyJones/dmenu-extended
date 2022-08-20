@@ -1,15 +1,16 @@
-#!/usr/bin/env python3
+#! /usr/bin/env python
 
-import importlib
-import json
-import operator
-import os
-import pkg_resources
-import signal
-import subprocess
+from __future__ import unicode_literals
 import sys
+import os
+import subprocess
+import signal
+import json
+import codecs
+import locale
+import operator
 import time
-import urllib.request
+import pkg_resources
 
 Help = """
 Dmenu Extended command line options
@@ -27,78 +28,62 @@ Options:
 Input: text enclosed in double quotes will be fed to the menu, as if entered manually.
 """
 
+# Try and import the faster os.walk implementation - scandir
+scandir_present = False
+try:
+    from os import scandir, walk
 
-class Version:
-    def __init__(self, version_string):
-        self.string = version_string
-        self.parsed = list(map(int, version_string.split(".")))[:3]
+    scandir_present = True
+except ImportError:
+    scandir_present = False
+if scandir_present == False:
+    try:
+        from scandir import scandir, walk
 
-    def __lt__(self, other):
-        if self.parsed[0] != other.parsed[0]:
-            return self.parsed[0] < other.parsed[0]
-        if self.parsed[1] != other.parsed[1]:
-            return self.parsed[1] < other.parsed[1]
-        return self.parsed[2] < other.parsed[2]
+        scandir_present = True
+    except ImportError:
+        from os import walk
 
-    def __le__(self, other):
-        if self.parsed[0] != other.parsed[0]:
-            return self.parsed[0] <= other.parsed[0]
-        if self.parsed[1] != other.parsed[1]:
-            return self.parsed[1] <= other.parsed[1]
-        return self.parsed[2] <= other.parsed[2]
+        scandir_present = False
 
-    def __gt__(self, other):
-        return not self <= other
-
-    def __ge__(self, other):
-        return not self < other
-
-    def __eq__(self, other):
-        return (
-            self.parsed[0] == other.parsed[0]
-            and self.parsed[1] == other.parsed[1]
-            and self.parsed[2] == other.parsed[2]
-        )
-
-    def __ne__(self, other):
-        return not self == other
+# Python 3 urllib import with Python 2 fallback
+try:
+    import urllib.request as urllib2
+except:
+    import urllib2
 
 
-provided_package_versions = {
-    "dmenu-extended": Version(pkg_resources.get_distribution("dmenu-extended").version),
-    "python": Version(".".join(map(str, sys.version_info[:3]))),
-}
+def parse_version_string(version_string):
+    version_parts = list(map(int, version_string.split(".")))
+    return {
+        "major": version_parts[0],
+        "minor": version_parts[1],
+        "patch": version_parts[2],
+    }
 
 
-def get_plugin_requirements(plugin):
-    if "requirements" in plugin:
-        # Check for new semantic-based required version string
-        return {
-            package: Version(requirement)
-            for package, requirement in plugin["requirements"].items()
-        }
-    if "min_version" in plugin:
+def plugin_is_supported(min_version, version):
+    if isinstance(min_version, float):
         # Version numbers were changed from year.month format to symantec
         # versioning starting at 0.2.0. Any plugin with a non-zero version_required
         # requirement would equate to version 0.2.0
-        if "_min_version_comment" in plugin:
-            print(plugin["_min_version_comment"])
-        if plugin["min_version"] > 0:
-            return {"dmenu-extended": Version("0.2.0")}
+        if min_version > 0:
+            min_version = "0.2.0"
         else:
-            return {}
+            min_version = "0.0.0"
+    version_required = parse_version_string(min_version)
+    for key in ["major", "minor", "patch"]:
+        if version[key] > version_required[key]:
+            return True
+        elif version[key] < version_required[key]:
+            return False
+    return True
 
 
-def unsatisfied_plugin_requirements(plugin):
-    unsatisfied_requirements = {}
-    for package_name, required_version in get_plugin_requirements(plugin).items():
-        if (
-            package_name not in provided_package_versions
-            or provided_package_versions[package_name] < required_version
-        ):
-            unsatisfied_requirements[package_name] = required_version.string
-    return unsatisfied_requirements
+version = parse_version_string(pkg_resources.get_distribution("dmenu-extended").version)
 
+# Find out the system's favourite encoding
+system_encoding = locale.getpreferredencoding()
 
 path_base = os.path.expanduser("~") + "/.config/dmenu-extended"
 path_cache = (
@@ -145,14 +130,13 @@ default_prefs = {
         "m4a",  # Music file
         "ogg",  # Media file
         "lyx",  # Lyx document
-        "bib",  # LaTeX bibliography
+        "bib",  # LaTeX bibliograpy
         "iso",  # CD image
         "ps",  # Postscript document
         "zip",  # Compressed archive
         "xcf",  # Gimp image format
         "doc",  # Microsoft document format
-        "docx",  # Microsoft document format
-        "xls",  # Microsoft spreadsheet format
+        "docx" "xls",  # Microsoft document format  # Microsoft spreadsheet format
         "xlsx",  # Microsoft spreadsheet format
         "md",  # Markup document
         "html",  # HTML document
@@ -168,7 +152,7 @@ default_prefs = {
     "include_items": [],  # Extra items to display - manually added
     "exclude_items": [],  # Items to hide - manually hidden
     "include_binaries": False,
-    "filter_binaries": False,  # Only include binaries with an associated .desktop file
+    "filter_binaries": False,  # Only include binaries that have an associated .desktop file
     "include_applications": True,  # Add items from /usr/share/applications
     "alias_applications": True,  # Alias applications with their common names
     "path_aliasFile": "",  # Pointer to an aliases file (if any)
@@ -196,12 +180,12 @@ default_prefs = {
     "password_helper": ["zenity", "--password", "--title={prompt}"],
     "fileopener": "xdg-open",  # Program to handle opening files
     "filebrowser": "xdg-open",  # Program to handle opening paths
-    "webbrowser": "xdg-open",  # Program to handle opening urls
+    "webbrowser": "xdg-open",  # Program to hangle opening urls
     "terminal": "xterm",  # Terminal
     "terminal_editor": "vim",  # Terminal editor
     "indicator_submenu": "->",  # Symbol to indicate a submenu item
     "indicator_edit": "*",  # Symbol to indicate an item will launch an editor
-    "indicator_alias": "",  # Symbol to indicate an aliased command
+    "indicator_alias": "",  # Symbol to indecate an aliased command
     "prompt": "Open:",  # Prompt
 }
 
@@ -251,7 +235,7 @@ def setup_user_files():
         default_prefs["path_aliasFile"] = os.path.expanduser("~") + "/.zsh_aliases"
 
     # Dump the prefs file
-    if os.path.exists(file_prefs) is False:
+    if os.path.exists(file_prefs) == False:
         with open(file_prefs, "w") as f:
             json.dump(default_prefs, f, sort_keys=True, indent=4)
         print("Preferences file created at: " + file_prefs)
@@ -263,8 +247,7 @@ def setup_user_files():
         f.write("import os\n")
         f.write("import glob\n")
         f.write(
-            "__all__ = [ os.path.basename(f)[:-3] for f in"
-            ' glob.glob(os.path.dirname(__file__)+"/*.py")]'
+            '__all__ = [ os.path.basename(f)[:-3] for f in glob.glob(os.path.dirname(__file__)+"/*.py")]'
         )
 
 
@@ -382,16 +365,26 @@ class dmenu(object):
         """Returns a list of loaded plugins
 
         This method will load plugins in the plugins directory if they
-        have not already been loaded. Optionally, you may force the
+        havent already been loaded. Optionally, you may force the
         reloading of plugins by setting the parameter 'force' to true.
         """
 
-        if self.plugins_loaded is False:
+        if self.plugins_loaded == False:
             self.plugins_loaded = load_plugins(self.debug)
         elif force:
             if self.debug:
                 print("Forced reloading of plugins")
-            importlib.reload(plugins)
+
+            # For Python2/3 compatibility
+            try:
+                # Python2
+                reload(plugins)
+            except NameError:
+                # Python3
+                from imp import reload
+
+                reload(plugins)
+
             self.plugins_loaded = load_plugins(self.debug)
 
         return self.plugins_loaded
@@ -403,6 +396,13 @@ class dmenu(object):
 
         # Get the PATH environmental variable
         path = os.environ.get("PATH")
+
+        # If we're in Python <3 (less-than-three), we want this to be a unicode string
+        # In python 3, all strings are unicode already, trying to decode gives AttributeError
+        try:
+            path = path.decode(sys.getfilesystemencoding())
+        except AttributeError:
+            pass
 
         # Split and remove duplicates
         path = list(set(path.split(":")))
@@ -440,14 +440,14 @@ class dmenu(object):
         return paths
 
     def load_json(self, path):
-        """Loads and returns the parsed contents of a specified json file
+        """Loads and retuns the parsed contents of a specified json file
 
         This method will return 'False' if either the file does not exist
         or the specified file could not be parsed as valid json.
         """
 
         if os.path.exists(path):
-            with open(path, "r") as f:
+            with codecs.open(path, "r", encoding=system_encoding) as f:
                 try:
                     return json.load(f)
                 except:
@@ -469,17 +469,24 @@ class dmenu(object):
     def save_json(self, path, items):
         """Saves a dictionary to a specified path using the json format"""
 
-        with open(path, "w") as f:
+        with codecs.open(path, "w", encoding=system_encoding) as f:
             json.dump(items, f, sort_keys=True, indent=4)
 
     def load_preferences(self):
-        if self.prefs is False:
+        if self.prefs == False:
             self.prefs = self.load_json(file_prefs)
 
-            if self.prefs is False:
+            if self.prefs == False:
                 self.open_file(file_prefs)
                 sys.exit()
             else:
+
+                # # Check for old display format and update if necessary
+                # if 'aliased_applications_format' in self.prefs.keys():
+                #     if 'alias_display_format' not in self.prefs.keys():
+                #         self.prefs['alias_display_format'] = self.prefs['aliased_applications_format']
+                #     self.prefs.pop('aliased_applications_format')
+
                 # If there are things in the default that aren't in the
                 # user config, resave the user configuration
                 resave = False
@@ -502,11 +509,16 @@ class dmenu(object):
     def save_preferences(self):
         self.save_json(file_prefs, self.prefs)
 
+    def connect_to(self, url):
+        request = urllib2.Request(url)
+        response = urllib2.urlopen(request)
+        return response.read().decode(system_encoding)
+
     def download_text(self, url):
-        return urllib.request.urlopen(url).read()
+        return self.connect_to(url)
 
     def download_json(self, url):
-        return json.loads(self.download_text(url))
+        return json.loads(self.connect_to(url))
 
     def message_open(self, message):
         self.load_preferences()
@@ -514,16 +526,15 @@ class dmenu(object):
             [self.prefs["menu"]] + self.prefs["menu_arguments"],
             stdin=subprocess.PIPE,
             preexec_fn=os.setsid,
-            text=True,
         )
         msg = str(message)
         msg = "Please wait: " + msg
+        msg = msg.encode(system_encoding)
         self.message.stdin.write(msg)
         self.message.stdin.close()
 
     def message_close(self):
-        if hasattr(self, "message"):
-            os.killpg(self.message.pid, signal.SIGTERM)
+        os.killpg(self.message.pid, signal.SIGTERM)
 
     def get_password(self, helper_text=None):
         prompt = "Password"
@@ -534,7 +545,7 @@ class dmenu(object):
         for index, item in enumerate(command):
             if "{prompt}" in item:
                 command[index] = item.format(prompt=prompt)
-        return self.command_output(command)
+        return subprocess.check_output(command)
 
     def menu(self, items, prompt=""):
         self.load_preferences()
@@ -550,7 +561,6 @@ class dmenu(object):
                 [self.prefs["menu"]] + self.prefs["menu_arguments"] + ["-p", prompt],
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
-                text=True,
             )
 
             if type(items) == list:
@@ -560,7 +570,8 @@ class dmenu(object):
             if self.prefs["menu"] == "rofi" and items == "":
                 items = " "
 
-            out = p.communicate(items)[0]
+            out = p.communicate(items.encode(system_encoding))[0]
+            out = out.decode(system_encoding)
             out = out.strip("\n")
             out = out.strip()
 
@@ -610,7 +621,7 @@ class dmenu(object):
             f.write("#! /bin/bash\n")
             f.write(command + "\n")
 
-            if hold is True:
+            if hold == True:
                 f.write('echo "\n\nPress enter to exit";')
                 f.write("read var;")
 
@@ -668,8 +679,7 @@ class dmenu(object):
                 message = [
                     "Error: "
                     + self.prefs["fileopener"]
-                    + " reports no application is associated with this filetype (MIME"
-                    + " type: "
+                    + " reports no application is associated with this filetype (MIME type: "
                     + mimetype
                     + ")"
                 ]
@@ -681,22 +691,32 @@ class dmenu(object):
                     self.prefs["fileopener"] = offer
                     self.open_file(path)
 
+    def decode(self, string):
+        try:
+            if type(string) == str:
+                string = string.decode("utf-8")
+        except AttributeError:
+            # This Python 3+
+            pass
+        return string
+
     def command_to_list(self, command):
         """
         Takes any combination of strings and lists and flattens into a list of
-        strings. Also handles lists that contain strings that contain spaces.
+        strings. Also handles lists that contain stinrgs that contain spaces.
         """
         out = []
         if type(command) == list:
             tmp = []
             for i, item in enumerate(command):
+                item = self.decode(item)
                 if item.find(" ") != -1:
                     tmp = tmp + item.split(" ")
                 else:
                     tmp = tmp + [item]
             out = tmp
-        elif type(command) == str:
-            out = command.split(" ")
+        elif type(command) == str or type(command) == unicode:
+            out = self.decode(command).split(" ")
 
         quote_count = "".join(out).count('"')
         if quote_count > 0 and quote_count % 2 == 0:
@@ -755,8 +775,7 @@ class dmenu(object):
     def cache_regenerate(self, message=True):
         if message:
             self.message_open(
-                "building cache...\nThis may take a while (press enter to run in"
-                " background)."
+                "building cache...\nThis may take a while (press enter to run in background)."
             )
         cache = self.build_cache()
         if message:
@@ -765,7 +784,7 @@ class dmenu(object):
 
     def cache_save(self, items, path):
         try:
-            with open(path, "w") as f:
+            with codecs.open(path, "w", encoding=system_encoding) as f:
                 if type(items) == list:
                     for item in items:
                         f.write(item + "\n")
@@ -796,7 +815,7 @@ class dmenu(object):
                         "Caching performance will be affected while these items remain"
                     )
                     print("Offending items have been excluded from cache")
-                with open(path, "wb") as f:
+                with codecs.open(path, "wb", encoding=system_encoding) as f:
                     for item in tmp:
                         f.write(item + "\n")
                 return 2
@@ -809,7 +828,7 @@ class dmenu(object):
         try:
             if self.debug:
                 print("Opening cache at " + path)
-            with open(path, "r") as f:
+            with codecs.open(path, "r", encoding=system_encoding) as f:
                 return f.read()
         except:
             return False
@@ -819,11 +838,11 @@ class dmenu(object):
         cache_plugins = self.cache_open(file_cache_plugins)
         cache_scanned = self.cache_open(file_cache)
 
-        if cache_plugins is False or cache_scanned is False:
+        if cache_plugins == False or cache_scanned == False:
             if exitOnFail:
                 sys.exit()
             else:
-                if self.cache_regenerate() is False:
+                if self.cache_regenerate() == False:
                     self.menu(["Error caching data"])
                     sys.exit()
                 else:
@@ -851,7 +870,10 @@ class dmenu(object):
     def command_output(self, command, split=True):
         if type(command) != list:
             command = command.split(" ")
-        out = subprocess.check_output(command, text=True)
+        tmp = subprocess.check_output(command)
+
+        out = tmp.decode(system_encoding)
+
         if split:
             return out.split("\n")
         else:
@@ -895,7 +917,10 @@ class dmenu(object):
             for filename in os.listdir(app_path):
                 pathname = os.path.join(app_path, filename)
                 if os.path.isfile(pathname):
-                    with open(pathname, "r", errors="ignore") as f:
+                    # Open the application file using the system's preferred encoding (probably utf-8)
+                    with codecs.open(
+                        pathname, "r", encoding=system_encoding, errors="ignore"
+                    ) as f:
                         name = None
                         name_generic = None
                         command = None
@@ -1010,8 +1035,7 @@ class dmenu(object):
                     # again with '=' chars
                     parts = line[6:].replace("\n", "").split("=")
                     # I'm sure there is a way to do this all in a regex
-                    # We want to remove any outer quotes on the alias but preserve
-                    # interior quotes
+                    # We want to remove any outer quotes on the alias but preserve interior quotes
                     if (parts[1][0] == '"' and parts[-1][-1] == '"') or (
                         parts[1][0] == "'" and parts[-1][-1] == "'"
                     ):
@@ -1022,6 +1046,13 @@ class dmenu(object):
 
     def build_cache(self):
         self.load_preferences()
+
+        if self.debug:
+            if scandir_present:
+                print("Optimised directory scanning library (scandir) loaded")
+            else:
+                print("Cound not load optimised directory scanning library (scandir)")
+                print("Consider installing scandir: pip install scandir")
 
         valid_extensions = []
         if "valid_extensions" in self.prefs:
@@ -1076,8 +1107,7 @@ class dmenu(object):
                     if app["terminal"]:
                         command += ";"
                     title = self.format_alias(app["name"], command)
-                    # Only add this item if an item with the same name has not already
-                    # been added
+                    # Only add this item if an item with the same name has not already been added
                     if title not in aliased_items:
                         aliased_items.append(title)
                         aliases.append([title, command])
@@ -1093,8 +1123,7 @@ class dmenu(object):
                     # Add the "run in terminal" indicator to the command
                     if app["terminal"]:
                         command += ";"
-                    # Only add this item if an item with the same name has not already
-                    # been added
+                    # Only add this item if an item with the same name has not already been added
                     if command not in binaries:
                         # Remove any non-terminal invoking versions from cache
                         if app["terminal"]:
@@ -1155,7 +1184,7 @@ class dmenu(object):
             print("Scanning files and folders, this may take a while...")
 
         for watchdir in watch_folders:
-            for root, dirs, files in os.walk(
+            for root, dirs, files in walk(
                 watchdir, topdown=True, followlinks=follow_symlinks
             ):
                 dirs[:] = [
@@ -1164,17 +1193,17 @@ class dmenu(object):
                     if os.path.join(root, d) not in ignore_folders
                     and d not in self.prefs["global_ignore_folders"]
                 ]
-                if self.prefs["scan_hidden_folders"] is False:
-                    dirs[:] = [d for d in dirs if d.startswith(".") is False]
+                if self.prefs["scan_hidden_folders"] == False:
+                    dirs[:] = [d for d in dirs if d.startswith(".") == False]
 
                 if self.prefs["scan_hidden_folders"] or root.find("/.") == -1:
                     for name in files:
                         if (
                             self.prefs["include_hidden_files"]
-                            or name.startswith(".") is False
+                            or name.startswith(".") == False
                         ):
                             if (
-                                valid_extensions is True
+                                valid_extensions == True
                                 or os.path.splitext(name)[1].lower() in valid_extensions
                             ):
                                 filenames.append(os.path.join(root, name))
@@ -1200,8 +1229,7 @@ class dmenu(object):
                     else:
                         if self.debug:
                             print(
-                                "There are aliased items in the configuration with no"
-                                " command."
+                                "There are aliased items in the configuration with no command."
                             )
                 else:
                     include_items.append(item)
@@ -1265,11 +1293,10 @@ class extension(dmenu):
     def __init__(self):
         self.load_preferences()
 
-    base_url = "https://raw.githubusercontent.com"
     plugins_index_urls = [
-        f"{base_url}/markhedleyjones/dmenu-extended-plugins/master/plugins_index.json",
-        f"{base_url}/v1nc/dmenu-extended-plugins/master/plugins_index.json",
-        f"{base_url}/mg979/dmenu-extended-plugins/master/plugins_index.json",
+        "https://raw.githubusercontent.com/markhedleyjones/dmenu-extended-plugins/master/plugins_index.json",
+        "https://raw.githubusercontent.com/v1nc/dmenu-extended-plugins/master/plugins_index.json",
+        "https://raw.githubusercontent.com/mg979/dmenu-extended-plugins/master/plugins_index.json",
     ]
 
     def rebuild_cache(self):
@@ -1333,8 +1360,7 @@ class extension(dmenu):
         for plugins_index_url in self.plugins_index_urls:
             try:
                 plugins.update(self.download_json(plugins_index_url))
-            except Exception as e:
-                print("Error downloading plugins index: " + str(e))
+            except:
                 self.message_close()
                 self.menu(
                     [
@@ -1351,24 +1377,27 @@ class extension(dmenu):
         accept = []
         substitute = ("plugin_", "")
         installed_plugins = self.get_plugins()
-        installed_pluginFilenames = [x["filename"] for x in installed_plugins]
+        installed_pluginFilenames = []
+        for tmp in installed_plugins:
+            installed_pluginFilenames.append(tmp["filename"])
 
-        for plugin_name, plugin in plugins.items():
-            if plugin_name + ".py" not in installed_pluginFilenames:
-                unsatisfied_requirements = unsatisfied_plugin_requirements(plugin)
-                if len(unsatisfied_requirements) == 0:
-                    desc = plugin["desc"]
-                    accept.append(True)
-                else:
-                    desc = "Requires: "
-                    for (
-                        package_name,
-                        version_string,
-                    ) in unsatisfied_requirements.items():
-                        desc += f"{package_name} => {version_string}"
-                    accept.append(False)
-                items.append(f"{plugin_name.replace(*substitute)} - {desc}")
-
+        for plugin in plugins:
+            if plugin + ".py" not in installed_pluginFilenames:
+                if "min_version" in plugins[plugin]:
+                    if plugin_is_supported(plugins[plugin]["min_version"], version):
+                        items.append(
+                            plugin.replace(substitute[0], substitute[1])
+                            + " - "
+                            + plugins[plugin]["desc"]
+                        )
+                        accept.append(True)
+                    else:
+                        items.append(
+                            plugin.replace(substitute[0], substitute[1])
+                            + " - Requires dmenu_extended >= v"
+                            + str(plugins[plugin]["min_version"])
+                        )
+                        accept.append(False)
         if len(items) == 0:
             self.menu(["There are no new plugins to install"])
         else:
@@ -1393,7 +1422,7 @@ class extension(dmenu):
                                     pass
                                 else:
                                     line = (
-                                        "External dependency '"
+                                        "External dependancy '"
                                         + depend["name"]
                                         + "' is MISSING."
                                     )
@@ -1414,7 +1443,7 @@ class extension(dmenu):
                                 except:
                                     found = False
                                     fail = True
-                                if found is False:
+                                if found == False:
                                     message.append(
                                         "Python library '"
                                         + depend
@@ -1435,14 +1464,15 @@ class extension(dmenu):
                         self.message_close()
                         self.menu(
                             [
-                                "Plugin has missing dependencies and therefore was not"
-                                " installed"
+                                "Plugin has missing dependencies and therefore was not installed"
                             ]
                         )
                     else:
                         plugin_source = self.download_text(plugin["url"])
-                        with open(path_plugins + "/" + plugin_name + ".py", "wb") as f:
-                            f.write(plugin_source)
+
+                        with open(path_plugins + "/" + plugin_name + ".py", "w") as f:
+                            for line in plugin_source:
+                                f.write(line)
 
                         self.get_plugins(True)
                         self.message_close()
@@ -1459,8 +1489,7 @@ class extension(dmenu):
             else:
                 self.menu(
                     [
-                        "The requested plugin has unmet dependencies, please update"
-                        " your system and try again"
+                        "The selected plugin cannot be installed as it requires a newer version of dmenu-extended"
                     ]
                 )
 
@@ -1531,8 +1560,7 @@ class extension(dmenu):
                                 print(
                                     "Downloaded version of "
                                     + there
-                                    + " does not verify against package manager"
-                                    " sha1sum key"
+                                    + " does not verify against package manager sha1sum key"
                                 )
                                 print("SHA1SUM of downloaded version = " + download_sha)
                                 print(
@@ -1678,9 +1706,9 @@ class extension(dmenu):
 
 
 def is_binary(d, path):
-    if os.path.isfile(path) is False:
+    if os.path.isfile(path) == False:
         return False
-    if os.access(path, os.X_OK) is False:
+    if os.access(path, os.X_OK) == False:
         return False
     for extension in d.prefs["valid_extensions"]:
         if path[-len(extension) - 1 :] == "." + extension:
@@ -1817,7 +1845,7 @@ def run(*args):
         for plugin in plugins:
             if (
                 hasattr(plugin["plugin"], "is_submenu")
-                and plugin["plugin"].is_submenu is True
+                and plugin["plugin"].is_submenu == True
             ):
                 pluginTitle = (
                     d.prefs["indicator_submenu"] + " " + plugin["plugin"].title.strip()
@@ -1829,7 +1857,7 @@ def run(*args):
                 plugin_hook = (plugin["plugin"], pluginTitle)
 
         # Check for plugin call
-        if plugin_hook is not False:
+        if plugin_hook != False:
             plugin_hook[0].load_preferences()
             plugin_hook[0].run(out[len(plugin_hook[1]) :].strip())
             if d.debug:
@@ -1839,8 +1867,7 @@ def run(*args):
                 print("This command is not related to a plugin")
             # Check to see if the command is an alias for something
             if d.retrieve_aliased_command(out) is not None:
-                # If the user wants frequently used items, store this execution
-                # (before de-aliasing)
+                # If the user wants frequently used items, store this execution (before de-aliasing)
                 if d.prefs["frequently_used"] > 0:
                     frequent_commands_store(out)
                 out = d.retrieve_aliased_command(out)
@@ -1896,7 +1923,7 @@ def run(*args):
                             elif d.debug:
                                 print("No")
 
-                        # If removing a command - an alias would be detected as command
+                        # If removing a command - an alias would be detected as a command
                         if action == "-" and type(item) == list:
                             if d.debug:
                                 print(
@@ -1975,7 +2002,7 @@ def run(*args):
                             elif d.debug:
                                 print("No")
 
-                    if action == "+" and found_in_store is True:
+                    if action == "+" and found_in_store == True:
                         option = d.prefs["indicator_submenu"] + " Remove from store"
                         if alias is None:
                             answer = d.menu(
@@ -1991,7 +2018,7 @@ def run(*args):
                         if answer != option:
                             sys.exit()
                         action = "-"
-                    elif action == "-" and found_in_store is False:
+                    elif action == "-" and found_in_store == False:
                         option = d.prefs["indicator_submenu"] + " Add to store"
                         if alias is None:
                             answer = d.menu(
@@ -2013,7 +2040,7 @@ def run(*args):
 
                     cache_scanned = d.cache_open(file_cache)[:-1]
 
-                    if cache_scanned is False:
+                    if cache_scanned == False:
                         d.cache_regenerate()
                         d.message_close()
                         sys.exit()
@@ -2066,7 +2093,7 @@ def run(*args):
                                 cache_scanned.remove(command)
                             except ValueError:
                                 if d.debug:
-                                    print("Could not remove item from the cache")
+                                    print("Couldnt remove item from the cache")
                                 else:
                                     pass
                         else:
@@ -2082,8 +2109,7 @@ def run(*args):
                             else:
                                 if d.debug:
                                     print(
-                                        "Couldn't remove the item (item could not be"
-                                        " located)"
+                                        "Couldn't remove the item (item could not be located)"
                                     )
 
                             d.message_open(
@@ -2094,14 +2120,13 @@ def run(*args):
                                 cache_scanned.remove(d.format_alias(alias, command))
                             except ValueError:
                                 if d.debug:
-                                    print("Could not remove item from the cache")
+                                    print("Couldnt remove item from the cache")
                                 else:
                                     pass
                     else:
                         d.message_close()
                         d.menu(
-                            "An error occurred while servicing your request.\nYou may"
-                            " need to delete your configuration file."
+                            "An error occured while servicing your request.\nYou may need to delete your configuration file."
                         )
                         sys.exit()
 
@@ -2140,13 +2165,12 @@ def run(*args):
                         frequent_commands_store(out)
 
             # Detect if the command is a web address and pass to handle_command
-            if out[:7] == "http://" or out[:8] == "https://" or aliased is True:
+            if out[:7] == "http://" or out[:8] == "https://" or aliased == True:
                 handle_command(d, out)
             elif out.find(":") != -1:
                 if d.debug:
                     print(
-                        "Colon detected in command, could be a path or attempt to open"
-                        " something with something"
+                        "Colon detected in command, could be a path or attempt to open something with something"
                     )
                     print(out)
                 tmp = out.split(":")
@@ -2207,25 +2231,22 @@ def run(*args):
                     if out[-1] == ":":
                         if d.debug:
                             print(
-                                "User wants to be prompted with options for opening"
-                                " passed item"
+                                "User wants to be prompted with options for opening passed item"
                             )
                         binary = d.menu(d.scan_binaries())
                         command = binary + " '" + os.path.expanduser(out[:-1]) + "'"
                     elif cmds[1] != "":
-                        # Check that the whole thing isn't a path with a colon in it
+                        # Check that the whole thing isn't just a path with a colon in it
                         command = cmds[1] + " '" + os.path.expanduser(cmds[0]) + "'"
                         if d.debug:
                             print(
-                                "Second item passed so assume this is what the user"
-                                " wants to use to open path with"
+                                "Second item passed so assume this is what the user wants to use to open path with"
                             )
                             print("Command=" + command)
                     else:
                         if d.debug:
                             print(
-                                "Second item not passed so allow the user to choose the"
-                                " program they wish to use"
+                                "Second item not passed so allow the user to choose the program they wish to use"
                             )
                         binary = d.menu(d.scan_binaries())
                         command = binary + " '" + os.path.expanduser(cmds[0]) + "'"
@@ -2248,8 +2269,7 @@ def run(*args):
                     d.menu(
                         [
                             "Cache rebuilt",
-                            "Performance issues were detected - some paths contained"
-                            " invalid characters",
+                            "Performance issues were detected - some paths contained invalid characters",
                         ]
                     )
                 else:
