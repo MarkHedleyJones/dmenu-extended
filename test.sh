@@ -36,6 +36,7 @@ Available options:
 -h, --help           Print this help and exit
 -l, --lint           Check the code using flake8 and black
 -s, --system         Run all tests (requires docker)
+-p, --performance    Run a performance test (requires docker)
 
 EOF
   exit
@@ -45,15 +46,17 @@ parse_params() {
   build=0
   check_version=0
   format=0
-  system=0
   lint=0
+  performance=0
+  system=0
   while :; do
     case "${1-}" in
     -b | --build) build=1 ;;
     -c | --check-version) check_version=1 ;;
-    -a | --system) system=1 ;;
     -h | --help) usage ;;
     -l | --lint) lint=1 ;;
+    -p | --performance) performance=1 ;;
+    -s | --system) system=1 ;;
     -?*)
       echo "Unknown option: $1"
       exit 1
@@ -79,7 +82,7 @@ if [ "${check_version}" -eq 1 ]; then
     exit 1
   fi
 fi
-if [ "${build}" -eq 1 ] || [ "${system}" -eq 1 ] || [ "${lint}" -eq 1 ]; then
+if [ "${build}" -eq 1 ] || [ "${system}" -eq 1 ] || [ "${lint}" -eq 1 ] || [ "${performance}" -eq 1 ]; then
   image_hash="$(docker images -q dmenu-extended-test:latest)"
   if [ "${build}" -eq 1 ] || [ "${image_hash}" = "" ]; then
     if [ "${image_hash}" = "" ]; then
@@ -92,7 +95,7 @@ if [ "${build}" -eq 1 ] || [ "${system}" -eq 1 ] || [ "${lint}" -eq 1 ]; then
       success "Image built successfully"
     fi
   fi
-  if [ "${system}" -eq 1 ] || [ "${lint}" -eq 1 ]; then
+  if [ "${system}" -eq 1 ] || [ "${lint}" -eq 1 ] || [ "${performance}" -eq 1 ]; then
     trap 'docker rmi dmenu-extended-test > /dev/null' EXIT
     if [ "${lint}" -eq 1 ]; then
       linter="flake8"
@@ -107,6 +110,9 @@ if [ "${build}" -eq 1 ] || [ "${system}" -eq 1 ] || [ "${lint}" -eq 1 ]; then
     if [ "${system}" -eq 1 ]; then
       docker run --rm dmenu-extended-test:latest bash -c "cd /home/user/dmenu-extended/src/dmenu_extended && python3 -m pytest ../../tests"
       docker run --rm dmenu-extended-test:latest /home/user/dmenu-extended/tests/system_tests.sh
+    fi
+    if [ "${performance}" -eq 1 ]; then
+      docker run --rm dmenu-extended-test:latest /home/user/dmenu-extended/tests/performance_test.sh
     fi
   fi
 else
