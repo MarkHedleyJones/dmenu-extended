@@ -203,7 +203,7 @@ default_prefs = {
     "indicator_edit": "*",  # Symbol to indicate an item will launch an editor
     "indicator_alias": "",  # Symbol to indicate an aliased command
     "prompt": "Open:",  # Prompt
-    "interactive_shell": False,  # Run commands in interactive mode
+    "interactive_shell": False,  # Run commands in an interactive shell session
 }
 
 
@@ -752,7 +752,7 @@ class dmenu(object):
             print(command)
 
         if self.prefs["interactive_shell"] is True:
-            shell = os.environ.get("SHELL", "/bin/bash")
+            shell = os.environ.get("SHELL", "/usr/bin/env bash")
             command = shell + " -i -c " + " ".join(command)
         return subprocess.call(command, shell=self.prefs["interactive_shell"])
 
