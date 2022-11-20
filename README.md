@@ -290,3 +290,4 @@ For those looking to improve the code, the code uses [Black](https://github.com/
 * [**nanobecquerel**](https://github.com/nanobecquerel) for improving systemd integration
 * [**fat-fighter**](https://github.com/fat-fighter) for bug fixes and solving GitHub issues
 * [**vestingz**](https://github.com/vestingz) for Incron and pacman integration.
+* [**ZappaBoy**](https://github.com/ZappaBoy) for improving alias/shell integration
