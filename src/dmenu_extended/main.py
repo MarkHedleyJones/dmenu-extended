@@ -753,7 +753,7 @@ class dmenu(object):
 
         if self.prefs["interactive_shell"] is True:
             shell = os.environ.get("SHELL", "/usr/bin/env bash")
-            command = shell + " -i -c " + " ".join(command)
+            command = '{} -i -c "{}"'.format(shell, " ".join(command))
         return subprocess.call(command, shell=self.prefs["interactive_shell"])
 
     def cache_regenerate(self, message=True):
