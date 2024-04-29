@@ -17,6 +17,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
+dependencies = ["setuptools>=61.0"]
 
 [project.scripts]
 "dmenu_extended_run" = "dmenu_extended.main:run"
