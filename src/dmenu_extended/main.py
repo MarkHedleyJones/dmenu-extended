@@ -786,11 +786,11 @@ class dmenu(object):
             for item in items:
                 clean = True
                 for char in item:
-                    if char not in string.printable:
+                    if not str.isprintable(char):
                         clean = False
                         foundError = True
                         if self.debug:
-                            print("Culprit: " + item)
+                            print("Culprit: " + item.encode('unicode_escape').decode("utf-8"))
                 if clean:
                     tmp.append(item)
             if foundError:
@@ -802,7 +802,7 @@ class dmenu(object):
                     print("Offending items have been excluded from cache")
                 with open(path, "wb") as f:
                     for item in tmp:
-                        f.write(item + "\n")
+                        f.write(item.encode('unicode_escape') + b"\n")
                 return 2
             else:
                 if self.debug:
