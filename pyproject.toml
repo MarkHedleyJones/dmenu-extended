@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dmenu_extended"
-version = "1.2.1"
+version = "1.2.2"
 authors = [
   { name="Mark Hedley Jones", email="markhedleyjones@gmail.com" },
 ]
@@ -17,6 +17,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
+dependencies = ["setuptools>=61.0"]
 
 [project.scripts]
 "dmenu_extended_run" = "dmenu_extended.main:run"
