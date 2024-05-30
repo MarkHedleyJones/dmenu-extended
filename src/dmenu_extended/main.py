@@ -554,7 +554,7 @@ class dmenu(object):
                 text=True,
             )
 
-            if type(items) == list:
+            if isinstance(items, list):
                 items = "\n".join(items)
 
             # Prevent rofi from closing with no prompt
@@ -688,7 +688,7 @@ class dmenu(object):
         strings. Also handles lists that contain strings that contain spaces.
         """
         out = []
-        if type(command) == list:
+        if isinstance(command, list):
             tmp = []
             for i, item in enumerate(command):
                 if item.find(" ") != -1:
@@ -696,7 +696,7 @@ class dmenu(object):
                 else:
                     tmp = tmp + [item]
             out = tmp
-        elif type(command) == str:
+        elif isinstance(command, str):
             out = command.split(" ")
 
         quote_count = "".join(out).count('"')
@@ -770,7 +770,7 @@ class dmenu(object):
     def cache_save(self, items, path):
         try:
             with open(path, "w") as f:
-                if type(items) == list:
+                if isinstance(items, list):
                     for item in items:
                         f.write(item + "\n")
                 else:
@@ -853,7 +853,7 @@ class dmenu(object):
             return cache_plugins + cache_frequent + cache_scanned + settings
 
     def command_output(self, command, split=True):
-        if type(command) != list:
+        if isinstance(command, list):
             command = command.split(" ")
         out = subprocess.check_output(command, text=True)
         if split:
@@ -1197,7 +1197,7 @@ class dmenu(object):
         if "include_items" in self.prefs:
             include_items = []
             for item in self.prefs["include_items"]:
-                if type(item) == list:
+                if isinstance(item, list):
                     if len(item) > 1:
                         aliased_items.append(self.format_alias(item[0], item[1]))
                         aliases.append([self.format_alias(item[0], item[1]), item[1]])
@@ -1887,7 +1887,7 @@ def run(*args):
                         print("Starting to match given command with store elements")
 
                     for item in d.prefs["include_items"]:
-                        if action == "+" and type(item) == list:
+                        if action == "+" and isinstance(item, list):
                             if d.debug:
                                 print(
                                     "Is (+) " + str(item[0]) + " == " + str(alias) + "?"
@@ -1901,7 +1901,7 @@ def run(*args):
                                 print("No")
 
                         # If removing a command - an alias would be detected as command
-                        if action == "-" and type(item) == list:
+                        if action == "-" and isinstance(item, list):
                             if d.debug:
                                 print(
                                     "Is (-) "
@@ -1968,7 +1968,7 @@ def run(*args):
                             elif d.debug:
                                 print("No")
 
-                        if type(item) != list:
+                        if isinstance(item, list):
                             if d.debug:
                                 print("Is " + str(item) + " == " + str(command) + "?")
                             if command == item:
