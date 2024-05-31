@@ -790,7 +790,10 @@ class dmenu(object):
                         clean = False
                         foundError = True
                         if self.debug:
-                            print("Culprit: " + item.encode('unicode_escape').decode("utf-8"))
+                            print(
+                                "Culprit: "
+                                + item.encode("unicode_escape").decode("utf-8")
+                            )
                 if clean:
                     tmp.append(item)
             if foundError:
@@ -802,7 +805,7 @@ class dmenu(object):
                     print("Offending items have been excluded from cache")
                 with open(path, "wb") as f:
                     for item in tmp:
-                        f.write(item.encode('unicode_escape') + b"\n")
+                        f.write(item.encode("unicode_escape") + b"\n")
                 return 2
             else:
                 if self.debug:
