@@ -512,8 +512,9 @@ class dmenu(object):
     def message_open(self, message):
         self.load_preferences()
         # Expand environment variables in each argument
-        expanded_args = [os.path.expandvars(arg) 
-                         for arg in self.prefs["menu_arguments"]]
+        expanded_args = [
+            os.path.expandvars(arg) for arg in self.prefs["menu_arguments"]
+        ]
 
         self.message = subprocess.Popen(
             [self.prefs["menu"]] + expanded_args,
@@ -552,8 +553,9 @@ class dmenu(object):
             return out
         else:
             # Expand environment variables in each argument
-            expanded_args = [os.path.expandvars(arg) 
-                             for arg in self.prefs["menu_arguments"]]
+            expanded_args = [
+                os.path.expandvars(arg) for arg in self.prefs["menu_arguments"]
+            ]
             p = subprocess.Popen(
                 [self.prefs["menu"]] + expanded_args + ["-p", prompt],
                 stdin=subprocess.PIPE,
